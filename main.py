@@ -4,9 +4,8 @@ from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
 from dotenv import load_dotenv
 load_dotenv("/.env")
-from src.db.db import Base,engine
 from src.models import *
-
+from src.error.errorHandling import add_exception_server
 App = FastAPI(title="API SPEC FOR SIMON PKL",description="This is the api spec for simon pkl, it can be your guide in consuming the api. Please pay attention to the required fields in the api spec ini",servers=[{"url": "http://localhost:2008","description" : "development server"}],contact={"name" : "Habil Arlian Asrori","email" : "arlianasrori@gmail.com"})
 
 origins = [
@@ -20,6 +19,8 @@ App.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+add_exception_server(App)
 
 async def runServer() :
     uvicorn.run(app="main:App",port=2008,reload=True)
