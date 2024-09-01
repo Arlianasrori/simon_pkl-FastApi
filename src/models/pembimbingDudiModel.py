@@ -21,13 +21,13 @@ class PembimbingDudi(Base):
     alamat = relationship("AlamatPembimbingDudi", back_populates="pembimbing_dudi")
     kunjungan_guru_pembimbing = relationship("KunjunganGuruPembimbingPKL", back_populates="pembimbing_dudi")
     notifications = relationship("Notification", back_populates="pembimbing_dudi")
-    notification_read = relationship("NotificationRead", back_populates="pembimbing_dudi")
+    notification_reads = relationship("NotificationRead", back_populates="pembimbing_dudi")
     kordinat_absen = relationship("KordinatAbsen", back_populates="pembimbing_dudi")
     laporan_pkl = relationship("LaporanPKL", back_populates="pembimbing_dudi")
 
     dudi = relationship("Dudi", back_populates="pembimbing_dudi")
     sekolah = relationship("Sekolah", back_populates="pembimbing_dudi")
-    tahun = relationship("Tahun", back_populates="pembimbing_dudi")
+    tahun = relationship("TahunSekolah", back_populates="pembimbing_dudi")
 
     def __repr__(self):
         return f"<PembimbingDudi(id={self.id}, nama='{self.nama}', id_dudi={self.id_dudi})>"

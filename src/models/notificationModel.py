@@ -18,6 +18,7 @@ class Notification(Base):
     dudi = relationship("Dudi", back_populates="notifications")
     pembimbing_dudi = relationship("PembimbingDudi", back_populates="notifications")
     guru_pembimbing = relationship("GuruPembimbing", back_populates="notifications")
+    reads = relationship("NotificationRead", back_populates="notification")
 
 class NotificationRead(Base):
     __tablename__ = 'notification_read'

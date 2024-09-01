@@ -1,7 +1,7 @@
 import os
 from jose import JWTError, jwt
 
-from ..error.errorHandling import HttpException
+from ...error.errorHandling import HttpException
 import enum
 
 class CreateTokenEnum(enum.Enum) :

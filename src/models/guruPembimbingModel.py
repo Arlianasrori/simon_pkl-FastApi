@@ -24,10 +24,10 @@ class GuruPembimbing(Base):
     alamat = relationship("AlamatGuruPembimbing", uselist=False, back_populates="guru_pembimbing")
     kunjungan_guru_pembimbing = relationship("KunjunganGuruPembimbingPKL", back_populates="guru_pembimbing")
     notifications = relationship("Notification", back_populates="guru_pembimbing")
-    notification_read = relationship("NotificationRead", back_populates="guru_pembimbing")
+    notification_reads = relationship("NotificationRead", back_populates="guru_pembimbing")
 
     sekolah = relationship("Sekolah", back_populates="guru_pembimbing")
-    tahun = relationship("Tahun", back_populates="guru_pembimbing")
+    tahun = relationship("TahunSekolah", back_populates="guru_pembimbing")
 
     def __repr__(self):
         return f"<GuruPembimbing(id={self.id}, nip='{self.nip}', nama='{self.nama}')>"

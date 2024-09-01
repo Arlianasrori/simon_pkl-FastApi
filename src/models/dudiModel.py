@@ -25,10 +25,10 @@ class Dudi(Base):
     absen_jadwal = relationship("AbsenJadwal", back_populates="dudi")
     kordinat_absen = relationship("KordinatAbsen", back_populates="dudi")
     laporan_pkl = relationship("LaporanPKL", back_populates="dudi")
-    laporan_siswa_pkl = relationship("LaporanSiswaPKL", back_populates="dudi")
+    laporans_siswa_pkl = relationship("LaporanSiswaPKL", back_populates="dudi")
 
     sekolah = relationship("Sekolah", back_populates="dudi")
-    tahun = relationship("Tahun", back_populates="dudi")
+    tahun = relationship("TahunSekolah", back_populates="dudi")
 
     def __repr__(self):
         return f"<Dudi(id={self.id}, nama='{self.nama}', bidang_usaha='{self.bidang_usaha}')>"

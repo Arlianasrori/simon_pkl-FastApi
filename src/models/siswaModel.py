@@ -34,10 +34,10 @@ class Siswa(Base):
     alamat = relationship("AlamatSiswa", uselist=False, back_populates="siswa")
     pengajuan_pkl = relationship("PengajuanPKL", back_populates="siswa")
     laporan_pkl = relationship("LaporanPKL", back_populates="siswa")
-    laporan_siswa_pkl = relationship("LaporanSiswaPKL", back_populates="siswa")
+    laporans_siswa_pkl = relationship("LaporanSiswaPKL", back_populates="siswa")
     pengajuan_cancel_pkl = relationship("PengajuanCancelPKL", back_populates="siswa")
     notifications = relationship("Notification", back_populates="siswa")
-    notification_read = relationship("NotificationRead", back_populates="siswa")
+    notification_reads = relationship("NotificationRead", back_populates="siswa")
     absen = relationship("Absen", back_populates="siswa")
 
 
@@ -45,7 +45,7 @@ class Siswa(Base):
     guru_pembimbing = relationship("GuruPembimbing", back_populates="siswa")
     dudi = relationship("Dudi", back_populates="siswa")
     pembimbing_dudi = relationship("PembimbingDudi", back_populates="siswa")
-    tahun = relationship("Tahun", back_populates="siswa")
+    tahun = relationship("TahunSekolah", back_populates="siswa")
 
     def __repr__(self):
         return f"<Siswa(id={self.id}, nis='{self.nis}', nama='{self.nama}')>"
@@ -61,7 +61,7 @@ class Jurusan(Base):
     siswa = relationship("Siswa", back_populates="jurusan")
     kelas = relationship("Kelas", back_populates="jurusan")
     sekolah = relationship("Sekolah", back_populates="jurusan")
-    tahun = relationship("Tahun", back_populates="jurusan")
+    tahun = relationship("TahunSekolah", back_populates="jurusan")
 
 class Kelas(Base):
     __tablename__ = 'kelas'

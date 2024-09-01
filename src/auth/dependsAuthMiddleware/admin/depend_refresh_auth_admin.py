@@ -7,14 +7,14 @@ from jose import JWTError, jwt
 from sqlalchemy import select
 import os
 
-SECRET_KEY = os.getenv("ADMIN_SECRET_ACCESS_TOKEN")
+SECRET_KEY = os.getenv("ADMIN_SECRET_REFRESH_TOKEN")
 
-async def adminCookieAuth(access_token : str | None = Cookie(None),req : Request = None,Session : sessionDepedency = None) :
-    print(access_token)
-    if not access_token :
+async def adminrefreshAuth(refresh_token : str | None = Cookie(None),req : Request = None,Session : sessionDepedency = None) :
+    print(refresh_token)
+    if not refresh_token :
         raise HttpException(status=401,message="invalid token(unauthorized)")
     try :
-        admin = jwt.decode(access_token,SECRET_KEY,algorithms="HS256")
+        admin = jwt.decode(refresh_token,SECRET_KEY,algorithms="HS256")
 
         if not admin :
             raise HttpException(status=401,message="invalid token(unauthorized)")

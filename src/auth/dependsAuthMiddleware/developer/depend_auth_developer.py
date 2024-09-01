@@ -9,7 +9,7 @@ import os
 
 SECRET_KEY = os.getenv("DEVELOPER_SECRET_ACCESS_TOKEN")
 
-async def adminCookieAuth(access_token : str | None = Cookie(None),req : Request = None,Session : sessionDepedency = None) :
+async def developerAuth(access_token : str | None = Cookie(None),req : Request = None,Session : sessionDepedency = None) :
     print(access_token)
     if not access_token :
         raise HttpException(status=401,message="invalid token(unauthorized)")
@@ -19,7 +19,7 @@ async def adminCookieAuth(access_token : str | None = Cookie(None),req : Request
         if not developer :
             raise HttpException(status=401,message="invalid token(unauthorized)")
         
-        selectQuery = select(Developer.username).where(Developer.id == developer["id"])
+        selectQuery = select(Developer.id,Developer.username).where(Developer.id == developer["id"])
         exec = await Session.execute(selectQuery)
         findeDeveloper = exec.first()
 

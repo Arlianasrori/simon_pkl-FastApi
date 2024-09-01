@@ -11,14 +11,15 @@ class Sekolah(Base):
     nama = Column(String(255), nullable=False)
     logo = Column(String, nullable=True)
 
-    admin = relationship("Admin", back_populates="sekolah")
-    alamat = relationship("AlamatSekolah", back_populates="sekolah")
-    kepala_sekolah = relationship("KepalaSekolah", back_populates="sekolah")
-    tahun = relationship("TahunSekolah", back_populates="sekolah")
-    guru_pembimbing = relationship("GuruPembimbing", back_populates="sekolah")
-    dudi = relationship("Dudi", back_populates="sekolah")
-    pembimbing_dudi = relationship("PembimbingDudi", back_populates="sekolah")
-    jurusan = relationship("Jurusan", back_populates="sekolah")
+    admin = relationship("Admin", back_populates="sekolah",cascade="all")
+    alamat = relationship("AlamatSekolah", back_populates="sekolah",uselist=False,cascade="all")
+    kepala_sekolah = relationship("KepalaSekolah", back_populates="sekolah",uselist=False,cascade="all")
+    tahun = relationship("TahunSekolah", back_populates="sekolah",cascade="all")
+    guru_pembimbing = relationship("GuruPembimbing", back_populates="sekolah",cascade="all")
+    siswa = relationship("Siswa", back_populates="sekolah",cascade="all")
+    dudi = relationship("Dudi", back_populates="sekolah",cascade="all")
+    pembimbing_dudi = relationship("PembimbingDudi", back_populates="sekolah",cascade="all")
+    jurusan = relationship("Jurusan", back_populates="sekolah",cascade="all")
 
     def __repr__(self):
         return f"<Sekolah(id={self.id}, npsn='{self.npsn}', nama='{self.nama}')>"

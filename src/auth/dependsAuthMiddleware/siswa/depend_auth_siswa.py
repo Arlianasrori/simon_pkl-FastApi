@@ -9,7 +9,7 @@ import os
 
 SECRET_KEY = os.getenv("SISWA_SECRET_ACCESS_TOKEN")
 
-async def adminCookieAuth(access_token : str | None = Cookie(None),Authorization: str = Header(default=None,example="jwt access token"),req : Request = None,Session : sessionDepedency = None) :
+async def siswaDependAuth(access_token : str | None = Cookie(None),Authorization: str = Header(default=None,example="jwt access token"),req : Request = None,Session : sessionDepedency = None) :
     try :
         if access_token :
             token = access_token
