@@ -26,3 +26,9 @@ class MoreSekolahBase(SekolahBase) :
     admin : list[AdminBase] = []
     alamat : AlamatSekolah | None = None
     kepala_sekolah : kepalaSekolahBase | None = None
+
+class AdminWithSekolah(BaseModel) :
+    id : int
+    id_sekolah : int
+    username : str
+    sekolah : SekolahBase

@@ -1,10 +1,10 @@
 from fastapi import APIRouter,Depends, Request, UploadFile
 
 # model and service
-from ..domain.developer.developerModel import Developer,AddSekolahBody,UpdateSekolahBody
+from ..domain.developer.developerModel import Developer,AddSekolahBody,UpdateSekolahBody,AddAdminBody,UpdateAdminBody
 from ..domain.developer import developerService
 
-from ..domain.models_domain.sekolah_model import SekolahBase,SekolahWithAlamat,MoreSekolahBase
+from ..domain.models_domain.sekolah_model import SekolahBase,SekolahWithAlamat,MoreSekolahBase,AdminWithSekolah,AdminBase
 from ..domain.models_domain.alamat_model import AlamatBase,UpdateAlamatBody
 from ..models.responseModel import ResponseModel
 
@@ -47,3 +47,25 @@ async def update_sekolah(id_sekolah : int,sekolah : UpdateSekolahBody | None = N
 @developerRouter.delete("/sekolah/{id_sekolah}",response_model=ResponseModel[SekolahBase],tags=["DEVELOPER/SEKOLAH"])
 async def delete_sekolah(id_sekolah : int,session : sessionDepedency) :
     return await developerService.deleteSekolah(id_sekolah,session)
+
+# admin
+@developerRouter.post("/admin",response_model=ResponseModel[AdminWithSekolah],tags=["DEVELOPER/ADMIN"])
+async def add_admin(admin : AddAdminBody,session : sessionDepedency) :
+    return await developerService.add_admin_sekolah(admin,session)
+
+@developerRouter.get("/admin",response_model=ResponseModel[list[AdminWithSekolah]],tags=["DEVELOPER/ADMIN"])
+async def get_all_admin(session : sessionDepedency) :
+    return await developerService.get_all_admin_sekolah(session)
+
+@developerRouter.get("/admin/{id_admin}",response_model=ResponseModel[AdminWithSekolah],tags=["DEVELOPER/ADMIN"])
+async def get_admin_by_id(id_admin : int,session : sessionDepedency) :
+    return await developerService.get_admin_sekolah_by_id(id_admin,session)
+    
+@developerRouter.put("/admin/{id_admin}",response_model=ResponseModel[AdminWithSekolah],tags=["DEVELOPER/ADMIN"])
+async def update_admin(id_admin : int,admin : UpdateAdminBody | None = None,session : sessionDepedency = None) :
+    return await developerService.update_admin_sekolah(id_admin,admin,session)
+
+@developerRouter.delete("/admin/{id_admin}",response_model=ResponseModel[AdminBase],tags=["DEVELOPER/ADMIN"])
+async def delete_admin(id_admin : int,session : sessionDepedency) :
+    return await developerService.delete_admin_sekolah(id_admin,session)
+
