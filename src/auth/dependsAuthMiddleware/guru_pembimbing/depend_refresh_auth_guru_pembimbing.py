@@ -7,10 +7,11 @@ from jose import JWTError, jwt
 from sqlalchemy import select
 import os
 
-SECRET_KEY = os.getenv("GURU_PEMBIMBING__REFRESH_ACCESS_TOKEN")
+SECRET_KEY = os.getenv("GURU_PEMBIMBING_SECRET_REFRESH_TOKEN")
 
 async def guruPembimbingRefreshAuth(refresh_token : str | None = Cookie(None),Authorization: str = Header(default=None,example="jwt access token"),req : Request = None,Session : sessionDepedency = None) :
     try :
+        token = None
         if refresh_token :
             token = refresh_token
         elif Authorization :
@@ -18,8 +19,8 @@ async def guruPembimbingRefreshAuth(refresh_token : str | None = Cookie(None),Au
         
         if not token :
             raise HttpException(status=401,message="invalid token(unauthorized)")
-        
-        guruPembimbing = jwt.decode(token,SECRET_KEY,algorithms="HS256")
+     
+        guruPembimbing = jwt.decode(str(token),SECRET_KEY,algorithms="HS256")
 
         if not guruPembimbing :
             raise HttpException(status=401,message="invalid token(unauthorized)")

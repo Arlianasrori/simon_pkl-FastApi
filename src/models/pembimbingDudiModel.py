@@ -7,7 +7,7 @@ class PembimbingDudi(Base):
     __tablename__ = 'pembimbing_dudi'
 
     id = Column(Integer, primary_key=True)
-    nama = Column(String(255), nullable=False)
+    username = Column(String(255), nullable=False)
     no_telepon = Column(String(12), unique=True, nullable=False)
     foto_profile = Column(String, nullable=True)
     jenis_kelamin = Column(Enum(JenisKelaminEnum), nullable=False)

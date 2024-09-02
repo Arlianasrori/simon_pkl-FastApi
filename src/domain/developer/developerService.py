@@ -14,6 +14,7 @@ from ...error.errorHandling import HttpException
 import os
 from copy import deepcopy
 from ...utils.updateTable import updateTable
+from ...auth.bcrypt import bcrypt
 
 
 # sekolah
@@ -145,7 +146,7 @@ async def add_admin_sekolah(admin : AddAdminBody,session : AsyncSession) -> Admi
         raise HttpException(400,f"admin dengan username {admin.username} telah digunakan")
     
     adminMApping = admin.model_dump()
-    adminMApping.update({"id" : random_strings.random_digits(6)})
+    adminMApping.update({"id" : random_strings.random_digits(6),"password" : bcrypt.create_hash_password(admin.password)})
 
     sekolahDictCopy = deepcopy(findSekolah.__dict__)
     session.add(Admin(**adminMApping))

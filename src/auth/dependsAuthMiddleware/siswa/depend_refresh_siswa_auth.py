@@ -9,7 +9,7 @@ import os
 
 SECRET_KEY = os.getenv("SISWA_SECRET_REFRESH_TOKEN")
 
-async def siswaDependAuth(refresh_token : str | None = Cookie(None),Authorization: str = Header(default=None,example="jwt access token"),req : Request = None,Session : sessionDepedency = None) :
+async def siswaRefreshAuth(refresh_token : str | None = Cookie(None),Authorization: str = Header(default=None,example="jwt access token"),req : Request = None,Session : sessionDepedency = None) :
     try :
         if refresh_token :
             token = refresh_token

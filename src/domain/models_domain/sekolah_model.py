@@ -32,3 +32,9 @@ class AdminWithSekolah(BaseModel) :
     id_sekolah : int
     username : str
     sekolah : SekolahBase
+
+class TahunSekolahBase(BaseModel) :
+    id : int
+    tahun : str
+    id_sekolah : int
+
