@@ -17,7 +17,7 @@ class Siswa(Base):
     nama = Column(String(255), nullable=False)
     jenis_kelamin = Column(Enum(JenisKelaminEnum), nullable=False)
     no_telepon = Column(String(12), unique=True, nullable=False)
-    id_guru_pembimbing = Column(Integer, ForeignKey('guru_pembimbing.id'), nullable=False)
+    id_guru_pembimbing = Column(Integer, ForeignKey('guru_pembimbing.id'), nullable=True)
     id_dudi = Column(Integer, ForeignKey('dudi.id'), nullable=True)
     id_pembimbing_dudi = Column(Integer, ForeignKey('pembimbing_dudi.id'), nullable=True)
     password = Column(String(255), nullable=False)
@@ -31,7 +31,7 @@ class Siswa(Base):
 
     jurusan = relationship("Jurusan", back_populates="siswa")
     kelas = relationship("Kelas", back_populates="siswa")
-    alamat = relationship("AlamatSiswa", uselist=False, back_populates="siswa")
+    alamat = relationship("AlamatSiswa", uselist=False, back_populates="siswa",cascade="all")
     pengajuan_pkl = relationship("PengajuanPKL", back_populates="siswa")
     laporan_pkl = relationship("LaporanPKL", back_populates="siswa")
     laporans_siswa_pkl = relationship("LaporanSiswaPKL", back_populates="siswa")

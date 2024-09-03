@@ -45,8 +45,8 @@ async def getAllJurusan(id_sekolah : int,id_tahun : int,session : AsyncSession) 
         "data" : findAllJurusan
     }
 
-async def getJurusanById(id : int, session : AsyncSession) -> MoreJurusanBase :
-    findJurusanById = (await session.execute(select(Jurusan).options(subqueryload(Jurusan.kelas)).where(Jurusan.id == id))).scalar_one_or_none()
+async def getJurusanById(id : int,id_sekolah : int, session : AsyncSession) -> MoreJurusanBase :
+    findJurusanById = (await session.execute(select(Jurusan).options(subqueryload(Jurusan.kelas)).where(and_(Jurusan.id == id,Jurusan.id_sekolah == id_sekolah)))).scalar_one_or_none()
 
     if not findJurusanById :
         raise HttpException(404,f"jurusan dengan id {id} tidak ditemukan")
@@ -117,8 +117,8 @@ async def getAllKelas(id_sekolah : int,id_tahun : int,session : AsyncSession) ->
         "data" : findAllKelas
     }
 
-async def getKelasById(id : int, session : AsyncSession) -> KelasWithJurusan :
-    findKelasById = (await session.execute(select(Kelas).options(joinedload(Kelas.jurusan)).where(Kelas.id == id))).scalar_one_or_none()
+async def getKelasById(id : int,id_sekolah : int, session : AsyncSession) -> KelasWithJurusan :
+    findKelasById = (await session.execute(select(Kelas).options(joinedload(Kelas.jurusan)).where(and_(Kelas.id == id,Kelas.jurusan.has(Jurusan.id_sekolah == id_sekolah)) ))).scalar_one_or_none()
 
     if not findKelasById :
         raise HttpException(404,f"kelas dengan id {id} tidak ditemukan")
@@ -142,7 +142,7 @@ async def updateKelas(id : int,id_sekolah : int,kelas : UpdateKelasBody, session
 
     kelasDictCopy = findKelasById.__dict__
 
-    if kelas :
+    if kelas.model_dump(exclude_unset=True) :
         updateTable(kelas,findKelasById)
         kelasDictCopy = deepcopy(findKelasById.__dict__)
         await session.commit()

@@ -18,7 +18,7 @@ class PembimbingDudi(Base):
     id_tahun = Column(Integer, ForeignKey('tahun_sekolah.id'), nullable=False)
 
     siswa = relationship("Siswa", back_populates="pembimbing_dudi")
-    alamat = relationship("AlamatPembimbingDudi", back_populates="pembimbing_dudi")
+    alamat = relationship("AlamatPembimbingDudi", uselist=False,back_populates="pembimbing_dudi",cascade="all")
     kunjungan_guru_pembimbing = relationship("KunjunganGuruPembimbingPKL", back_populates="pembimbing_dudi")
     notifications = relationship("Notification", back_populates="pembimbing_dudi")
     notification_reads = relationship("NotificationRead", back_populates="pembimbing_dudi")
@@ -30,7 +30,7 @@ class PembimbingDudi(Base):
     tahun = relationship("TahunSekolah", back_populates="pembimbing_dudi")
 
     def __repr__(self):
-        return f"<PembimbingDudi(id={self.id}, nama='{self.nama}', id_dudi={self.id_dudi})>"
+        return f"<PembimbingDudi(id={self.id}, nama='{self.username}', id_dudi={self.id_dudi})>"
 
 class AlamatPembimbingDudi(Base):
     __tablename__ = 'alamat_pembimbing_dudi'

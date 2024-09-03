@@ -14,10 +14,10 @@ class Dudi(Base):
     id_tahun = Column(Integer, ForeignKey('tahun_sekolah.id'), nullable=False)
     tersedia = Column(Boolean, default=False, nullable=False)
 
-    alamat = relationship("AlamatDudi", uselist=False, back_populates="dudi")
-    kouta = relationship("KoutaSiswa", uselist=False, back_populates="dudi")
+    alamat = relationship("AlamatDudi", uselist=False, back_populates="dudi",cascade="all")
+    kouta = relationship("KoutaSiswa", uselist=False, back_populates="dudi",cascade="all")
     siswa = relationship("Siswa", back_populates="dudi")
-    pembimbing_dudi = relationship("PembimbingDudi", back_populates="dudi")
+    pembimbing_dudi = relationship("PembimbingDudi", back_populates="dudi",cascade="all")
     kunjungan_guru_pembimbing = relationship("KunjunganGuruPembimbingPKL", back_populates="dudi")
     pengajuan_pkl = relationship("PengajuanPKL", back_populates="dudi")
     pengajuan_cancel_pkl = relationship("PengajuanCancelPKL", back_populates="dudi")
@@ -31,7 +31,7 @@ class Dudi(Base):
     tahun = relationship("TahunSekolah", back_populates="dudi")
 
     def __repr__(self):
-        return f"<Dudi(id={self.id}, nama='{self.nama}', bidang_usaha='{self.bidang_usaha}')>"
+        return f"<Dudi(id={self.id}, nama='{self.nama_instansi_perusahaan}', bidang_usaha='{self.bidang_usaha}')>"
 
 class AlamatDudi(Base):
     __tablename__ = 'alamat_dudi'
@@ -47,7 +47,7 @@ class AlamatDudi(Base):
     dudi = relationship("Dudi", back_populates="alamat")
 
     def __repr__(self):
-        return f"<AlamatDudi(id={self.id}')>"
+        return f"<AlamatDudi(id={self.id_dudi}')>"
 
 
 class KoutaSiswa(Base):
@@ -60,4 +60,4 @@ class KoutaSiswa(Base):
     dudi = relationship("Dudi", back_populates="kouta")
 
     def __repr__(self):
-        return f"<KoutaSiswa(id={self.id}, id_dudi={self.id_dudi}, total={self.total})>"
+        return f"<KoutaSiswa(id={self.id_dudi}, id_dudi={self.id_dudi})>"

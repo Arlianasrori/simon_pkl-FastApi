@@ -28,7 +28,7 @@ async def getDeveloper(Req : Request) :
 async def add_sekolah(sekolah : AddSekolahBody,alamat : AlamatBase,session : sessionDepedency) :
     return await developerService.add_sekolah(sekolah,alamat,session)
 
-@developerRouter.put("/sekolah/logo/{id_sekolah}",response_model=ResponseModel[SekolahBase],tags=["DEVELOPER/SEKOLAH"])
+@developerRouter.patch("/sekolah/logo/{id_sekolah}",response_model=ResponseModel[SekolahBase],tags=["DEVELOPER/SEKOLAH"])
 async def update_logo_sekolah(id_sekolah : int,logo : UploadFile,session : sessionDepedency) :
     return await developerService.add_update_foto_profile_sekolah(id_sekolah,logo,session)
 

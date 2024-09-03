@@ -21,7 +21,7 @@ class GuruPembimbing(Base):
     id_tahun = Column(Integer, ForeignKey('tahun_sekolah.id'), nullable=False)
 
     siswa = relationship("Siswa", back_populates="guru_pembimbing")
-    alamat = relationship("AlamatGuruPembimbing", uselist=False, back_populates="guru_pembimbing")
+    alamat = relationship("AlamatGuruPembimbing", uselist=False, back_populates="guru_pembimbing",cascade="all")
     kunjungan_guru_pembimbing = relationship("KunjunganGuruPembimbingPKL", back_populates="guru_pembimbing")
     notifications = relationship("Notification", back_populates="guru_pembimbing")
     notification_reads = relationship("NotificationRead", back_populates="guru_pembimbing")
