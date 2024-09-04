@@ -68,7 +68,7 @@ class Absen(Base):
     status_absen_masuk = Column(Enum(StatusAbsenMasukKeluarEnum))
     status_absen_pulang = Column(Enum(StatusAbsenMasukKeluarEnum))
     foto = Column(String(1500))
-    status = Column(Enum(StatusAbsenEnum))
+    status = Column(Enum(StatusAbsenEnum),default=StatusAbsenEnum.tidak_hadir.value)
 
     jadwal_absen = relationship("AbsenJadwal", back_populates="absen")
     siswa = relationship("Siswa", back_populates="absen")
