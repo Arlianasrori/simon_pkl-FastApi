@@ -13,6 +13,20 @@ from python_random_strings import random_strings
 from ....error.errorHandling import HttpException
 
 async def addTahunSekolah(id_sekolah : int,tahun : AddTahunSekolahBody,session : AsyncSession) -> TahunSekolahBase :
+    """
+    Add a new school year to the database.
+
+    Args:
+        id_sekolah (int): The ID of the school.
+        tahun (AddTahunSekolahBody): The school year data to be added.
+        session (AsyncSession): The database session.
+
+    Returns:
+        TahunSekolahBase: The newly added school year data.
+
+    Raises:
+        HttpException: If the school year already exists.
+    """
     findTahunById = (await session.execute(select(TahunSekolah).where(and_(TahunSekolah.id_sekolah == id_sekolah,TahunSekolah.tahun == tahun.tahun)))).scalar_one_or_none()
 
     if findTahunById :
@@ -33,6 +47,16 @@ async def addTahunSekolah(id_sekolah : int,tahun : AddTahunSekolahBody,session :
     }
 
 async def getAllTahunSekolah(id_sekolah : int,session : AsyncSession) -> list[TahunSekolahBase] :
+    """
+    Retrieve all school years for a specific school.
+
+    Args:
+        id_sekolah (int): The ID of the school.
+        session (AsyncSession): The database session.
+
+    Returns:
+        list[TahunSekolahBase]: A list of all school years for the specified school.
+    """
     findTahunById = (await session.execute(select(TahunSekolah).where(TahunSekolah.id_sekolah == id_sekolah))).scalars().all()
 
     return {
@@ -41,6 +65,21 @@ async def getAllTahunSekolah(id_sekolah : int,session : AsyncSession) -> list[Ta
     }
 
 async def updateTahunSekolah(id_sekolah : int,id_tahun : int,tahun : UpdateTahunSekolahBody,session : AsyncSession) -> TahunSekolahBase :
+    """
+    Update an existing school year.
+
+    Args:
+        id_sekolah (int): The ID of the school.
+        id_tahun (int): The ID of the school year to update.
+        tahun (UpdateTahunSekolahBody): The updated school year data.
+        session (AsyncSession): The database session.
+
+    Returns:
+        TahunSekolahBase: The updated school year data.
+
+    Raises:
+        HttpException: If the school year is not found or if the new year already exists.
+    """
     findTahunById = (await session.execute(select(TahunSekolah).where(and_(TahunSekolah.id_sekolah == id_sekolah,TahunSekolah.id == id_tahun)))).scalar_one_or_none()
 
     if not findTahunById :
@@ -63,6 +102,20 @@ async def updateTahunSekolah(id_sekolah : int,id_tahun : int,tahun : UpdateTahun
     }
     
 async def deleteTahunSekolah(id_sekolah : int,id_tahun : int,session : AsyncSession) -> TahunSekolahBase :
+    """
+    Delete a school year.
+
+    Args:
+        id_sekolah (int): The ID of the school.
+        id_tahun (int): The ID of the school year to delete.
+        session (AsyncSession): The database session.
+
+    Returns:
+        TahunSekolahBase: The deleted school year data.
+
+    Raises:
+        HttpException: If the school year is not found.
+    """
     findTahunById = (await session.execute(select(TahunSekolah).where(and_(TahunSekolah.id_sekolah == id_sekolah,TahunSekolah.id == id_tahun)))).scalar_one_or_none()
 
     if not findTahunById :

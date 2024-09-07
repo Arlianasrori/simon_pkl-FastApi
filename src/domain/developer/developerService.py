@@ -19,6 +19,20 @@ from ...auth.bcrypt import bcrypt
 
 # sekolah
 async def add_sekolah(sekolah : AddSekolahBody,alamat : AlamatBase,session : AsyncSession) -> SekolahWithAlamat :
+    """
+    Add a new school to the database.
+
+    Args:
+        sekolah (AddSekolahBody): The school data to be added.
+        alamat (AlamatBase): The address data for the school.
+        session (AsyncSession): The database session.
+
+    Returns:
+        SekolahWithAlamat: The newly added school with its address.
+
+    Raises:
+        HttpException: If a school with the same NPSN already exists.
+    """
     findSekolahByNpsn = (await session.execute(select(Sekolah).where(Sekolah.npsn == sekolah.npsn))).scalar_one_or_none()
     if findSekolahByNpsn :
         raise HttpException(400,f"sekolah dengan npsn {sekolah.npsn} stelah ditambahkan")
@@ -48,6 +62,20 @@ LOGO_SEKOLAH_STORE = os.getenv("DEV_LOGO_SEKOLAH_STORE")
 LOGO_SEKOLAH_BASE_URL = os.getenv("DEV_LOGO_SEKOLAH_BASE_URL")
 
 async def add_update_foto_profile_sekolah(id_sekolah : int,logo : UploadFile,session : AsyncSession) -> SekolahBase :
+    """
+    Add or update the school's profile photo.
+
+    Args:
+        id_sekolah (int): The ID of the school.
+        logo (UploadFile): The logo file to be uploaded.
+        session (AsyncSession): The database session.
+
+    Returns:
+        SekolahBase: The updated school data.
+
+    Raises:
+        HttpException: If the school is not found or if the file is not an image.
+    """
     findSekolah = (await session.execute(select(Sekolah).where(Sekolah.id == id_sekolah))).scalar_one_or_none()
     if not findSekolah :
         raise HttpException(404,f"sekolah tidak ditemukan")
@@ -81,6 +109,15 @@ async def add_update_foto_profile_sekolah(id_sekolah : int,logo : UploadFile,ses
     }
 
 async def getAllsekolah(session : AsyncSession) -> SekolahWithAlamat :
+    """
+    Retrieve all schools from the database.
+
+    Args:
+        session (AsyncSession): The database session.
+
+    Returns:
+        SekolahWithAlamat: A list of all schools with their addresses.
+    """
     sekolah = (await session.execute(select(Sekolah).options(joinedload(Sekolah.alamat)))).scalars().all()
 
     return {
@@ -89,6 +126,19 @@ async def getAllsekolah(session : AsyncSession) -> SekolahWithAlamat :
     }
 
 async def getSekolahById(id_sekolah : int,session : AsyncSession) -> MoreSekolahBase :
+    """
+    Retrieve a school by its ID.
+
+    Args:
+        id_sekolah (int): The ID of the school.
+        session (AsyncSession): The database session.
+
+    Returns:
+        MoreSekolahBase: The school data with additional related information.
+
+    Raises:
+        HttpException: If the school is not found.
+    """
     sekolah = (await session.execute(select(Sekolah).options(subqueryload(Sekolah.admin),joinedload(Sekolah.alamat),joinedload(Sekolah.kepala_sekolah),subqueryload(Sekolah.siswa),subqueryload(Sekolah.dudi),subqueryload(Sekolah.pembimbing_dudi),subqueryload(Sekolah.guru_pembimbing)).where(Sekolah.id == id_sekolah).options(joinedload(Sekolah.alamat)))).scalar_one_or_none()
     if not sekolah :
         raise HttpException(404,f"sekolah tidak ditemukan")
@@ -100,6 +150,21 @@ async def getSekolahById(id_sekolah : int,session : AsyncSession) -> MoreSekolah
 
 
 async def updateSekolah(id_sekolah : int,sekolah : UpdateAlamatBody,alamat : AlamatBase,session : AsyncSession) -> SekolahWithAlamat :
+    """
+    Update a school's information.
+
+    Args:
+        id_sekolah (int): The ID of the school.
+        sekolah (UpdateAlamatBody): The updated school data.
+        alamat (AlamatBase): The updated address data.
+        session (AsyncSession): The database session.
+
+    Returns:
+        SekolahWithAlamat: The updated school data with its address.
+
+    Raises:
+        HttpException: If the school is not found.
+    """
     findSekolah = (await session.execute(select(Sekolah).options(joinedload(Sekolah.alamat)).where(Sekolah.id == id_sekolah))).scalar_one_or_none()
     if not findSekolah :
         raise HttpException(404,f"sekolah tidak ditemukan")
@@ -119,6 +184,19 @@ async def updateSekolah(id_sekolah : int,sekolah : UpdateAlamatBody,alamat : Ala
     }
 
 async def deleteSekolah(id_sekolah : int,session : AsyncSession) -> SekolahBase :
+    """
+    Delete a school from the database.
+
+    Args:
+        id_sekolah (int): The ID of the school to be deleted.
+        session (AsyncSession): The database session.
+
+    Returns:
+        SekolahBase: The deleted school data.
+
+    Raises:
+        HttpException: If the school is not found.
+    """
     findSekolah = (await session.execute(select(Sekolah).where(Sekolah.id == id_sekolah))).scalar_one_or_none()
     if not findSekolah :
         raise HttpException(404,f"sekolah tidak ditemukan")
@@ -135,6 +213,19 @@ async def deleteSekolah(id_sekolah : int,session : AsyncSession) -> SekolahBase 
 # admin sekolah
 
 async def add_admin_sekolah(admin : AddAdminBody,session : AsyncSession) -> AdminWithSekolah :
+    """
+    Add a new school admin to the database.
+
+    Args:
+        admin (AddAdminBody): The admin data to be added.
+        session (AsyncSession): The database session.
+
+    Returns:
+        AdminWithSekolah: The newly added admin with their associated school.
+
+    Raises:
+        HttpException: If the school is not found or if the username is already in use.
+    """
     findSekolah = (await session.execute(select(Sekolah).where(Sekolah.id == admin.id_sekolah))).scalar_one_or_none()
 
     if not findSekolah :
@@ -160,6 +251,15 @@ async def add_admin_sekolah(admin : AddAdminBody,session : AsyncSession) -> Admi
         }
     }
 async def get_all_admin_sekolah(session : AsyncSession) -> AdminWithSekolah :
+    """
+    Retrieve all school admins from the database.
+
+    Args:
+        session (AsyncSession): The database session.
+
+    Returns:
+        AdminWithSekolah: A list of all school admins with their associated schools.
+    """
     admin = (await session.execute(select(Admin).options(joinedload(Admin.sekolah)))).scalars().all()
 
     return {
@@ -168,6 +268,19 @@ async def get_all_admin_sekolah(session : AsyncSession) -> AdminWithSekolah :
     }
 
 async def get_admin_sekolah_by_id(id_admin : int,session : AsyncSession) -> AdminWithSekolah :
+    """
+    Retrieve a school admin by their ID.
+
+    Args:
+        id_admin (int): The ID of the admin.
+        session (AsyncSession): The database session.
+
+    Returns:
+        AdminWithSekolah: The admin data with their associated school.
+
+    Raises:
+        HttpException: If the admin is not found.
+    """
     admin = (await session.execute(select(Admin).options(joinedload(Admin.sekolah)).where(Admin.id == id_admin))).scalar_one_or_none()
     if not admin :
         raise HttpException(404,f"admin tidak ditemukan")
@@ -178,6 +291,20 @@ async def get_admin_sekolah_by_id(id_admin : int,session : AsyncSession) -> Admi
     }
 
 async def update_admin_sekolah(id_admin : int,admin : UpdateAdminBody,session : AsyncSession) -> AdminWithSekolah :
+    """
+    Update a school admin's information.
+
+    Args:
+        id_admin (int): The ID of the admin to be updated.
+        admin (UpdateAdminBody): The updated admin data.
+        session (AsyncSession): The database session.
+
+    Returns:
+        AdminWithSekolah: The updated admin data with their associated school.
+
+    Raises:
+        HttpException: If the admin is not found.
+    """
     findAdmin = (await session.execute(select(Admin).options(joinedload(Admin.sekolah)).where(Admin.id == id_admin))).scalar_one_or_none()
     if not findAdmin :
         raise HttpException(404,f"admin tidak ditemukan")
@@ -195,6 +322,19 @@ async def update_admin_sekolah(id_admin : int,admin : UpdateAdminBody,session : 
         
 
 async def delete_admin_sekolah(id_admin : int,session : AsyncSession) -> AdminBase :
+    """
+    Delete a school admin from the database.
+
+    Args:
+        id_admin (int): The ID of the admin to be deleted.
+        session (AsyncSession): The database session.
+
+    Returns:
+        AdminBase: The deleted admin data.
+
+    Raises:
+        HttpException: If the admin is not found.
+    """
     findAdmin = (await session.execute(select(Admin).where(Admin.id == id_admin))).scalar_one_or_none()
     if not findAdmin :
         raise HttpException(404,f"admin tidak ditemukan")
@@ -207,5 +347,3 @@ async def delete_admin_sekolah(id_admin : int,session : AsyncSession) -> AdminBa
         "msg" : "success",
         "data" : adminDictCopy
     }
-    
-

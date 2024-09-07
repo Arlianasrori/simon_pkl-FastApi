@@ -35,7 +35,10 @@ async def admin_refresh_token(Req : Request,Res : Response) :
 async def public_login(auth : LoginBody,Res : Response,session : sessionDepedency) :
     return await authService.publicLogin(auth,Res,session)
 
-
+# all user like developer,admin,siswa,guru and pembimbing dudi
+@authRouter.post("/all/login",response_model=ResponseModel[ResponseAuthToken],tags=["AUTH/ALL"])
+async def all_user_login(auth : LoginBody,Res : Response,session : sessionDepedency) :
+    return await authService.allUserAuth(auth,Res,session)
 # siswa
 @authRouter.post("/siswa/refreshToken",dependencies=[Depends(siswaRefreshAuth)],response_model=ResponseModel[ResponseRefreshToken],tags=["AUTH/SISWA"])
 async def siswa_refresh_token(Req : Request,Res : Response) :

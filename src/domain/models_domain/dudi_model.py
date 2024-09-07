@@ -19,3 +19,6 @@ class KoutaBase(BaseModel) :
     jumlah_wanita: int
 class DudiWithAlamatKouta(DudiWithAlamat) :
     kouta : KoutaBase | None = None
+
+class DudiWithKouta(DudiBase) :
+    kouta : KoutaBase | None = None

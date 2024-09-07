@@ -19,6 +19,21 @@ from ....error.errorHandling import HttpException
 from ....utils.updateTable import updateTable
 
 async def addDudi(id_sekolah : int,dudi : AddDudiBody,alamat : AlamatBase,session : AsyncSession) -> DudiWithAlamat :
+    """
+    Add a new DUDI (Dunia Usaha dan Dunia Industri) entry.
+
+    Args:
+        id_sekolah (int): The school ID.
+        dudi (AddDudiBody): The DUDI data to be added.
+        alamat (AlamatBase): The address data for the DUDI.
+        session (AsyncSession): The database session.
+
+    Returns:
+        DudiWithAlamat: The newly added DUDI with its address.
+
+    Raises:
+        HttpException: If the specified school year is not found.
+    """
     findTahun = (await session.execute(select(TahunSekolah).where(TahunSekolah.id == dudi.id_tahun))).scalar_one_or_none()
     if not findTahun :
         raise HttpException(404,f"Tahun Sekolah dengan id {dudi.id_tahun} tidak ditemukan")
@@ -39,6 +54,18 @@ async def addDudi(id_sekolah : int,dudi : AddDudiBody,alamat : AlamatBase,sessio
     }
 
 async def getAllDudi(page : int,id_sekolah : int,id_tahun : int,session : AsyncSession) -> list[DudiWithAlamat] | ResponseDudiPag:
+    """
+    Retrieve all DUDI entries for a specific school and year.
+
+    Args:
+        page (int): The page number for pagination.
+        id_sekolah (int): The school ID.
+        id_tahun (int): The year ID.
+        session (AsyncSession): The database session.
+
+    Returns:
+        list[DudiWithAlamat] | ResponseDudiPag: A list of DUDI entries or paginated response.
+    """
     statementGetDudi = select(Dudi).where(and_(Dudi.id_sekolah == id_sekolah,Dudi.id_tahun == id_tahun)).options(joinedload(Dudi.alamat))
 
     if page :
@@ -61,6 +88,20 @@ async def getAllDudi(page : int,id_sekolah : int,id_tahun : int,session : AsyncS
     }
 
 async def getDudiById(id_dudi : int,id_sekolah : int,session : AsyncSession) -> DudiWithAlamatKouta :
+    """
+    Retrieve a specific DUDI entry by its ID.
+
+    Args:
+        id_dudi (int): The DUDI ID.
+        id_sekolah (int): The school ID.
+        session (AsyncSession): The database session.
+
+    Returns:
+        DudiWithAlamatKouta: The DUDI entry with its address and quota.
+
+    Raises:
+        HttpException: If the DUDI entry is not found.
+    """
     findDudi = (await session.execute(select(Dudi).where(and_(Dudi.id == id_dudi,Dudi.id_sekolah == id_sekolah)).options(joinedload(Dudi.alamat),joinedload(Dudi.kouta)))).scalar_one_or_none()
     if not findDudi :
         raise HttpException(404,f"Dudi dengan id {id_dudi} tidak ditemukan")
@@ -72,6 +113,22 @@ async def getDudiById(id_dudi : int,id_sekolah : int,session : AsyncSession) -> 
     }
 
 async def updateDudi(id_dudi : int,id_sekolah : int,dudi : UpdateDudiBody,alamat : UpdateAlamatBody,session : AsyncSession) -> DudiWithAlamat :
+    """
+    Update a DUDI entry and its address.
+
+    Args:
+        id_dudi (int): The DUDI ID.
+        id_sekolah (int): The school ID.
+        dudi (UpdateDudiBody): The updated DUDI data.
+        alamat (UpdateAlamatBody): The updated address data.
+        session (AsyncSession): The database session.
+
+    Returns:
+        DudiWithAlamat: The updated DUDI entry with its address.
+
+    Raises:
+        HttpException: If the DUDI entry is not found.
+    """
     findDudi = (await session.execute(select(Dudi).options(joinedload(Dudi.alamat)).where(and_(Dudi.id == id_dudi,Dudi.id_sekolah == id_sekolah)))).scalar_one_or_none()
     if not findDudi :
         raise HttpException(404,f"Dudi dengan id {id_dudi} tidak ditemukan")
@@ -88,6 +145,20 @@ async def updateDudi(id_dudi : int,id_sekolah : int,dudi : UpdateDudiBody,alamat
     }
 
 async def deleteDudi(id_dudi : int,id_sekolah : int,session : AsyncSession) -> DudiBase :
+    """
+    Delete a DUDI entry.
+
+    Args:
+        id_dudi (int): The DUDI ID.
+        id_sekolah (int): The school ID.
+        session (AsyncSession): The database session.
+
+    Returns:
+        DudiBase: The deleted DUDI entry.
+
+    Raises:
+        HttpException: If the DUDI entry is not found.
+    """
     findDudi = (await session.execute(select(Dudi).where(and_(Dudi.id == id_dudi,Dudi.id_sekolah == id_sekolah)))).scalar_one_or_none()
     if not findDudi :
         raise HttpException(404,f"Dudi dengan id {id_dudi} tidak ditemukan")
@@ -98,4 +169,3 @@ async def deleteDudi(id_dudi : int,id_sekolah : int,session : AsyncSession) -> D
         "msg" : "success",
         "data" : dudiDictCopy
     }
-

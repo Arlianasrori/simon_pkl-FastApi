@@ -11,6 +11,7 @@ from ....models.guruPembimbingModel import GuruPembimbing,AlamatGuruPembimbing
 from ....models.sekolahModel import TahunSekolah
 
 # common
+from ....auth.bcrypt import bcrypt
 import math
 import os
 from copy import deepcopy
@@ -19,6 +20,22 @@ from ....error.errorHandling import HttpException
 from ....utils.updateTable import updateTable
 
 async def addGuruPembimbing(id_sekolah : int,guruPembimbing : AddGuruPembimbingBody,alamat : AlamatBase,session : AsyncSession) -> GuruPembimbingWithAlamat:
+    """
+    Add a new Guru Pembimbing (supervising teacher) to the database.
+
+    Args:
+        id_sekolah (int): The school ID.
+        guruPembimbing (AddGuruPembimbingBody): The Guru Pembimbing data to be added.
+        alamat (AlamatBase): The address data for the Guru Pembimbing.
+        session (AsyncSession): The database session.
+
+    Returns:
+        GuruPembimbingWithAlamat: The newly added Guru Pembimbing with its address.
+
+    Raises:
+        HttpException: If a Guru Pembimbing with the same NIP or phone number already exists,
+                       or if the specified school year is not found.
+    """
     findGuruPembimbing = (await session.execute(select(GuruPembimbing).where(GuruPembimbing.nip == guruPembimbing.nip))).scalar_one_or_none()
     if findGuruPembimbing :
         raise HttpException(400,f"Guru Pembimbing dengan nip {guruPembimbing.nip} telah ditambahkan")
@@ -32,7 +49,7 @@ async def addGuruPembimbing(id_sekolah : int,guruPembimbing : AddGuruPembimbingB
         raise HttpException(400,f"Tahun dengan id {guruPembimbing.id_tahun} tidak ditemukan")
     
     guruPembimbingMapping = guruPembimbing.model_dump()
-    guruPembimbingMapping.update({"id" : random_strings.random_digits(6),"id_sekolah" : id_sekolah})
+    guruPembimbingMapping.update({"id" : random_strings.random_digits(6),"id_sekolah" : id_sekolah,"password" : bcrypt.create_hash_password(guruPembimbing.password)})
     alamatMapping = alamat.model_dump()
     alamatMapping.update({"id_guru_pembimbing" : guruPembimbingMapping["id"]})
     session.add(GuruPembimbing(**guruPembimbingMapping,alamat = AlamatGuruPembimbing(**alamatMapping)))
@@ -52,6 +69,21 @@ PROFILE_STORE = os.getenv("DEV_FOTO_PROFILE_GURU_PEMBIMBING_STORE")
 PROFILE_BASE_URL = os.getenv("DEV_FOTO_PROFILE_GURU_PEMBIMBING_BASE_URL")
 
 async def add_update_foto_profile(id : int,id_sekolah : int,foto_profile : UploadFile,session : AsyncSession) -> GuruPembimbingBase :
+    """
+    Add or update the profile photo of a Guru Pembimbing.
+
+    Args:
+        id (int): The ID of the Guru Pembimbing.
+        id_sekolah (int): The school ID.
+        foto_profile (UploadFile): The uploaded profile photo file.
+        session (AsyncSession): The database session.
+
+    Returns:
+        GuruPembimbingBase: The updated Guru Pembimbing data.
+
+    Raises:
+        HttpException: If the Guru Pembimbing is not found or if the file is not an image.
+    """
     findguruPembimbing = (await session.execute(select(GuruPembimbing).where(and_(GuruPembimbing.id == id,GuruPembimbing.id_sekolah == id_sekolah)))).scalar_one_or_none()
     if not findguruPembimbing :
         raise HttpException(404,f"guru pembimbing tidak ditemukan")
@@ -86,6 +118,18 @@ async def add_update_foto_profile(id : int,id_sekolah : int,foto_profile : Uploa
     } 
 
 async def getAllGuruPembimbing(page : int | None,id_sekolah : int,id_tahun : int,session : AsyncSession) -> GuruPembimbingWithAlamat | ResponseGuruPembimbingPag:
+    """
+    Retrieve all Guru Pembimbing entries for a specific school and year, with optional pagination.
+
+    Args:
+        page (int | None): The page number for pagination (if None, returns all entries).
+        id_sekolah (int): The school ID.
+        id_tahun (int): The year ID.
+        session (AsyncSession): The database session.
+
+    Returns:
+        GuruPembimbingWithAlamat | ResponseGuruPembimbingPag: A list of Guru Pembimbing entries or a paginated response.
+    """
     statementGetGuru = select(GuruPembimbing).options(joinedload(GuruPembimbing.alamat)).where(and_(GuruPembimbing.id_sekolah == id_sekolah,GuruPembimbing.id_tahun == id_tahun))
 
     if page :
@@ -108,6 +152,20 @@ async def getAllGuruPembimbing(page : int | None,id_sekolah : int,id_tahun : int
         }
 
 async def getGuruPembimbingById(id : int,id_sekolah : int,session : AsyncSession) -> GuruPembimbingWithAlamat:
+    """
+    Retrieve a specific Guru Pembimbing entry by its ID.
+
+    Args:
+        id (int): The ID of the Guru Pembimbing.
+        id_sekolah (int): The school ID.
+        session (AsyncSession): The database session.
+
+    Returns:
+        GuruPembimbingWithAlamat: The Guru Pembimbing entry with its address.
+
+    Raises:
+        HttpException: If the Guru Pembimbing is not found.
+    """
     guruPembimbing = (await session.execute(select(GuruPembimbing).options(joinedload(GuruPembimbing.alamat)).where(and_(GuruPembimbing.id == id,GuruPembimbing.id_sekolah == id_sekolah)))).scalar_one_or_none()
 
     if not guruPembimbing :
@@ -119,6 +177,22 @@ async def getGuruPembimbingById(id : int,id_sekolah : int,session : AsyncSession
     }
 
 async def updateGuruPembimbing(id : int,id_sekolah : int,guruPembimbing : UpdateGuruPembimbingBody,alamat : UpdateAlamatBody,session : AsyncSession) -> GuruPembimbingWithAlamat:
+    """
+    Update a Guru Pembimbing entry and its address.
+
+    Args:
+        id (int): The ID of the Guru Pembimbing.
+        id_sekolah (int): The school ID.
+        guruPembimbing (UpdateGuruPembimbingBody): The updated Guru Pembimbing data.
+        alamat (UpdateAlamatBody): The updated address data.
+        session (AsyncSession): The database session.
+
+    Returns:
+        GuruPembimbingWithAlamat: The updated Guru Pembimbing entry with its address.
+
+    Raises:
+        HttpException: If the Guru Pembimbing is not found, or if the new NIP or phone number is already in use.
+    """
     findGuruPembimbing = (await session.execute(select(GuruPembimbing).options(joinedload(GuruPembimbing.alamat)).where(and_(GuruPembimbing.id == id,GuruPembimbing.id_sekolah == id_sekolah)))).scalar_one_or_none()
     if not findGuruPembimbing :
         raise HttpException(404,f"Guru Pembimbing dengan id {id} tidak ditemukan")
@@ -148,6 +222,20 @@ async def updateGuruPembimbing(id : int,id_sekolah : int,guruPembimbing : Update
     }
 
 async def deleteGuruPembimbing(id : int,id_sekolah : int,session : AsyncSession) -> GuruPembimbingBase:
+    """
+    Delete a Guru Pembimbing entry.
+
+    Args:
+        id (int): The ID of the Guru Pembimbing to be deleted.
+        id_sekolah (int): The school ID.
+        session (AsyncSession): The database session.
+
+    Returns:
+        GuruPembimbingBase: The deleted Guru Pembimbing data.
+
+    Raises:
+        HttpException: If the Guru Pembimbing is not found.
+    """
     findGuruPembimbing = (await session.execute(select(GuruPembimbing).where(and_(GuruPembimbing.id == id,GuruPembimbing.id_sekolah == id_sekolah)))).scalar_one_or_none()
     if not findGuruPembimbing :
         raise HttpException(404,f"Guru Pembimbing dengan id {id} tidak ditemukan")
@@ -160,4 +248,3 @@ async def deleteGuruPembimbing(id : int,id_sekolah : int,session : AsyncSession)
         "msg" : "success",
         "data" : guruPembimbingDictCopy
     }
-
