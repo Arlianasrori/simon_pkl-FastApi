@@ -1,6 +1,5 @@
-from operator import and_
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select,func
+from sqlalchemy import select,func,and_
 from sqlalchemy.orm import joinedload
 
 # models
