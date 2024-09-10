@@ -3,6 +3,8 @@ from .alamat_model import AlamatBase
 from .kelas_jurusan_model import JurusanBase,KelasBase
 from .guru_pembimbing_model import GuruPembimbingBase
 from ...models.siswaModel import StatusPKLEnum
+from .dudi_model import DudiBase
+from .pembimbing_dudi_model import PembimbingDudiBase
 
 class SiswaBase(BaseModel) :
     id : int
@@ -17,13 +19,16 @@ class SiswaBase(BaseModel) :
 class SiswaWithAlamat(SiswaBase) :
     alamat : AlamatBase
 
-class MoreSiswa(SiswaBase) :
+class SiswaWithJurusanKelas(SiswaWithAlamat) :
     jurusan : JurusanBase
     kelas : KelasBase
+
+class MoreSiswa(SiswaWithJurusanKelas) :
     guru_pembimbing : GuruPembimbingBase | None = None
 
 class DetailSiswa(MoreSiswa) :
-    pass
-    # dudi : DudiBase
-    # pembimbing_dudi : PembimbingDudiBase
-    
+    dudi : DudiBase
+    pembimbing_dudi : PembimbingDudiBase
+
+class SiswaWithDudi(SiswaWithJurusanKelas) :
+    dudi : DudiBase

@@ -6,7 +6,6 @@ from fastapi import UploadFile
 # models
 from ...models_domain.laporan_pkl_dudi_model import LaporanPklDudiBase,LaporanPklDudiWithOut
 from ....models.laporanPklModel import LaporanPKL
-from ....models.siswaModel import Siswa
 from .laporanPklModel import AddLaporanPklDudiBody,UpdateLaporanPklDudiBody
 
 # common

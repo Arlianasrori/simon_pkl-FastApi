@@ -1,6 +1,7 @@
 from pydantic import BaseModel
 from ...models.types import JenisKelaminEnum
 from .alamat_model import AlamatBase
+from .sekolah_model import SekolahBase
 
 class GuruPembimbingBase(BaseModel):
     id : int
@@ -18,3 +19,6 @@ class GuruPembimbingBase(BaseModel):
 
 class GuruPembimbingWithAlamat(GuruPembimbingBase):
     alamat : AlamatBase
+
+class GuruPembimbingWithSekolahAlamat(GuruPembimbingWithAlamat):
+    sekolah : SekolahBase

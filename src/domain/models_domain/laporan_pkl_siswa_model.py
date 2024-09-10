@@ -7,6 +7,6 @@ class LaporanPklSiswaBase(BaseModel) :
     id : int
     tanggal : Date
     keterangan : str
-    file_laporan : str
+    file_laporan : str | None = None
     siswa : SiswaBase
     dudi : DudiBase

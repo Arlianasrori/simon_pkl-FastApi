@@ -55,13 +55,11 @@ class KunjunganGuruPembimbingPKL(Base):
     id = Column(Integer, primary_key=True)
     id_guru_pembimbing = Column(Integer, ForeignKey('guru_pembimbing.id'), nullable=False)
     id_dudi = Column(Integer, ForeignKey('dudi.id'), nullable=False)
-    id_pembimbing_dudi = Column(Integer, ForeignKey('pembimbing_dudi.id'), nullable=False)
     tanggal_kunjungan = Column(DateTime, nullable=False)
     catatan = Column(String(1500), nullable=False)
 
     dudi = relationship("Dudi", back_populates="kunjungan_guru_pembimbing")
     guru_pembimbing = relationship("GuruPembimbing", back_populates="kunjungan_guru_pembimbing")
-    pembimbing_dudi = relationship("PembimbingDudi", back_populates="kunjungan_guru_pembimbing")
 
     def __repr__(self):
         return f"<KunjunganGuruPembimbingPKL(id={self.id}, tanggal_kunjungan='{self.tanggal_kunjungan}')>"
