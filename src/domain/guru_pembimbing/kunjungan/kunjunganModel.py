@@ -12,5 +12,5 @@ class UpdateKunjunganBody(BaseModel) :
     tanggal_kunjungan : str | None = None
     catatan : str | None = None
 
-class ResponseLaporanPklDudiPag(PaginationBase) :
+class ResponseKunjunganDudiPag(PaginationBase) :
     data : list[KunjunganGuruPembimbingWithDudi] = []
