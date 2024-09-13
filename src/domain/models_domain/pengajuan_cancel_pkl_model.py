@@ -4,7 +4,7 @@ from .dudi_model import DudiBase
 from ...models.pengajuanPklModel import StatusCancelPKLENUM
 
 class PengajuanCancelPklBase(BaseModel) :
-    id : str
+    id : int
     status : StatusCancelPKLENUM
 
 class PengajuanCancelPklWithSiswa(PengajuanCancelPklBase) :

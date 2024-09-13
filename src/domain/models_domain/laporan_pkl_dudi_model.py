@@ -18,3 +18,7 @@ class LaporanPklDudiWithOut(BaseModel) :
     tanggal : Date
     keterangan : str
     file_laporan : str | None = None
+
+class LaporanPklDudiWithoutSiswaAndPembimbing(LaporanPklDudiWithOut) :
+    dudi : DudiBase
+

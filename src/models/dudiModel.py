@@ -53,11 +53,24 @@ class AlamatDudi(Base):
 class KoutaSiswa(Base):
     __tablename__ = 'kouta_siswa'
 
-    id_dudi = Column(Integer, ForeignKey('dudi.id'),primary_key=True, unique=True, nullable=False)
+    id = Column(Integer,primary_key=True, nullable=False)
+    id_dudi = Column(Integer, ForeignKey('dudi.id'), unique=True, nullable=False)
     jumlah_pria = Column(Integer, nullable=False)
     jumlah_wanita = Column(Integer, nullable=False)
 
     dudi = relationship("Dudi", back_populates="kouta")
+    kouta_jurusan = relationship("KoutaSiswaByJurusan",backref="kouta_siswa",cascade="all")
 
     def __repr__(self):
         return f"<KoutaSiswa(id={self.id_dudi}, id_dudi={self.id_dudi})>"
+    
+class KoutaSiswaByJurusan(Base):
+    __tablename__ = 'kouta_siswa_jurusan'
+
+    id = Column(Integer,primary_key=True, nullable=False)
+    id_kouta = Column(Integer, ForeignKey('kouta_siswa.id',ondelete="CASCADE"), nullable=False)
+    id_jurusan = Column(Integer, ForeignKey('jurusan.id',ondelete="CASCADE"), nullable=False)
+    jumlah_pria = Column(Integer, nullable=False)
+    jumlah_wanita = Column(Integer, nullable=False)
+    
+    jurusan = relationship("Jurusan", back_populates="kouta_jurusan")

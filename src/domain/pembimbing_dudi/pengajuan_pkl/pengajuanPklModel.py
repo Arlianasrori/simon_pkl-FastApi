@@ -4,8 +4,8 @@ from ...models_domain.common_model import PaginationBase
 from enum import Enum
 
 class AccPengajuanEnum(Enum) :
-    TERIMA : str = "terima"
-    TOLAK : str = "tolak"
+    SETUJU : str = "setuju"
+    TIDAK_SETUJU : str = "tidak_setuju"
 
 class AccDccPengajuanPkl(BaseModel) :
     status : AccPengajuanEnum

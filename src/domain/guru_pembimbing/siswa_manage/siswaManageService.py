@@ -5,7 +5,7 @@ from sqlalchemy.orm import joinedload
 # models
 from ....models.siswaModel import Siswa
 from ...models_domain.siswa_model import SiswaWithDudi,DetailSiswa
-from .siswaManageModel import ResponseSiswaPag
+from .siswaManageModel import ResponseCountSiswa, ResponseSiswaPag
 
 # common 
 from ....error.errorHandling import HttpException
@@ -60,4 +60,11 @@ async def getSiswaById(id_siswa : int,id_guru : int,session : AsyncSession) -> D
         "data" : findSiswa
     }
     
-
+async def getCountSiswa(id_guru : int,id_sekolah : int,session : AsyncSession) -> ResponseCountSiswa :
+    countSiswa = (await session.execute(select(func.count(Siswa.id)).where(and_(Siswa.id_guru_pembimbing == id_guru,Siswa.id_sekolah == id_sekolah)))).scalar_one()
+    return {
+        "msg" : "success",
+        "data" : {
+            "countSiswa" : countSiswa
+        }
+    }

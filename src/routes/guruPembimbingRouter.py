@@ -8,10 +8,11 @@ from ..auth.dependsAuthMiddleware.guru_pembimbing.get_guru_pembimbing_auth impor
 # profile-auth
 from ..domain.models_domain.guru_pembimbing_model import GuruPembimbingBase,GuruPembimbingWithSekolahAlamat
 from ..domain.guru_pembimbing.profile_auth import profileAuthService
+from ..domain.guru_pembimbing.profile_auth.profileAuthModel import UpdateProfileBody
 
 # siswa-manage
 from ..domain.guru_pembimbing.siswa_manage import siswaManageService
-from ..domain.guru_pembimbing.siswa_manage.siswaManageModel import ResponseSiswaPag
+from ..domain.guru_pembimbing.siswa_manage.siswaManageModel import ResponseCountSiswa, ResponseSiswaPag
 from ..domain.models_domain.siswa_model import DetailSiswa, SiswaWithDudi
 
 # laporan-pkl-siswa
@@ -49,10 +50,22 @@ async def getGuruPembimbing(guru : dict = Depends(getGuruPembimbingAuth),session
 async def getGuruPembimbingProfile(guru : dict = Depends(getGuruPembimbingAuth),session : sessionDepedency = None):
     return await profileAuthService.getProfileAuth(guru["id"],session)
 
+@guruPembimbingRouter.put("/profile",response_model=ResponseModel[GuruPembimbingBase],tags=["GURU-PEMBIMBING/PROFILE-AUTH"])
+async def updateGuruPembimbing(guru : dict = Depends(getGuruPembimbingAuth),body : UpdateProfileBody = UpdateProfileBody(),session : sessionDepedency = None):
+    return await profileAuthService.updateProfile(guru["id"],body,session)
+
+@guruPembimbingRouter.put("/profile/foto",response_model=ResponseModel[GuruPembimbingBase],tags=["GURU-PEMBIMBING/PROFILE-AUTH"])
+async def updateGuruPembimbing(foto_profile : UploadFile,guru : dict = Depends(getGuruPembimbingAuth),session : sessionDepedency = None):
+    return await profileAuthService.updateFotoProfile(guru["id"],foto_profile,session)
+
 # siswa-manage
 @guruPembimbingRouter.get("/siswa",response_model=ResponseModel[ResponseSiswaPag | list[SiswaWithDudi]],tags=["GURU-PEMBIMBING/SISWA-MANAGE"])
 async def getSiswa(page : int | None = None, guru : dict = Depends(getGuruPembimbingAuth),session : sessionDepedency = None):
     return await siswaManageService.getAllSiswa(guru["id"],guru["id_sekolah"],page,session)
+
+@guruPembimbingRouter.get("/siswa/count",response_model=ResponseModel[ResponseCountSiswa],tags=["GURU-PEMBIMBING/SISWA-MANAGE"])
+async def getCountSiswa(guru : dict = Depends(getGuruPembimbingAuth),session : sessionDepedency = None):
+    return await siswaManageService.getCountSiswa(guru["id"],guru["id_sekolah"],session)
 
 @guruPembimbingRouter.get("/siswaByDudi",response_model=ResponseModel[list[SiswaWithDudi]],tags=["GURU-PEMBIMBING/SISWA-MANAGE"])
 async def getSiswaByDudi(id_dudi : int, guru : dict = Depends(getGuruPembimbingAuth),session : sessionDepedency = None):
@@ -74,7 +87,7 @@ async def getLaporanPklById(id_laporan : int, guru : dict = Depends(getGuruPembi
 # laporan-pkl-dudi
 @guruPembimbingRouter.get("/laporan-pkl-dudi",response_model=ResponseModel[ResponseLaporanPklDudiPag | list[LaporanPklDudiBase]],tags=["GURU-PEMBIMBING/LAPORAN-PKL-DUDI"])
 async def getAllLaporanPklDudi(filter : Filter = Depends(),page : int | None = None, guru : dict = Depends(getGuruPembimbingAuth),session : sessionDepedency = None):
-    return await laporanPklDudiService.getAllLaporanPklDudi(guru["id"],guru["id_sekolah"],filter,page,session)
+    return await laporanPklDudiService.getAllLaporanPklDudi(guru["id"],guru["id_sekolah"],page,filter,session)
 
 @guruPembimbingRouter.get("/laporan-pkl-dudi/{id_laporan}",response_model=ResponseModel[LaporanPklDudiBase],tags=["GURU-PEMBIMBING/LAPORAN-PKL-DUDI"])
 async def getLaporanPklDudiById(id_laporan : int, guru : dict = Depends(getGuruPembimbingAuth),session : sessionDepedency = None):

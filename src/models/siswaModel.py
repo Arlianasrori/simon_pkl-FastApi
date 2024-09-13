@@ -5,7 +5,7 @@ import enum
 from .types import JenisKelaminEnum
 
 class StatusPKLEnum(enum.Enum):
-    pkl = "pkl"
+    sudah_pkl = "sudah_pkl"
     belum_pkl = "belum_pkl"
     menunggu = "menunggu"
 
@@ -62,6 +62,7 @@ class Jurusan(Base):
     kelas = relationship("Kelas", back_populates="jurusan")
     sekolah = relationship("Sekolah", back_populates="jurusan")
     tahun = relationship("TahunSekolah", back_populates="jurusan")
+    kouta_jurusan = relationship("KoutaSiswaByJurusan", back_populates="jurusan")
 
 class Kelas(Base):
     __tablename__ = 'kelas'

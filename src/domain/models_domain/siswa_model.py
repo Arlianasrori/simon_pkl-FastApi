@@ -27,8 +27,8 @@ class MoreSiswa(SiswaWithJurusanKelas) :
     guru_pembimbing : GuruPembimbingBase | None = None
 
 class DetailSiswa(MoreSiswa) :
-    dudi : DudiBase
-    pembimbing_dudi : PembimbingDudiBase
+    dudi : DudiBase | None = None
+    pembimbing_dudi : PembimbingDudiBase | None = None
 
 class SiswaWithDudi(SiswaWithJurusanKelas) :
     dudi : DudiBase

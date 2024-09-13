@@ -12,7 +12,8 @@ from ....models.siswaModel import Siswa
 from ....error.errorHandling import HttpException
 import math
 
-async def getAllLaporanPklDudi(id_guru : int,id_sekolah : int,page : int | None,session : AsyncSession) -> list[LaporanPklDudiBase] | ResponseLaporanPklDudiPag :
+async def getAllLaporanPklDudi(id_guru : int,id_sekolah : int,page : int | None,filter : Filter,session : AsyncSession) -> list[LaporanPklDudiBase] | ResponseLaporanPklDudiPag :
+    print(filter)
     statementSelectLaporanPklDudi = select(LaporanPKL).options(joinedload(LaporanPKL.siswa),joinedload(LaporanPKL.dudi)).where(and_(LaporanPKL.siswa.has(Siswa.id_sekolah == id_sekolah),LaporanPKL.siswa.has(Siswa.id_guru_pembimbing == id_guru),LaporanPKL.id_dudi == filter.id_dudi if filter.id_dudi else True,LaporanPKL.id_siswa == filter.id_siswa if filter.id_siswa else True))
 
     if page is not None :

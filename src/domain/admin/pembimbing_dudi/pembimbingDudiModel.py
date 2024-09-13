@@ -3,6 +3,7 @@ from ...models_domain.common_model import PaginationBase
 from ...models_domain.pembimbing_dudi_model import PembimbingDudiWithAlamatDudi
 
 class AddPembimbingDudiBody(BaseModel) :
+    nama : str
     username : str
     no_telepon : str
     jenis_kelamin : str
@@ -17,6 +18,7 @@ class AddPembimbingDudiBody(BaseModel) :
         return v
 
 class UpdatePembimbingDudiBody(BaseModel) :
+    nama : str | None = None
     username : str | None = None
     no_telepon : str | None = None
     jenis_kelamin : str | None = None

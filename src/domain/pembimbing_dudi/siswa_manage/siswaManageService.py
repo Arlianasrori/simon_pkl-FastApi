@@ -3,9 +3,9 @@ from sqlalchemy import select,func,and_
 from sqlalchemy.orm import joinedload
 
 # models
-from .siswaManageModel import ResponseSiswaPag
-from ...models_domain.siswa_model import MoreSiswa
-from ....models.siswaModel import Siswa
+from .siswaManageModel import ResponseCountSiswa, ResponseSiswaPag
+from ...models_domain.siswa_model import MoreSiswa,JurusanBase
+from ....models.siswaModel import Siswa,Jurusan
 # common
 from ....error.errorHandling import HttpException
 import math
@@ -42,4 +42,20 @@ async def getSiswaById(id_pembimbing_dudi : int,id_siswa : int ,session : AsyncS
     return {
         "msg" : "success",
         "data" : findSiswa
+    }
+
+async def getCountSiswa(id_pembimbing_dudi : int,session : AsyncSession) -> ResponseCountSiswa :
+    countSiswa = (await session.execute(select(func.count(Siswa.id)).where(Siswa.id_pembimbing_dudi == id_pembimbing_dudi))).scalar_one()
+    return {
+        "msg" : "success",
+        "data" : {
+            "countSiswa" : countSiswa
+        }
+    }
+
+async def getAllJurusan(id_sekolah : int,session : AsyncSession) -> list[JurusanBase] :
+    findJurusan = (await session.execute(select(Jurusan).where(Jurusan.id_sekolah == id_sekolah))).scalars().all()
+    return {
+        "msg" : "success",
+        "data" : findJurusan
     }

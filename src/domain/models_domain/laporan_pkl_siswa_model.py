@@ -3,10 +3,16 @@ from datetime import date as Date
 from .siswa_model import SiswaBase
 from .dudi_model import DudiBase
 
+class LaporanPklWithoutDudiAndSiswa(BaseModel) :
+    id : int
+    topik_pekerjaan : str
+    rujukan_kompetensi_dasar : str
+    dokumentasi :  str | None = None
+
 class LaporanPklSiswaBase(BaseModel) :
     id : int
-    tanggal : Date
-    keterangan : str
-    file_laporan : str | None = None
+    topik_pekerjaan : str
+    rujukan_kompetensi_dasar : str
+    dokumentasi :  str | None = None
     siswa : SiswaBase
     dudi : DudiBase

@@ -202,7 +202,7 @@ async def updateSiswa(id_siswa : int,id_sekolah : int,siswa : UpdateSiswaBody,al
         raise HttpException(400,f"Siswa dengan id {id_siswa} tidak ditemukan")
     
     if siswa.nis :
-        findSiswaByNis = (await session.execute(select(Siswa).where(Siswa.nis == siswa.nis))).scalar_one_or_none()
+        findSiswaByNis = (await session.execute(select(Siswa).where(and_(Siswa.nis == siswa.nis,Siswa.id != id_siswa)))).scalar_one_or_none()
         if findSiswaByNis :
             raise HttpException(400,f"Siswa dengan NIS {siswa.nis} sudah ada")
     if siswa.id_jurusan :

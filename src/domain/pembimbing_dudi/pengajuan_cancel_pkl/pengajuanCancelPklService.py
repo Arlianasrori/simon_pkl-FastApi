@@ -51,18 +51,19 @@ async def accDccPengajuanPkl(id_pengajuan_cancel_pkl : int,id_dudi : int,pengaju
     if not findPengajuanPkl :
         raise HttpException(404,"pengajuan pkl tidak ditemukan")
     
-    if findPengajuanPkl.status != StatusCancelPKLENUM.proses.value :
+    if findPengajuanPkl.status != StatusCancelPKLENUM.proses :
         raise HttpException(400,"pengajuan cancel telah diproses")
     
     # lanjutin store to datrabase
-    if pengajuan_pkl.status.SETUJU :
+    if pengajuan_pkl.status == AccPengajuanEnum.SETUJU :
         findPengajuanPkl.status = StatusCancelPKLENUM.setuju.value
-        findPengajuanPkl.siswa.status_pkl = StatusPKLEnum.belum_pkl.value
-        findPengajuanPkl.siswa.id_dudi = StatusPKLEnum.belum_pkl.value
-        findPengajuanPkl.siswa.id_pembimbing_dudi = StatusPKLEnum.belum_pkl.value
-
-    if pengajuan_pkl.status.TIDAK_SETUJU :
+        findPengajuanPkl.siswa.status = StatusPKLEnum.belum_pkl.value
+        findPengajuanPkl.siswa.id_dudi = None
+        findPengajuanPkl.siswa.id_pembimbing_dudi = None
+        print("setuju")
+    elif pengajuan_pkl.status == AccPengajuanEnum.TIDAK_SETUJU :
         findPengajuanPkl.status = StatusCancelPKLENUM.tidak_setuju.value
+        print("tidak setuju")
     
     pengajuanDictCopy = deepcopy(findPengajuanPkl)
     await session.commit()
