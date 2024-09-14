@@ -32,3 +32,6 @@ class DetailSiswa(MoreSiswa) :
 
 class SiswaWithDudi(SiswaWithJurusanKelas) :
     dudi : DudiBase
+    
+class SiswaWithDudiWithOutKelasJurusan(SiswaBase) :
+    dudi : DudiBase

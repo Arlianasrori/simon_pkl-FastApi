@@ -1,12 +1,12 @@
 from fastapi import UploadFile
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select,and_,func
+from sqlalchemy import select,and_,func,extract
 from sqlalchemy.orm import joinedload
 
 # models
 from ...models_domain.laporan_pkl_siswa_model import LaporanPklSiswaBase,LaporanPklWithoutDudiAndSiswa
 from ....models.laporanPklModel import LaporanSiswaPKL
-from .laporanPklSiswaModel import AddLaporanPklSiswaBody,UpdateLaporanPklSiswaBody,ResponseGetLaporanPklSiswaPag
+from .laporanPklSiswaModel import AddLaporanPklSiswaBody,UpdateLaporanPklSiswaBody,ResponseGetLaporanPklSiswaPag,FilterLaporan
 
 # common
 from copy import deepcopy
@@ -101,9 +101,9 @@ async def deleteLaporanPklSiswa(id_siswa : int,id_laporan_pkl : int,session : As
     
 
 
-async def getAllLaporanPklSiswa(id_siswa : int,page : int,session : AsyncSession) -> ResponseGetLaporanPklSiswaPag :
-    findLaporan = (await session.execute(select(LaporanSiswaPKL).where(LaporanSiswaPKL.id_siswa == id_siswa).limit(10).offset(10 * (page - 1)))).scalars().all()
-    countData = (await session.execute(select(func.count(LaporanSiswaPKL.id).filter(LaporanSiswaPKL.id_siswa == id_siswa)))).scalar_one()
+async def getAllLaporanPklSiswa(id_siswa : int,page : int,filter : FilterLaporan,session : AsyncSession) -> ResponseGetLaporanPklSiswaPag :
+    findLaporan = (await session.execute(select(LaporanSiswaPKL).where(and_(LaporanSiswaPKL.id_siswa == id_siswa,extract('month', LaporanSiswaPKL.tanggal) == filter.month,extract('year', LaporanSiswaPKL.tanggal) == filter.year)).limit(10).offset(10 * (page - 1)))).scalars().all()
+    countData = (await session.execute(select(func.count(LaporanSiswaPKL.id).filter(and_(LaporanSiswaPKL.id_siswa == id_siswa,extract('month', LaporanSiswaPKL.tanggal) == filter.month,extract('year', LaporanSiswaPKL.tanggal) == filter.year))))).scalar_one()
     countPage = math.ceil(countData / 10)
     print(findLaporan[0].__dict__)
 

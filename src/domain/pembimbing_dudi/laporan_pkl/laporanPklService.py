@@ -1,4 +1,3 @@
-from copy import deepcopy
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select,func,and_
 from sqlalchemy.orm import joinedload
@@ -7,8 +6,10 @@ from fastapi import UploadFile
 from ...models_domain.laporan_pkl_dudi_model import LaporanPklDudiBase,LaporanPklDudiWithOut
 from ....models.laporanPklModel import LaporanPKL
 from .laporanPklModel import AddLaporanPklDudiBody,UpdateLaporanPklDudiBody
+from ....models.siswaModel import Siswa
 
 # common
+from copy import deepcopy
 from ....error.errorHandling import HttpException
 import math
 from python_random_strings import random_strings
@@ -20,10 +21,10 @@ async def addLaporanPkl(id_pembimbing_dudi : int,id_dudi : int,laporan : AddLapo
     laporanPklMapping = laporan.model_dump()
     laporanPklMapping.update({"id" : random_strings.random_digits(6),"id_dudi" : id_dudi,"id_pembimbing_dudi" : id_pembimbing_dudi})
 
-    # findSiswa = (await session.execute(select(Siswa).where(and_(Siswa.id == laporanPklMapping["id_siswa"],Siswa.id_pembimbing_dudi == id_pembimbing_dudi)))).scalar_one_or_none()
+    findSiswa = (await session.execute(select(Siswa).where(and_(Siswa.id == laporanPklMapping["id_siswa"],Siswa.id_pembimbing_dudi == id_pembimbing_dudi)))).scalar_one_or_none()
 
-    # if not findSiswa :
-    #     raise HttpException(404,f"siswa tidak ditemukan")
+    if not findSiswa :
+        raise HttpException(404,f"siswa tidak ditemukan")
 
     session.add(LaporanPKL(**laporanPklMapping))
     await session.commit()

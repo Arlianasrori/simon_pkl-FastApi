@@ -14,7 +14,7 @@ import math
 
 async def getAllLaporanPklSiswa(id_guru : int,id_sekolah : int,filter : FilterBySiswa,page : int | None,session : AsyncSession) -> list[LaporanPklSiswaBase] | ResponselaporanPklSiswaPag :
     print(filter)
-    statementSelectLaporanPklSiswa = select(LaporanSiswaPKL).options(joinedload(LaporanSiswaPKL.siswa),joinedload(LaporanSiswaPKL.dudi)).where(and_(LaporanSiswaPKL.siswa.has(Siswa.id_sekolah == id_sekolah),LaporanSiswaPKL.siswa.has(Siswa.id_guru_pembimbing == id_guru),LaporanSiswaPKL.id_siswa == filter.id_siswa if filter.id_siswa else True))
+    statementSelectLaporanPklSiswa = select(LaporanSiswaPKL).options(joinedload(LaporanSiswaPKL.siswa),joinedload(LaporanSiswaPKL.dudi)).where(and_(LaporanSiswaPKL.siswa.has(Siswa.id_sekolah == id_sekolah),LaporanSiswaPKL.siswa.has(Siswa.id_guru_pembimbing == id_guru),LaporanSiswaPKL.id_siswa == filter.id_siswa if filter.id_siswa else True,LaporanSiswaPKL.siswa.has(Siswa.nama.ilike(f"%{filter.nama_siswa}%") if filter.nama_siswa else True)))
 
     if page is not None :
         findLaporan = (await session.execute(statementSelectLaporanPklSiswa.limit(10).offset(10 * (page - 1)))).scalars().all()

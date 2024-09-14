@@ -20,7 +20,6 @@ class StatusAbsenEnum(enum.Enum):
 class StatusOtherAbsenEnum(enum.Enum):
     izin = "izin"
     telat = "telat"
-    diluar_radius = "diluar_radius"
 
 class HariEnum(enum.Enum):
     senin = "senin"
@@ -38,20 +37,22 @@ class AbsenJadwal(Base):
     id_dudi = Column(Integer, ForeignKey('dudi.id'))
     tanggal_mulai = Column(Date)
     tanggal_berakhir = Column(Date)
-    selisih_tanggal_day = Column(String)
+    selisih_tanggal_day = Column(Integer)
 
     absen = relationship("Absen", back_populates="jadwal_absen")
-    hari = relationship("HariAbsen", back_populates="jadwal")
+    hari = relationship("HariAbsen", back_populates="jadwal",cascade="all,delete-orphan")
+
     dudi = relationship("Dudi", back_populates="absen_jadwal")
 
 class HariAbsen(Base):
     __tablename__ = 'hari_absen'
 
     id = Column(Integer, primary_key=True, autoincrement=True)
-    id_jadwal = Column(Integer, ForeignKey('absen_jadwal.id'))
+    id_jadwal = Column(Integer, ForeignKey('absen_jadwal.id',ondelete="CASCADE"))
+
     hari = Column(Enum(HariEnum)) 
-    batas_absen_masuk = Column(String)
-    batas_absen_pulang = Column(String)
+    batas_absen_masuk = Column(Time)
+    batas_absen_pulang = Column(Time)
 
     jadwal = relationship("AbsenJadwal", back_populates="hari")
 
@@ -62,12 +63,13 @@ class Absen(Base):
     id = Column(Integer, primary_key=True)
     id_absen_jadwal = Column(Integer, ForeignKey('absen_jadwal.id'))
     id_siswa = Column(Integer, ForeignKey('siswa.id'))
-    tanggal = Column(String,default=datetime.datetime.now().strftime("%Y-%m-%d"))
-    absen_masuk = Column(Time,default=datetime.datetime.now().strftime("%H:%M"))
-    absen_pulang = Column(Time,default=datetime.datetime.now().strftime("%H:%M"))
+    tanggal = Column(Date,default=datetime.datetime.utcnow().strftime("%Y-%m-%d"))
+    absen_masuk = Column(Time,default=datetime.datetime.utcnow().strftime("%H:%M"))
+    absen_pulang = Column(Time,default=datetime.datetime.utcnow().strftime("%H:%M"))
     status_absen_masuk = Column(Enum(StatusAbsenMasukKeluarEnum))
     status_absen_pulang = Column(Enum(StatusAbsenMasukKeluarEnum))
-    foto = Column(String(1500))
+    foto_absen_masuk = Column(String(1500))
+    foto_absen_keluar = Column(String(1500))
     status = Column(Enum(StatusAbsenEnum),default=StatusAbsenEnum.tidak_hadir.value)
 
     jadwal_absen = relationship("AbsenJadwal", back_populates="absen")
@@ -100,11 +102,9 @@ class KordinatAbsen(Base):
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     id_dudi = Column(Integer, ForeignKey('dudi.id'))
-    id_pembimbing_dudi = Column(Integer, ForeignKey('pembimbing_dudi.id'))
     nama_tempat = Column(String(255))
     latitude = Column(Float)
-    longtitude = Column(Float)
+    longitude = Column(Float)
     radius_absen_meter = Column(Float)
 
     dudi = relationship("Dudi", back_populates="kordinat_absen")
-    pembimbing_dudi = relationship("PembimbingDudi", back_populates="kordinat_absen")

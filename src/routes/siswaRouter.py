@@ -30,15 +30,13 @@ from ..domain.models_domain.pengajuan_cancel_pkl_model import PengajuanCancelPkl
 # laporan-siswa-pkl
 from ..domain.siswa.laporan_pkl_siswa import laporanPklSiswaService
 from ..domain.models_domain.laporan_pkl_siswa_model import LaporanPklSiswaBase,LaporanPklWithoutDudiAndSiswa
-from ..domain.siswa.laporan_pkl_siswa.laporanPklSiswaModel import AddLaporanPklSiswaBody,UpdateLaporanPklSiswaBody,ResponseGetLaporanPklSiswaPag
+from ..domain.siswa.laporan_pkl_siswa.laporanPklSiswaModel import AddLaporanPklSiswaBody,UpdateLaporanPklSiswaBody,ResponseGetLaporanPklSiswaPag,FilterLaporan
 
 # laporan-dudi-pkl
 from ..domain.siswa.laporan_pkl_dudi import laporanPklDudiService
 from ..domain.siswa.laporan_pkl_dudi.laporanPklDudiModel import ResponseGetLaporanPklDudiPag
 from ..domain.models_domain.laporan_pkl_dudi_model import LaporanPklDudiBase
 
-
-# common
 from ..db.sessionDepedency import sessionDepedency
 from ..models.responseModel import ResponseModel
 
@@ -120,8 +118,8 @@ async def addLaporanPklSiswa(body : AddLaporanPklSiswaBody,siswa : dict = Depend
     return await laporanPklSiswaService.addLaporanPklSiswa(siswa["id"],siswa["id_dudi"],body,session)
 
 @siswaRouter.get("/laporan_pkl_siswa",response_model=ResponseModel[ResponseGetLaporanPklSiswaPag],tags=["SISWA/LAPORAN-PKL-SISWA"])
-async def getAllLaporanPklSiswa(page : int,siswa : dict = Depends(getSiswaAuth),session : sessionDepedency = None):
-    return await laporanPklSiswaService.getAllLaporanPklSiswa(siswa["id"],page,session)
+async def getAllLaporanPklSiswa(page : int,filter : FilterLaporan = Depends(),siswa : dict = Depends(getSiswaAuth),session : sessionDepedency = None):
+    return await laporanPklSiswaService.getAllLaporanPklSiswa(siswa["id"],filter,page,session)
 
 @siswaRouter.get("/laporan_pkl_siswa/{id_laporan_pkl_siswa}",response_model=ResponseModel[LaporanPklSiswaBase],tags=["SISWA/LAPORAN-PKL-SISWA"])
 async def getLaporanPklSiswaById(id_laporan_pkl_siswa : int,siswa : dict = Depends(getSiswaAuth),session : sessionDepedency = None):

@@ -65,6 +65,14 @@ App.add_middleware(
     allow_headers=["*"],
 )
 
+import time
+
+def get_local_timezone():
+    return time.tzname[0]
+
+# Penggunaan
+print(get_local_timezone())
+
 # Add error handling to the application
 add_exception_server(App)
 

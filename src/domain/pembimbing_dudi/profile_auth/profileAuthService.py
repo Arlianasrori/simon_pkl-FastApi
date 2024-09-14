@@ -48,7 +48,7 @@ async def updateProfile(id_pembimbing_dudi : int,pembimbingDudi : UpdateProfileB
         findPembimbingDudiByUsername = (await session.execute(select(PembimbingDudi).where(and_(PembimbingDudi.username == pembimbingDudi.username,PembimbingDudi.id != id_pembimbing_dudi)))).scalar_one_or_none()
         if findPembimbingDudiByUsername :
             raise HttpException(400,f"Pembimbing Dudi dengan username {pembimbingDudi.username} sudah ada")
-
+    print(pembimbingDudi.model_dump())
     if pembimbingDudi.model_dump() != {} :
         updateTable(pembimbingDudi,findPembimbingDudi)
     

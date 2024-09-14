@@ -34,6 +34,11 @@ from ..domain.guru_pembimbing.kunjungan import kunjunganService
 from ..domain.guru_pembimbing.kunjungan.kunjunganModel import AddKunjunganBody,UpdateKunjunganBody,ResponseKunjunganDudiPag
 from ..domain.models_domain.kunjungan_guru_pembimbing_model import KunjunganGuruPembimbingWithDudi
 
+# get absen
+from ..domain.guru_pembimbing.absen import absenService
+from ..domain.guru_pembimbing.absen.absenModel import FilterAbsen,AbsenResponse
+from ..domain.models_domain.absen_model import MoreAbsen
+
 
 # common
 from ..db.sessionDepedency import sessionDepedency
@@ -119,3 +124,11 @@ async def updateKunjungan(id_kunjungan : int, kunjungan : UpdateKunjunganBody = 
 async def deleteKunjungan(id_kunjungan : int, guru : dict = Depends(getGuruPembimbingAuth),session : sessionDepedency = None):
     return await kunjunganService.deleteKunjungan(guru["id"],id_kunjungan,session)
 
+# get absen
+@guruPembimbingRouter.get("/absen",response_model=AbsenResponse,tags=["GURU-PEMBIMBING/GET-ABSEN"])
+async def getAllAbsen(filter : FilterAbsen = Depends(),isSevenDay : bool = False,guru : dict = Depends(getGuruPembimbingAuth),session : sessionDepedency = None):
+    return await absenService.getAllAbsen(guru["id"],filter,isSevenDay,session)
+
+@guruPembimbingRouter.get("/absen/{id_absen}",response_model=ResponseModel[MoreAbsen],tags=["GURU-PEMBIMBING/GET-ABSEN"])
+async def getAbsenById(id_absen : int, guru : dict = Depends(getGuruPembimbingAuth),session : sessionDepedency = None):
+    return await absenService.getAbsenById(id_absen,guru["id"],session)
