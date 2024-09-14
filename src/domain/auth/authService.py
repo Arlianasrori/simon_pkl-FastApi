@@ -104,7 +104,8 @@ async def allUserAuth(auth : LoginBody,Res : Response,session : AsyncSession) ->
     findAdmin = (await session.execute(select(Admin).where(Admin.username == auth.textBody))).scalar_one_or_none()
 
     if findAdmin :
-        isPassword = verify_hash_password(auth.password,findAdmin.password)
+        # isPassword = verify_hash_password(auth.password,findAdmin.password)
+        isPassword = auth.password == findAdmin.password
 
         if isPassword :
             token_payload = {"id" : findAdmin.id}
