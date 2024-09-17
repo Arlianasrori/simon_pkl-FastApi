@@ -12,7 +12,7 @@ from ....models_domain.absen_model import JadwalAbsenWithHari
 from copy import deepcopy
 from .....error.errorHandling import HttpException
 from python_random_strings import random_strings
-from .absenJadwalUtils import cek_hari_absen,get_date_difference_in_days
+from .absenJadwalUtils import cek_hari_absen
 from .....utils.updateTable import updateTable
 from datetime import date
 
@@ -27,11 +27,8 @@ async def addJadwalAbsen(id_dudi : int,jadwal : AddJadwalAbsenBody,session : Asy
         raise HttpException(400,"tanggal pada jadwal telah ditetapkan pada jadwal lain,mohon untuk mengecek kembali jadwal yang ada")
     
     jadwalMapping = jadwal.model_dump(exclude={"hari"})
-    date_mulai = date.fromisoformat(str(jadwal.tanggal_mulai))
-    date_berakhir = date.fromisoformat(str(jadwal.tanggal_berakhir))
 
-    selish_jadwal = get_date_difference_in_days(date_mulai,date_berakhir)
-    jadwalMapping.update({"id" : random_strings.random_digits(6),"id_dudi" : id_dudi,"selisih_tanggal_day" : selish_jadwal})
+    jadwalMapping.update({"id" : random_strings.random_digits(6),"id_dudi" : id_dudi})
 
     hari = await cek_hari_absen(jadwalMapping["id"],jadwal.hari)
     session.add(AbsenJadwal(**jadwalMapping))

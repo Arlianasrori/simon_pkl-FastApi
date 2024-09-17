@@ -1,3 +1,4 @@
+import aiofiles
 from fastapi import UploadFile
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import func, select,and_
@@ -103,8 +104,8 @@ async def add_update_foto_profile(id : int,id_sekolah : int,foto_profile : Uploa
         
     fotoProfileBefore = findPembimbingDudi.foto_profile
 
-    with open(file_name_save, "wb") as f:
-        f.write(foto_profile.file.read())
+    async with aiofiles.open(file_name_save, "wb") as f:
+        await f.write(foto_profile.file.read())
         print(PROFILE_BASE_URL)
         findPembimbingDudi.foto_profile = f"{PROFILE_BASE_URL}/{file_name}"
     

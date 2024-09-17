@@ -23,7 +23,7 @@ class Dudi(Base):
     pengajuan_cancel_pkl = relationship("PengajuanCancelPKL", back_populates="dudi")
     notifications = relationship("Notification", back_populates="dudi")
     absen_jadwal = relationship("AbsenJadwal", back_populates="dudi")
-    kordinat_absen = relationship("KordinatAbsen", back_populates="dudi")
+    koordinat_absen = relationship("KoordinatAbsen", back_populates="dudi")
     laporan_pkl = relationship("LaporanPKL", back_populates="dudi")
     laporans_siswa_pkl = relationship("LaporanSiswaPKL", back_populates="dudi")
 

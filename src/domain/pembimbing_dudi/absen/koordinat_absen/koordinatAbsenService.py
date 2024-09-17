@@ -5,7 +5,7 @@ from sqlalchemy.orm import joinedload
 # models
 from .koordinatAbsenModel import AddkoordinatAbsenBody,UpdatekoordinaatAbsenBody
 from ....models_domain.absen_model import koordinatAbsenBase
-from .....models.absenModel import KordinatAbsen
+from .....models.absenModel import KoordinatAbsen
 
 # common
 from python_random_strings import random_strings
@@ -14,7 +14,7 @@ from .....error.errorHandling import HttpException
 from .koordinatAbsenUtils import is_valid_coordinate,is_valid_latitude,is_valid_longitude
 
 async def addkoordinatAbsen(id_dudi : int,koordinat : AddkoordinatAbsenBody,session : AsyncSession) -> koordinatAbsenBase :
-    isValidKoordinat = is_valid_coordinate(koordinat.latitude,koordinat.longitude)
+    isValidKoordinat = await is_valid_coordinate(koordinat.latitude,koordinat.longitude)
 
     if not isValidKoordinat :
         raise HttpException(400,"koordinat tidak valid")
@@ -22,7 +22,7 @@ async def addkoordinatAbsen(id_dudi : int,koordinat : AddkoordinatAbsenBody,sess
     koordinatMapping = koordinat.model_dump()
     koordinatMapping.update({"id" : random_strings.random_digits(6),"id_dudi" : id_dudi})
 
-    session.add(KordinatAbsen(**koordinatMapping))
+    session.add(KoordinatAbsen(**koordinatMapping))
     await session.commit()
 
     return {
@@ -31,7 +31,7 @@ async def addkoordinatAbsen(id_dudi : int,koordinat : AddkoordinatAbsenBody,sess
     }
 
 async def getAllkoordinatAbsen(id_dudi : int,session : AsyncSession) -> list[koordinatAbsenBase] :
-    findKoordinat = (await session.execute(select(KordinatAbsen).where(KordinatAbsen.id_dudi == id_dudi))).scalars().all()
+    findKoordinat = (await session.execute(select(KoordinatAbsen).where(KoordinatAbsen.id_dudi == id_dudi))).scalars().all()
 
     return {
         "msg" : "success",
@@ -39,7 +39,7 @@ async def getAllkoordinatAbsen(id_dudi : int,session : AsyncSession) -> list[koo
     }
 
 async def getKoordinatById(id_dudi : int,id_koordinat : str,session : AsyncSession) -> koordinatAbsenBase :
-    findKoordinat = (await session.execute(select(KordinatAbsen).where(and_(KordinatAbsen.id_dudi == id_dudi,KordinatAbsen.id == id_koordinat)))).scalar_one_or_none()
+    findKoordinat = (await session.execute(select(KoordinatAbsen).where(and_(KoordinatAbsen.id_dudi == id_dudi,KoordinatAbsen.id == id_koordinat)))).scalar_one_or_none()
 
     if not findKoordinat :
         raise HttpException(404,"koordinat tidak ditemukan")
@@ -50,7 +50,7 @@ async def getKoordinatById(id_dudi : int,id_koordinat : str,session : AsyncSessi
     }
 
 async def updatekoordinatAbsen(id_dudi : int,id_koordinat : str,koordinat : UpdatekoordinaatAbsenBody,session : AsyncSession) -> koordinatAbsenBase :
-    findKoordinat = (await session.execute(select(KordinatAbsen).where(and_(KordinatAbsen.id_dudi == id_dudi,KordinatAbsen.id == id_koordinat)))).scalar_one_or_none()
+    findKoordinat = (await session.execute(select(KoordinatAbsen).where(and_(KoordinatAbsen.id_dudi == id_dudi,KoordinatAbsen.id == id_koordinat)))).scalar_one_or_none()
 
     if not findKoordinat :
         raise HttpException(404,"koordinat tidak ditemukan")
@@ -72,7 +72,7 @@ async def updatekoordinatAbsen(id_dudi : int,id_koordinat : str,koordinat : Upda
     }
 
 async def deleteKoordinat(id_dudi : int,id_koordinat : str,session : AsyncSession) -> koordinatAbsenBase :
-    findKoordinat = (await session.execute(select(KordinatAbsen).where(and_(KordinatAbsen.id_dudi == id_dudi,KordinatAbsen.id == id_koordinat)))).scalar_one_or_none()
+    findKoordinat = (await session.execute(select(KoordinatAbsen).where(and_(KoordinatAbsen.id_dudi == id_dudi,KoordinatAbsen.id == id_koordinat)))).scalar_one_or_none()
 
     if not findKoordinat :
         raise HttpException(404,"koordinat tidak ditemukan")

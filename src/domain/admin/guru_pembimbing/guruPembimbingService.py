@@ -18,6 +18,7 @@ from copy import deepcopy
 from python_random_strings import random_strings
 from ....error.errorHandling import HttpException
 from ....utils.updateTable import updateTable
+import aiofiles
 
 async def addGuruPembimbing(id_sekolah : int,guruPembimbing : AddGuruPembimbingBody,alamat : AlamatBase,session : AsyncSession) -> GuruPembimbingWithAlamat:
     """
@@ -98,8 +99,8 @@ async def add_update_foto_profile(id : int,id_sekolah : int,foto_profile : Uploa
         
     fotoProfileBefore = findguruPembimbing.foto_profile
 
-    with open(file_name_save, "wb") as f:
-        f.write(foto_profile.file.read())
+    async with aiofiles.open(file_name_save, "wb") as f:
+        await f.write(foto_profile.file.read())
         print(PROFILE_BASE_URL)
         findguruPembimbing.foto_profile = f"{PROFILE_BASE_URL}/{file_name}"
     

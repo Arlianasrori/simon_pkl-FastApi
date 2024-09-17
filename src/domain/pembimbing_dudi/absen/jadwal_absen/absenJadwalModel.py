@@ -7,6 +7,7 @@ class AddHariAbsen(BaseModel) :
     hari : HariEnum
     batas_absen_masuk : Time
     batas_absen_pulang : Time
+    min_jam_absen : int
 
 class AddJadwalAbsenBody(BaseModel) :
     tanggal_mulai : Date
@@ -17,6 +18,8 @@ class UpdateHariAbsenBody(BaseModel) :
     id : int
     batas_absen_masuk : Time | None = None
     batas_absen_pulang : Time | None = None
+    min_jam_absen : int | None = None
+
 
 class UpdateJadwalAbsenBody(BaseModel) :
     tanggal_mulai : Date | None = None

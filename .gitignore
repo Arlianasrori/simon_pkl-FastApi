@@ -4,3 +4,4 @@
 /alembic/README
 __pycache__/
 .env
+/tes.py
