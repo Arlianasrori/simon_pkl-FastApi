@@ -22,6 +22,8 @@ pytz = "^2024.2"
 timezonefinder = "^6.5.2"
 geopy = "^2.4.1"
 aiofiles = "^24.1.0"
+schedule = "^1.2.2"
+apscheduler = "^3.10.4"
 
 
 [build-system]
