@@ -1,14 +1,18 @@
+import asyncio
 import datetime
+import multiprocessing
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import case, select,and_,func
 from sqlalchemy.orm import joinedload
+
+from ....db.db import SessionLocal
 
 # models
 from ...models_domain.pengajuan_pkl_model import PengajuanPklWithDudi
 from ....models.pengajuanPklModel import PengajuanPKL,StatusPengajuanENUM
 from ....models.siswaModel import Siswa,StatusPKLEnum
 from .pengajuanPklModel import AddPengajuanPklBody
-from ....models.dudiModel import Dudi,KoutaSiswa
+from ....models.dudiModel import Dudi,KoutaSiswa, KoutaSiswaByJurusan
 from ....models.siswaModel import JenisKelaminEnum
 
 # common
@@ -16,6 +20,12 @@ from ....error.errorHandling import HttpException
 from python_random_strings import random_strings
 from copy import deepcopy
 from datetime import datetime
+from multiprocessing import Process
+
+# notif
+from ..notification.notifUtils import runningProccessSync
+
+
 
 
 async def addPengajuanPkl(id_siswa : int,id_sekolah : int,pengajuan : AddPengajuanPklBody,session : AsyncSession) -> PengajuanPklWithDudi :
@@ -34,7 +44,7 @@ async def addPengajuanPkl(id_siswa : int,id_sekolah : int,pengajuan : AddPengaju
         if lastPengajuanSiswa.status == StatusPengajuanENUM.proses :
             raise HttpException(400,"siswa tidak dapat melakukan pengjuan,karena siswa sedang menunggu konfirmasi pengjuan sebelumnya,silahkan batalkan pengajuan sebelumnya untuk melakukan pengajuan baru")
 
-    findDudi = (await session.execute(select(Dudi).options(joinedload(Dudi.kouta).subqueryload(KoutaSiswa.kouta_jurusan)).where(and_(Dudi.id == pengajuan.id_dudi,Dudi.id_sekolah == id_sekolah)))).scalar_one_or_none()
+    findDudi = (await session.execute(select(Dudi).options(joinedload(Dudi.kouta).subqueryload(KoutaSiswa.kouta_jurusan).joinedload(KoutaSiswaByJurusan.jurusan)).where(and_(Dudi.id == pengajuan.id_dudi,Dudi.id_sekolah == id_sekolah)))).scalar_one_or_none()
 
     if not findDudi :
         raise HttpException(404,"dudi yang ingin diajukan tidak ditemukan")
@@ -53,37 +63,63 @@ async def addPengajuanPkl(id_siswa : int,id_sekolah : int,pengajuan : AddPengaju
     
     if findSiswa.jenis_kelamin == JenisKelaminEnum.laki and findDudi.kouta.jumlah_pria != 0:
         if jumlahSiswaPria + 1 > findDudi.kouta.jumlah_pria:
+            print("kesinikah")
             raise HttpException(400,"kouta dudi sudah penuh")
     elif findSiswa.jenis_kelamin == JenisKelaminEnum.perempuan and findDudi.kouta.jumlah_wanita != 0:
         if jumlahSiswaWanita + 1 > findDudi.kouta.jumlah_wanita:
             raise HttpException(400,"kouta dudi sudah penuh")
     
-    for kouta_jurusan in findDudi.kouta.kouta_jurusan:
+    totalKebutuhanLaki = 0
+    totalKebutuhanWanita = 0
+    totalSiswaLakiAlljurusan = 0
+    totalSiswaWanitaAlljurusan = 0
+
+    for kouta_jurusan in findDudi.kouta.kouta_jurusan:      
+        countDudiBykouta = (await session.execute(select(
+                func.count(Siswa.id).filter(Siswa.jenis_kelamin == JenisKelaminEnum.laki).label("jumlah_siswa_pria"),
+                func.count(Siswa.id).filter(Siswa.jenis_kelamin == JenisKelaminEnum.perempuan).label("jumlah_siswa_wanita"),
+                ).where(
+                    and_(
+                        Siswa.id_jurusan == kouta_jurusan.id_jurusan,
+                        Siswa.id_dudi == pengajuan.id_dudi
+                    )
+                ))).one()._asdict()
+        
+        totalKebutuhanLaki += kouta_jurusan.jumlah_pria
+        totalKebutuhanWanita += kouta_jurusan.jumlah_wanita
+        totalSiswaLakiAlljurusan += countDudiBykouta["jumlah_siswa_pria"]
+        totalSiswaWanitaAlljurusan += countDudiBykouta["jumlah_siswa_wanita"]
         if kouta_jurusan.id_jurusan == findSiswa.id_jurusan:
-            countDudiBykouta = (await session.execute(select(
-                        func.count(case((Siswa.jenis_kelamin == JenisKelaminEnum.laki, 1), else_=0)).label("jumlah_siswa_pria"),
-                        func.count(case((Siswa.jenis_kelamin == JenisKelaminEnum.perempuan, 1), else_=0)).label("jumlah_siswa_wanita")
-                    ).where(
-                        and_(
-                            Siswa.id_jurusan == kouta_jurusan.id_jurusan,
-                            Siswa.id_dudi == pengajuan.id_dudi
-                        )
-                    ))).one()._asdict()
-            print(countDudiBykouta)
             if findSiswa.jenis_kelamin == JenisKelaminEnum.laki and findDudi.kouta.jumlah_pria != 0:
                 if countDudiBykouta["jumlah_siswa_pria"] + 1 > kouta_jurusan.jumlah_pria:
                     raise HttpException(400,"kouta dudi sudah penuh")
             elif findSiswa.jenis_kelamin == JenisKelaminEnum.perempuan and findDudi.kouta.jumlah_wanita != 0:
                 if countDudiBykouta["jumlah_siswa_wanita"] + 1 > kouta_jurusan.jumlah_wanita:
                     raise HttpException(400,"kouta dudi sudah penuh")
-                
+
+    kebutuhanJurusanLaki = totalKebutuhanLaki - totalSiswaLakiAlljurusan
+    kebutuhanJurusanWanita = totalKebutuhanWanita - totalSiswaWanitaAlljurusan
+
+    sisaKoutaDudiPria = findDudi.kouta.jumlah_pria - jumlahSiswaPria
+    sisaKoutaDudiWanita = findDudi.kouta.jumlah_wanita - jumlahSiswaWanita
+
+    if findSiswa.jenis_kelamin == JenisKelaminEnum.laki :
+        if sisaKoutaDudiPria <= kebutuhanJurusanLaki :
+            raise HttpException(400,"kouta dudi sudah penuh")
+    elif findSiswa.jenis_kelamin == JenisKelaminEnum.perempuan :
+        if sisaKoutaDudiWanita <= kebutuhanJurusanWanita :
+            raise HttpException(400,"kouta dudi sudah penuh")
     pengjuanPklMapping = pengajuan.model_dump()
     pengjuanPklMapping.update({"id" : random_strings.random_digits(6),"id_siswa":id_siswa,"status" : StatusPengajuanENUM.proses.value,"waktu_pengajuan" : datetime.utcnow()})
 
     dudiDictCopy = deepcopy(findDudi.__dict__)
-
+    siswaDictCopy = deepcopy(findSiswa.__dict__)
     session.add(PengajuanPKL(**pengjuanPklMapping))
     await session.commit()
+
+    # Menjalankan addNotif dalam proses terpisah
+    proccess = Process(target=runningProccessSync,args=(pengajuan.id_dudi,siswaDictCopy["nama"]))
+    proccess.start()
 
     return {
         "msg" : "success",
@@ -94,7 +130,7 @@ async def addPengajuanPkl(id_siswa : int,id_sekolah : int,pengajuan : AddPengaju
     }
 
 async def cancelPengajuanPkl(id_siswa : int,id_pengajuan : int,session : AsyncSession) -> PengajuanPklWithDudi :
-    findPengjuanPkl = (await session.execute(select(PengajuanPKL).options(joinedload(PengajuanPKL.dudi)).filter(and_(PengajuanPKL.id == id_pengajuan,PengajuanPKL.id_siswa == id_siswa)))).scalar_one_or_none()
+    findPengjuanPkl = (await session.execute(select(PengajuanPKL).options(joinedload(PengajuanPKL.dudi),joinedload(PengajuanPKL.siswa)).filter(and_(PengajuanPKL.id == id_pengajuan,PengajuanPKL.id_siswa == id_siswa)))).scalar_one_or_none()
     print(findPengjuanPkl.__dict__)
     if not findPengjuanPkl :
         raise HttpException(404,"pengajuan tidak ditemukan")

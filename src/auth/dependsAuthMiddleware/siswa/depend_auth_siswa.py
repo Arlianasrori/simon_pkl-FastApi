@@ -28,6 +28,7 @@ async def siswaDependAuth(access_token: str | None = Cookie(None), Authorization
     """
     try:
         # Determine the token source (cookie or Authorization header)
+        token = None
         if access_token:
             token = access_token
         elif Authorization:

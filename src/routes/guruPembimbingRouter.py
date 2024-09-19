@@ -39,6 +39,9 @@ from ..domain.guru_pembimbing.absen import absenService
 from ..domain.guru_pembimbing.absen.absenModel import FilterAbsen,AbsenResponse
 from ..domain.models_domain.absen_model import MoreAbsen
 
+# notification
+from ..domain.guru_pembimbing.notification import notificationService
+from ..domain.models_domain.notification_model import NotificationModelBase,ResponseGetUnreadNotification
 
 # common
 from ..db.sessionDepedency import sessionDepedency
@@ -132,3 +135,20 @@ async def getAllAbsen(filter : FilterAbsen = Depends(),isSevenDay : bool = False
 @guruPembimbingRouter.get("/absen/{id_absen}",response_model=ResponseModel[MoreAbsen],tags=["GURU-PEMBIMBING/GET-ABSEN"])
 async def getAbsenById(id_absen : int, guru : dict = Depends(getGuruPembimbingAuth),session : sessionDepedency = None):
     return await absenService.getAbsenById(id_absen,guru["id"],session)
+
+# notification
+@guruPembimbingRouter.get("/notification",response_model=ResponseModel[list[NotificationModelBase]],tags=["GURU-PEMBIMBING/NOTIFICATION"])
+async def getAllNotification(guru : dict = Depends(getGuruPembimbingAuth),session : sessionDepedency = None):
+    return await notificationService.getAllNotification(guru["id"],session)
+
+@guruPembimbingRouter.get("/notification/{id_notification}",response_model=ResponseModel[NotificationModelBase],tags=["GURU-PEMBIMBING/NOTIFICATION"])
+async def getNotificationById(id_notification : int,guru : dict = Depends(getGuruPembimbingAuth),session : sessionDepedency = None):
+    return await notificationService.getNotificationById(id_notification,guru["id"],session)
+
+@guruPembimbingRouter.post("/notification/read/{id_notification}",response_model=ResponseModel[NotificationModelBase],tags=["GURU-PEMBIMBING/NOTIFICATION"])
+async def readNotification(id_notification : int,guru : dict = Depends(getGuruPembimbingAuth),session : sessionDepedency = None):
+    return await notificationService.readNotification(id_notification,guru["id"],session)
+
+@guruPembimbingRouter.get("/notification/unread/count",response_model=ResponseModel[ResponseGetUnreadNotification],tags=["GURU-PEMBIMBING/NOTIFICATION"])
+async def getCountNotification(guru : dict = Depends(getGuruPembimbingAuth),session : sessionDepedency = None):
+    return await notificationService.getCountNotification(guru["id"],session)

@@ -54,8 +54,12 @@ from ..domain.models_domain.absen_model import AbsenBase,AbsenWithKeteranganPula
 
 # get-absen
 from ..domain.siswa.absen.get_absen import getAbsenService
-from ..domain.siswa.absen.get_absen.getAbsenModel import FilterAbsen
+from ..domain.siswa.absen.get_absen.getAbsenModel import FilterAbsen,AbsenResponse
 from ..domain.models_domain.absen_model import MoreAbsen
+
+# notification
+from ..domain.siswa.notification import notificationService
+from ..domain.models_domain.notification_model import NotificationModelBase,ResponseGetUnreadNotification
 
 from ..db.sessionDepedency import sessionDepedency
 from ..models.responseModel import ResponseModel
@@ -216,10 +220,27 @@ async def absenSakit(latitude: float = Form(...),longitude: float = Form(...),si
 
 
 # get-absen
-@siswaRouter.get("/absen",response_model=ResponseModel[list[MoreAbsen]],tags=["SISWA/GETABSEN"])
-async def getAllAbsen(isSevenDayAgo : bool | None = None,siswa : dict = Depends(getSiswaAuth),filter : FilterAbsen = Depends(),session : sessionDepedency = None):
-    return await getAbsenService.getAllAbsen(siswa["id"],filter,isSevenDayAgo,session)
+@siswaRouter.get("/absen",response_model=ResponseModel[list[MoreAbsen] | AbsenResponse],tags=["SISWA/GETABSEN"])
+async def getAllAbsen(isSevenDayAgo : bool | None = None,isGrouping : bool | None = None,siswa : dict = Depends(getSiswaAuth),filter : FilterAbsen = Depends(),session : sessionDepedency = None):
+    return await getAbsenService.getAllAbsen(siswa["id"],filter,isSevenDayAgo,isGrouping,session)
 
 @siswaRouter.get("/absen/{id_absen}",response_model=ResponseModel[AbsenBase],tags=["SISWA/GETABSEN"])
 async def getAbsenById(id_absen : int,siswa : dict = Depends(getSiswaAuth),session : sessionDepedency = None):
     return await getAbsenService.getAbsenById(id_absen,siswa["id"],session)
+
+# notification
+@siswaRouter.get("/notification",response_model=ResponseModel[list[NotificationModelBase]],tags=["SISWA/NOTIFICATION"])
+async def getAllNotification(siswa : dict = Depends(getSiswaAuth),session : sessionDepedency = None):
+    return await notificationService.getAllNotification(siswa["id"],siswa["id_dudi"],session)
+
+@siswaRouter.get("/notification/{id_notification}",response_model=ResponseModel[NotificationModelBase],tags=["SISWA/NOTIFICATION"])
+async def getNotificationById(id_notification : int,siswa : dict = Depends(getSiswaAuth),session : sessionDepedency = None):
+    return await notificationService.getNotificationById(id_notification,siswa["id"],siswa["id_dudi"],session)
+
+@siswaRouter.post("/notification/read/{id_notification}",response_model=ResponseModel[NotificationModelBase],tags=["SISWA/NOTIFICATION"])
+async def readNotification(id_notification : int,siswa : dict = Depends(getSiswaAuth),session : sessionDepedency = None):
+    return await notificationService.readNotification(id_notification,siswa["id"],siswa["id_dudi"],session)
+
+@siswaRouter.get("/notification/unread/count",response_model=ResponseModel[ResponseGetUnreadNotification],tags=["SISWA/NOTIFICATION"])
+async def getCountNotification(siswa : dict = Depends(getSiswaAuth),session : sessionDepedency = None):
+    return await notificationService.getCountNotification(siswa["id"],siswa["id_dudi"],session)

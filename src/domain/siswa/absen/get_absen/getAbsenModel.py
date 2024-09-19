@@ -6,3 +6,7 @@ class FilterAbsen(BaseModel) :
     year : int | None = None
     month : int | None = None
     day : int | None = None
+
+class AbsenResponse(BaseModel):
+    msg: str
+    data: dict[str, list[MoreAbsen]]

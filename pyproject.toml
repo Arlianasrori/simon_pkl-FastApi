@@ -24,6 +24,7 @@ geopy = "^2.4.1"
 aiofiles = "^24.1.0"
 schedule = "^1.2.2"
 apscheduler = "^3.10.4"
+firebase-admin = "^6.5.0"
 
 
 [build-system]

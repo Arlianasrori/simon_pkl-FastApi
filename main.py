@@ -5,7 +5,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 import uvicorn
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
-from apscheduler.triggers.interval import CronTrigger
+from apscheduler.triggers.cron import CronTrigger
+
 from dotenv import load_dotenv
 
 # Load environment variables from .env file
@@ -78,9 +79,9 @@ scheduler.add_job(addAbsenSiswaCron, CronTrigger(hour=0, minute=0))
 # Function to run the server
 async def runServer():
     scheduler.start()
-    config = uvicorn.Config("main:App", port=2008, reload=True)  # Matikan mode reload
-    server = uvicorn.Server(config)
-    await server.serve()
+    # config = uvicorn.Config("main:App", port=2008, reload=True)
+    # server = uvicorn.Server(config)
+    # await server.serve()
 # Run the server if the script is executed directly
 if __name__ == "__main__":
     asyncio.run(runServer())

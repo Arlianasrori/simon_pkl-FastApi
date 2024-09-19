@@ -29,6 +29,8 @@ async def guruPembimbingAuth(access_token: str | None = Cookie(None), Authorizat
     """
     try:
         # Determine the token source (cookie or Authorization header)
+        print(access_token)
+        token = None
         if access_token:
             token = access_token
         elif Authorization:
