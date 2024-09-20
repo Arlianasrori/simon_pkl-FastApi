@@ -15,6 +15,9 @@ import math
 from python_random_strings import random_strings
 import os
 from ....utils.updateTable import updateTable
+import aiofiles
+from multiprocessing import Process
+from ....utils.removeFile import removeFile
 
 
 async def addLaporanPkl(id_pembimbing_dudi : int,id_dudi : int,laporan : AddLaporanPklDudiBody,session : AsyncSession) -> LaporanPklDudiBase :
@@ -55,8 +58,8 @@ async def addUpdateFileLaporanPkl(id_laporan_pkl : int,file : UploadFile,session
     file_name_save = f"{FILE_LAPORAN_STORE}{file_name}"
     fotoProfileBefore = findLaporanPkl.file_laporan
 
-    with open(file_name_save, "wb") as f:
-        f.write(file.file.read())
+    async with aiofiles.open(file_name_save, "wb") as f:
+        await f.write(file.file.read())
         findLaporanPkl.file_laporan = f"{FILE_LAPORAN_BASE_URL}/{file_name}"
     
     if fotoProfileBefore :
@@ -128,9 +131,17 @@ async def deleteLaporanPkl(id_laporan_pkl : int,id_pembimbing_dudi : int,session
     if not findLaporanPkl :
         raise HttpException(404,f"laporan pkl tidak ditemukan")
     
+    fotoProfileBefore = deepcopy(findLaporanPkl.file_laporan)
     laporanPklDictCopy = deepcopy(findLaporanPkl.__dict__)
     await session.delete(findLaporanPkl)
     await session.commit()
+
+    if fotoProfileBefore :
+        file_nama_db_split = fotoProfileBefore.split("/")
+        file_name_db = file_nama_db_split[-1]
+
+        proccess = Process(target=removeFile,args=(f"{FILE_LAPORAN_STORE}/{file_name_db}",))
+        proccess.start()
 
     return {
         "msg" : "success",

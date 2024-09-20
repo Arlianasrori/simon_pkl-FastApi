@@ -1,10 +1,11 @@
+from copy import deepcopy
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import desc, select, and_
 from sqlalchemy.orm import subqueryload
 
 
 # models
-from .absenJadwalModel import RadiusBody,ResponseCekAbsen,JenisAbsenEnum,StatusAbsenMasukEnum,StatusAbsenPulangEnum
+from .absenJadwalModel import RadiusBody,ResponseCekAbsen,JenisAbsenEnum,StatusAbsenMasukEnum,StatusAbsenPulangEnum,ResponseJadwalAbsenToday
 from ....models_domain.absen_model import JadwalAbsenWithHari
 from  .....models.absenModel import Absen,AbsenJadwal,HariAbsen,HariEnum
 from ..radius_absen.radiusAbsenService import cekRadiusAbsen
@@ -214,3 +215,35 @@ async def cekAbsen(id_siswa : int,id_dudi : int | None,koordinat : RadiusBody,se
                             "jenis_absen_pulang" : StatusAbsenPulangEnum.HADIR
                         }
                     }
+            
+
+async def getJadwalAbsenToday(id_siswa : int,id_dudi : int,koordinat : RadiusBody,session : AsyncSession) -> JadwalAbsenWithHari :
+    # get time zone and datetime based on timezona
+    zonaWaktu = await get_timezone_from_coordinates(koordinat.latitude,koordinat.longitude)
+    now = await get_local_time(zonaWaktu)
+    dateNow = now.date()
+
+    # get jadwal absen for today
+    findJadwalAbsenToday = (await session.execute(select(AbsenJadwal).where(and_(AbsenJadwal.id_dudi == id_dudi,AbsenJadwal.tanggal_mulai <= dateNow,AbsenJadwal.tanggal_berakhir >= dateNow)))).scalar_one_or_none()
+
+    if not findJadwalAbsenToday :
+        raise HttpException(404,"tidak ada jadwal absen untuk hari ini")
+
+    dayNow : HariEnum = await get_day()
+
+    # find jadwal hari ini
+    findHariAbsenNow = (await session.execute(select(HariAbsen).where(and_(HariAbsen.id_jadwal == findJadwalAbsenToday.id,HariAbsen.hari == dayNow.value)))).scalar_one_or_none()
+
+    if not findHariAbsenNow :
+        raise HttpException(404,"tidak ada jadwal absen untuk hari ini")
+    
+    jadwalDict = deepcopy(findJadwalAbsenToday.__dict__)
+    hariAbsenDict = deepcopy(findHariAbsenNow.__dict__)
+
+    return {
+        "msg" : "success",
+        "data" : {
+            **jadwalDict,
+            "hari" : hariAbsenDict
+        }
+    }

@@ -21,6 +21,8 @@ import os
 from python_random_strings import random_strings
 from ....error.errorHandling import HttpException
 from ....utils.updateTable import updateTable
+from multiprocessing import Process
+from ....utils.removeFile import removeFile
 
 async def addPembimbingDudi(id_sekolah : int,pembimbingDudi : AddPembimbingDudiBody,alamat : AlamatBase,session : AsyncSession) -> PembimbingDudiWithAlamatDudi :
     """
@@ -244,9 +246,18 @@ async def deletePembimbingDudi(id_sekolah : int,id_pembimbing_dudi : int,session
     if not findPembimbingDudi :
         raise HttpException(404,f"Pembimbing Dudi dengan id {id_pembimbing_dudi} tidak ditemukan")
     
+    fotoProfileBefore = deepcopy(findPembimbingDudi.foto_profile)
     pembimbingDudiDictCopy = deepcopy(findPembimbingDudi.__dict__)
     await session.delete(findPembimbingDudi)
     await session.commit()
+
+    if fotoProfileBefore :
+        file_nama_db_split = fotoProfileBefore.split("/")
+        file_name_db = file_nama_db_split[-1]
+
+        proccess = Process(target=removeFile,args=(f"{PROFILE_STORE}/{file_name_db}",))
+        proccess.start()
+
     return {
         "msg" : "success",
         "data" : pembimbingDudiDictCopy

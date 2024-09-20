@@ -44,7 +44,7 @@ from ..domain.models_domain.absen_model import koordinatAbsenBase
 
 # absen-jadwal
 from ..domain.siswa.absen.absen_jadwal import absenJadwalService
-from ..domain.siswa.absen.absen_jadwal.absenJadwalModel import RadiusBody,ResponseCekAbsen
+from ..domain.siswa.absen.absen_jadwal.absenJadwalModel import RadiusBody,ResponseCekAbsen,ResponseJadwalAbsenToday
 from ..domain.models_domain.absen_model import JadwalAbsenWithHari
 
 # absen-event
@@ -63,6 +63,11 @@ from ..domain.models_domain.notification_model import NotificationModelBase,Resp
 
 from ..db.sessionDepedency import sessionDepedency
 from ..models.responseModel import ResponseModel
+
+# laporan kendala
+from ..domain.siswa.laporankendala import laporanKendalaService
+from ..domain.siswa.laporankendala.laporanKendalaModel import AddLaporanKendalaBody,UpdateLaporanKendalaBody
+from ..domain.models_domain.laporan_kendala_model import LaporankendalaBase,LaporanKendalaWithSiswa
 
 siswaRouter = APIRouter(prefix="/siswa",dependencies=[Depends(siswaDependAuth)])
 
@@ -220,7 +225,7 @@ async def absenSakit(latitude: float = Form(...),longitude: float = Form(...),si
 
 
 # get-absen
-@siswaRouter.get("/absen",response_model=ResponseModel[list[MoreAbsen] | AbsenResponse],tags=["SISWA/GETABSEN"])
+@siswaRouter.get("/absen",response_model=ResponseModel[list[MoreAbsen]] | AbsenResponse,tags=["SISWA/GETABSEN"])
 async def getAllAbsen(isSevenDayAgo : bool | None = None,isGrouping : bool | None = None,siswa : dict = Depends(getSiswaAuth),filter : FilterAbsen = Depends(),session : sessionDepedency = None):
     return await getAbsenService.getAllAbsen(siswa["id"],filter,isSevenDayAgo,isGrouping,session)
 
@@ -244,3 +249,29 @@ async def readNotification(id_notification : int,siswa : dict = Depends(getSiswa
 @siswaRouter.get("/notification/unread/count",response_model=ResponseModel[ResponseGetUnreadNotification],tags=["SISWA/NOTIFICATION"])
 async def getCountNotification(siswa : dict = Depends(getSiswaAuth),session : sessionDepedency = None):
     return await notificationService.getCountNotification(siswa["id"],siswa["id_dudi"],session)
+
+# laporan kendala
+@siswaRouter.post("/laporan-kendala",response_model=ResponseModel[LaporankendalaBase],tags=["SISWA/LAPORAN-KENDALA"])
+async def addLaporanKendala(laporan : AddLaporanKendalaBody,siswa : dict = Depends(getSiswaAuth),session : sessionDepedency = None):
+    return await laporanKendalaService.addLaporanPKLKendalaSiswa(siswa["id"],laporan,session)
+
+@siswaRouter.get("/laporan-kendala",response_model=ResponseModel[list[LaporankendalaBase]],tags=["SISWA/LAPORAN-KENDALA"])
+async def getAllLaporanKendala(siswa : dict = Depends(getSiswaAuth),session : sessionDepedency = None):
+    return await laporanKendalaService.getAllLaporanKendala(siswa["id"],session)
+
+@siswaRouter.get("/laporan-kendala/{id_laporan_kendala}",response_model=ResponseModel[LaporanKendalaWithSiswa],tags=["SISWA/LAPORAN-KENDALA"])
+async def getLaporanKendalaById(id_laporan_kendala : int,siswa : dict = Depends(getSiswaAuth),session : sessionDepedency = None):
+    return await laporanKendalaService.getLaporanKendalaById(siswa["id"],id_laporan_kendala,session)
+
+@siswaRouter.put("/laporan-kendala/{id_laporan_kendala}",response_model=ResponseModel[LaporankendalaBase],tags=["SISWA/LAPORAN-KENDALA"])
+async def updateLaporanKendala(id_laporan_kendala : int,laporan : UpdateLaporanKendalaBody = UpdateLaporanKendalaBody(),siswa : dict = Depends(getSiswaAuth),session : sessionDepedency = None):
+    return await laporanKendalaService.updateLaporanKendala(siswa["id"],id_laporan_kendala,laporan,session)
+
+@siswaRouter.put("/laporan-kendala/file_laporan/{id_laporan_kendala}",response_model=ResponseModel[LaporankendalaBase],tags=["SISWA/LAPORAN-KENDALA"])
+async def uploadUpdateFileLaporanKendala(id_laporan_kendala : int,file_laporan : UploadFile,siswa : dict = Depends(getSiswaAuth),session : sessionDepedency = None):
+    return await laporanKendalaService.addUpdateFileLaporanKendala(siswa["id"],id_laporan_kendala,file_laporan,session)
+
+@siswaRouter.delete("/laporan-kendala/{id_laporan_kendala}",response_model=ResponseModel[LaporankendalaBase],tags=["SISWA/LAPORAN-KENDALA"])
+async def deleteLaporanKendala(id_laporan_kendala : int,siswa : dict = Depends(getSiswaAuth),session : sessionDepedency = None):
+    return await laporanKendalaService.deleteLaporanPklKendala(siswa["id"],id_laporan_kendala,session)
+

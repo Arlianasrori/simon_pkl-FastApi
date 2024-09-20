@@ -6,8 +6,7 @@ class AddKoutaJurusanBody(BaseModel) :
     jumlah_wanita : int
 
 class UpdateKoutaJurusanBody(BaseModel) :
-    id : int
-    id_jurusan : int | None = None
+    id : int 
     jumlah_pria : int | None = None
     jumlah_wanita : int | None = None
 
@@ -17,6 +16,6 @@ class AddKoutaDudiBody(BaseModel) :
     kouta_jurusan : list[AddKoutaJurusanBody] | None = None
 
 class UpdateKoutaDudiBody(BaseModel) :
-    jumlah_pria : int | None
-    jumlah_wanita : int | None
+    jumlah_pria : int | None = None
+    jumlah_wanita : int | None = None
     kouta_jurusan : list[UpdateKoutaJurusanBody] | None = None

@@ -1,5 +1,6 @@
 from fastapi import APIRouter,Depends, UploadFile
 
+
 from ..domain.models_domain.pembimbing_dudi_model import PembimbingDudiBase,PembimbingDudiWithAlamatDudi
 from ..domain.models_domain.siswa_model import MoreSiswa
 
@@ -17,7 +18,7 @@ from ..domain.pembimbing_dudi.siswa_manage.siswaManageModel import ResponseCount
 from ..domain.models_domain.siswa_model import JurusanBase
 
 # kouta
-from ..domain.pembimbing_dudi.kouta_dudi.koutaDudiService import AddKoutaDudiBody,UpdateKoutaDudiBody
+from ..domain.pembimbing_dudi.kouta_dudi.koutaDudiService import AddKoutaDudiBody,UpdateKoutaDudiBody,AddKoutaJurusanBody
 from ..domain.models_domain.dudi_model import DudiWithKouta
 from ..domain.pembimbing_dudi.kouta_dudi import koutaDudiService
 
@@ -90,7 +91,7 @@ async def getAllSiswa(page : int | None = None,pembimbingDudi : dict = Depends(g
 async def getSiswaById(id_siswa : int,pembimbing : dict = Depends(getPembimbingDudiAuth),session : sessionDepedency = None) :
     return await siswaManageService.getSiswaById(pembimbing["id"],id_siswa,session)
 
-@pembimbingDudiRouter.get("/siswa/count",response_model=ResponseModel[ResponseCountSiswa],tags=["PEMBIMBING-DUDI/SISWA"])
+@pembimbingDudiRouter.get("/siswa/get/count",response_model=ResponseModel[ResponseCountSiswa],tags=["PEMBIMBING-DUDI/SISWA"])
 async def getCountSiswa(pembimbing : dict = Depends(getPembimbingDudiAuth),session : sessionDepedency = None) :
     return await siswaManageService.getCountSiswa(pembimbing["id"],session)
 
@@ -111,6 +112,10 @@ async def addKoutaDudi(kouta : AddKoutaDudiBody,pembimbing : dict = Depends(getP
 @pembimbingDudiRouter.put("/kouta",response_model=ResponseModel[DudiWithKouta],tags=["PEMBIMBING-DUDI/KOUTA"])
 async def updateKoutaDudi(kouta : UpdateKoutaDudiBody,pembimbing : dict = Depends(getPembimbingDudiAuth),session : sessionDepedency = None) :
     return await koutaDudiService.updateKoutaDudi(pembimbing["id_dudi"],kouta,session)
+
+@pembimbingDudiRouter.post("/kouta/kouta-jurusan",response_model=ResponseModel[DudiWithKouta],tags=["PEMBIMBING-DUDI/KOUTA"])
+async def addKoutaJurusan(kouta : list[AddKoutaJurusanBody],pembimbing : dict = Depends(getPembimbingDudiAuth),session : sessionDepedency = None) :
+    return await koutaDudiService.addKoutaJurusan(pembimbing["id_dudi"],kouta,session)
 
 # laporan pkl
 @pembimbingDudiRouter.post("/laporan-pkl",response_model=ResponseModel[LaporanPklDudiBase],tags=["PEMBIMBING-DUDI/LAPORAN-PKL"])

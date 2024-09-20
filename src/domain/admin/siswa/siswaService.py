@@ -1,4 +1,3 @@
-import aiofiles
 from fastapi import UploadFile
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import func, select,and_
@@ -13,6 +12,7 @@ from ....models.guruPembimbingModel import GuruPembimbing
 from ....models.sekolahModel import TahunSekolah
 
 # common
+import aiofiles
 from copy import deepcopy
 import math
 import os
@@ -20,6 +20,8 @@ from python_random_strings import random_strings
 from ....error.errorHandling import HttpException
 from ....utils.updateTable import updateTable
 from ....auth.bcrypt import bcrypt
+from multiprocessing import Process
+from ....utils.removeFile import removeFile
 
 async def addSiswa(id_sekolah : int,siswa : AddSiswaBody,alamat : AlamatBase,session : AsyncSession) -> MoreSiswa :
     """
@@ -253,9 +255,18 @@ async def deleteSiswa(id_siswa : int,id_sekolah : int,session : AsyncSession) ->
     findSiswa = (await session.execute(select(Siswa).where(and_(Siswa.id == id_siswa,Siswa.id_sekolah == id_sekolah)))).scalar_one_or_none()
     if not findSiswa :
         raise HttpException(400,f"Siswa dengan id {id_siswa} tidak ditemukan")
+    
+    fotoProfileBefore = deepcopy(findSiswa.foto_profile)
     siswaDictCopy = deepcopy(findSiswa.__dict__)
     await session.delete(findSiswa)
     await session.commit()
+
+    if fotoProfileBefore :
+        file_nama_db_split = fotoProfileBefore.split("/")
+        file_name_db = file_nama_db_split[-1]
+
+        proccess = Process(target=removeFile,args=(f"{PROFILE_STORE}/{file_name_db}",))
+        proccess.start()
     return {
         "msg" : "success",
         "data" : siswaDictCopy

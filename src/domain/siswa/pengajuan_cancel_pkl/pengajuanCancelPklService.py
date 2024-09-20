@@ -40,7 +40,7 @@ async def addPengajuanCancelPkl(id_siswa : int,session : AsyncSession) -> Pengaj
     await session.commit()
 
     # Menjalankan addNotif dalam proses terpisah
-    proccess = Process(target=runningProccessSync,args=(pengajuanCancelMapping["id_dudi"],siswaDictCopy["nama"]))
+    proccess = Process(target=runningProccessSync,args=(pengajuanCancelMapping["id_dudi"],siswaDictCopy["nama"],True))
     proccess.start()
 
     return {
@@ -71,7 +71,7 @@ async def cancelPengjuan(id_siswa : int,id_pengajuan : int,session : AsyncSessio
 
     return {
         "msg" : "success",
-        "data" : findPengajuanCancelPkl
+        "data" : pengajuanDict
     }
 
 async def getPengajuanCancelPklById(id_siswa : int,id_pengajuan : int,session : AsyncSession) -> PengajuanCancelPklWithDudi :

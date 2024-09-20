@@ -7,7 +7,7 @@ from sqlalchemy.orm import joinedload
 from .dudiModel import AddDudiBody,UpdateDudiBody,ResponseDudiPag
 from ...models_domain.dudi_model import DudiBase, DudiWithAlamat, DudiWithAlamatKouta
 from ...models_domain.alamat_model import AlamatBase,UpdateAlamatBody
-from ....models.dudiModel import Dudi,AlamatDudi,KoutaSiswa
+from ....models.dudiModel import Dudi,AlamatDudi
 from ....models.sekolahModel import TahunSekolah
 
 # common

@@ -4,10 +4,12 @@ from sqlalchemy import select,func
 from sqlalchemy.orm import joinedload,subqueryload
 
 # models
-from .koutaDudiModel import AddKoutaDudiBody,UpdateKoutaDudiBody
+from ....models.types import JenisKelaminEnum
+from .koutaDudiModel import AddKoutaDudiBody,UpdateKoutaDudiBody,AddKoutaJurusanBody
 from ....models.dudiModel import Dudi, KoutaSiswa,KoutaSiswaByJurusan
 from ...models_domain.dudi_model import DudiWithKouta
 from ....models.siswaModel import Jurusan
+from ....models.siswaModel import Siswa
 # common
 from copy import deepcopy
 from ....error.errorHandling import HttpException
@@ -90,11 +92,10 @@ async def addKoutaDudi(id_dudi : int,kouta : AddKoutaDudiBody,session : AsyncSes
 async def updateKoutaDudi(id_dudi : int,kouta : UpdateKoutaDudiBody,session : AsyncSession) -> DudiWithKouta :
     findDudi = (await session.execute(select(Dudi).options(joinedload(Dudi.kouta).subqueryload(KoutaSiswa.kouta_jurusan).joinedload(KoutaSiswaByJurusan.jurusan),subqueryload(Dudi.siswa)).where(Dudi.id == id_dudi))).scalar_one_or_none()
 
+    countSiswa = (await session.execute(select(func.count(Siswa.id).filter(Siswa.jenis_kelamin == JenisKelaminEnum.laki.value).label("count_pria"),func.count(Siswa.id).filter(Siswa.jenis_kelamin == JenisKelaminEnum.perempuan.value).label("count_wanita")).where(Siswa.id_dudi == id_dudi))).one()._asdict()
+
     if not findDudi :
         raise HttpException(404,"Dudi tidak ditemukan")
-    
-    if not findDudi.kouta :
-        raise HttpException(404,"Kouta siswa belum ditambahkan")
     
     jurusanTotalPria = 0
     jurusanTotalWanita = 0
@@ -105,53 +106,52 @@ async def updateKoutaDudi(id_dudi : int,kouta : UpdateKoutaDudiBody,session : As
             findKoutaJurusan = (await session.execute(select(KoutaSiswaByJurusan).where(KoutaSiswaByJurusan.id == koutaJurusan.id))).scalar_one_or_none()
 
             if not findKoutaJurusan :
-                if not koutaJurusan.id_jurusan :
-                    raise HttpException(400,"kouta jurusan yang ditambahkan tidak ditemukan,harap tambahkan jurusan untuk menambahkan kouta")
-                
-                findJurusan = (await session.execute(select(Jurusan).where(Jurusan.id == koutaJurusan.id_jurusan))).scalar_one_or_none()
+                raise HttpException(404,"Kouta jurusan tidak ditemukan")
 
-                if not findJurusan :
-                    raise HttpException(404,"Jurusan tidak ditemukan")
-                
-                findJurusanByKouta = (await session.execute(select(KoutaSiswaByJurusan).where(and_(KoutaSiswaByJurusan.id_kouta == findDudi.kouta.id,KoutaSiswaByJurusan.id_jurusan == koutaJurusan.id_jurusan)))).scalar_one_or_none()
+            # add to response dict
+            updateTable(koutaJurusan,findKoutaJurusan)
+            jurusanResponseList.append(deepcopy(findKoutaJurusan.__dict__))
 
-                if findJurusanByKouta :
-                    raise HttpException(400,"kouta dengan jurusan ini sudah ditambahkan")
-
-                jurusanMapping = koutaJurusan.model_dump()
-                jurusanMapping.update({"id" : random_strings.random_digits(6),"id_kouta" : findDudi.kouta.id})
-                print(jurusanMapping)
-                session.add(KoutaSiswaByJurusan(**jurusanMapping))
-                jurusanMapping.update({"jurusan" : deepcopy(findJurusan.__dict__)})
-
-                # add to response dict
-                jurusanResponseList.append(jurusanMapping)
-            else :
-                # add to response dict
-                jurusanResponseList.append(deepcopy(findKoutaJurusan.__dict__))
-                updateTable(koutaJurusan,findKoutaJurusan)
-            
-
-            jurusanTotalPria += koutaJurusan.jumlah_pria
-            jurusanTotalWanita += koutaJurusan.jumlah_wanita
+        for koutaJurusanDudi in findDudi.kouta.kouta_jurusan :
+            for koutaJurusanFromBody in kouta.kouta_jurusan :
+                if koutaJurusanDudi.id == koutaJurusanFromBody.id :
+                    if koutaJurusanFromBody.jumlah_pria :
+                        jurusanTotalPria += koutaJurusanFromBody.jumlah_pria
+                    if koutaJurusanFromBody.jumlah_wanita :
+                        jurusanTotalWanita += koutaJurusanFromBody.jumlah_wanita
+                else :
+                    jurusanTotalPria += koutaJurusanDudi.jumlah_pria
+                    jurusanTotalWanita += koutaJurusanDudi.jumlah_wanita
             
 
     # cek apakah kouta pada jurusan tidak melebihi jumlah total kouta
-    if jurusanTotalPria > kouta.jumlah_pria :
-        raise HttpException(400,"Jumlah pria yang ditentukan pada masing - masing jurusan melebihi kouta")    
-    if jurusanTotalWanita > kouta.jumlah_wanita :
-        raise HttpException(400,"Jumlah wanita yang ditentukan pada masing - masing jurusan melebihi kouta")
+    # cek for pria
+    if kouta.jumlah_pria :
+        print("masuk kerpia if")
+        if jurusanTotalPria > kouta.jumlah_pria :
+            raise HttpException(400,"Jumlah pria yang ditentukan pada masing - masing jurusan melebihi total kouta") 
+    else :
+        print("masuk kerpia else")
+        if jurusanTotalPria > findDudi.kouta.jumlah_pria :
+            raise HttpException(400,"Jumlah pria yang ditentukan pada masing - masing jurusan melebihi total kouta") 
+
+    # cek for wanita   
+    if kouta.jumlah_wanita :
+        print("masuk wanita if")
+        if jurusanTotalWanita > kouta.jumlah_wanita :
+            raise HttpException(400,"Jumlah wanita yang ditentukan pada masing - masing jurusan melebihi total kouta") 
+    else :
+        print("masuk wanita else")
+        if jurusanTotalWanita > findDudi.kouta.jumlah_wanita :
+            raise HttpException(400,"Jumlah wanita yang ditentukan pada masing - masing jurusan melebihi total kouta") 
     
     # cek apakah jumlah total kouts tidak kurang dari jumlah siswa yang telah ada
-    if kouta.jumlah_pria < len(findDudi.siswa) :
-        raise HttpException(400,"kouta pria tidak boleh kurang dari jumlah siswa")
-    
-    if kouta.jumlah_wanita < len(findDudi.siswa) :
-        raise HttpException(400,"kouta wanita tidak boleh kurang dari jumlah siswa")
-    
-    print(kouta)
-    print(findDudi.kouta)
-    if kouta != {} :
+    if kouta.jumlah_pria and kouta.jumlah_pria < countSiswa["count_pria"] :
+        raise HttpException(400,"kouta pria yang anda berikan kurang dari jumlah siswa pria yang ada pada dudi saat ini")
+    if kouta.jumlah_wanita and kouta.jumlah_wanita < countSiswa["count_wanita"] :
+        raise HttpException(400,"kouta wanita yang anda berikan kurang dari jumlah siswa wanita yang ada pada dudi saat ini")
+
+    if kouta.model_dump(exclude={"kouta_jurusan"}) != {} :
         updateTable(kouta.model_dump(exclude={"kouta_jurusan"}),findDudi.kouta)
     
     dudiDictCopy = deepcopy(findDudi.__dict__)
@@ -161,11 +161,75 @@ async def updateKoutaDudi(id_dudi : int,kouta : UpdateKoutaDudiBody,session : As
         "msg" : "success",
         "data" : {
             **dudiDictCopy,
-
             "kouta" : {
                 **dudiDictCopy["kouta"].__dict__,
                 "kouta_jurusan" : jurusanResponseList
             }
         }
     }
+
+async def addKoutaJurusan(id_dudi : int,kouta : list[AddKoutaJurusanBody],session : AsyncSession) -> DudiWithKouta :
+    findDudi = (await session.execute(select(Dudi).options(joinedload(Dudi.kouta).subqueryload(KoutaSiswa.kouta_jurusan).joinedload(KoutaSiswaByJurusan.jurusan)).where(Dudi.id == id_dudi))).scalar_one_or_none()
+
+    if not findDudi :
+        raise HttpException(404,"Dudi tidak ditemukan")
     
+    if not findDudi.kouta :
+        raise HttpException(404,"Kouta siswa belum ditambahkan")
+        
+    countMaxSiswa = (await session.execute(select(func.sum(KoutaSiswaByJurusan.jumlah_pria).label("count_pria"),func.sum(KoutaSiswaByJurusan.jumlah_wanita).label("count_wanita")).where(KoutaSiswaByJurusan.id_kouta == findDudi.kouta.id))).one()._asdict()
+
+    listkoutaForDb = []
+    listkoutaForResponse = []
+    
+    if len(kouta) > 0 :
+        for koutaJurusan in kouta :
+            findJurusan = (await session.execute(select(Jurusan).where(Jurusan.id == koutaJurusan.id_jurusan))).scalar_one_or_none()
+
+            if not findJurusan :
+                raise HttpException(404,"Jurusan tidak ditemukan")
+            
+            findKoutaJurusan = (await session.execute(select(KoutaSiswaByJurusan).where(KoutaSiswaByJurusan.id_jurusan == koutaJurusan.id_jurusan))).scalar_one_or_none()
+
+            if findKoutaJurusan :
+                raise HttpException(404,"Kouta untuk jurusan ini telah ditambahkan")
+            
+            # mapping kouta and add id and id_kouta
+            koutaJurusanMapping = koutaJurusan.model_dump()
+            koutaJurusanMapping.update({"id" : random_strings.random_digits(6),"id_kouta" : findDudi.kouta.id})
+
+            # add to list for db,to add all later
+            listkoutaForDb.append(KoutaSiswaByJurusan(**koutaJurusanMapping))
+
+            # add to list for response
+            listkoutaForResponse.append({
+                **koutaJurusanMapping,
+                "jurusan" : deepcopy(findJurusan.__dict__)
+            })
+
+            # increment count max siswa
+            countMaxSiswa["count_pria"] += koutaJurusanMapping["jumlah_pria"]
+            countMaxSiswa["count_wanita"] += koutaJurusanMapping["jumlah_wanita"]
+    else :
+        raise HttpException(400,"kouta jurusan tidak boleh kosong")
+    
+    # check if jika total kouta melebihi maximal kouta yang telah ditentukan
+    if countMaxSiswa["count_pria"] > findDudi.kouta.jumlah_pria :
+        raise HttpException(400,"Jumlah pria yang ditentukan pada masing - masing jurusan melebihi total kouta") 
+    if countMaxSiswa["count_wanita"] > findDudi.kouta.jumlah_wanita :
+        raise HttpException(400,"Jumlah wanita yang ditentukan pada masing - masing jurusan melebihi total kouta") 
+
+    session.add_all(listkoutaForDb)
+    dudiDictCopy = deepcopy(findDudi.__dict__)
+    await session.commit()
+    
+    return {
+        "msg" : "success",
+        "data" : {
+            **dudiDictCopy,
+            "kouta" : {
+                **dudiDictCopy["kouta"].__dict__,
+                "kouta_jurusan" : listkoutaForResponse
+            }
+        }
+    }

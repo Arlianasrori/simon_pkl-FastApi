@@ -234,12 +234,12 @@ async def getLaporanPklDudiById(id_laporan : int,admin : dict = Depends(getAdmin
 
 # laporan pkl siswa
 @adminRouter.get("/laporan-pkl-siswa",response_model=ResponseModel[ResponseLaporanPklSiswaPag],tags=["ADMIN/LAPORAN PKL SISWA"])
-async def getAllLaporanPklSiswa(id_tahun : int,page : int | None = None,filter : FilterLaporanPklSiswaQuery = Depends(),admin : dict = Depends(getAdminAuth), session : sessionDepedency = None) :
+async def getAllLaporanPklSiswa(id_tahun : int,page : int,filter : FilterLaporanPklSiswaQuery = Depends(),admin : dict = Depends(getAdminAuth), session : sessionDepedency = None) :
     return await laporanPklSiswaService.getAllLaporanPkl(page,admin["id_sekolah"],id_tahun,filter,session)
 
 @adminRouter.get("/laporan-pkl-siswa/{id_laporan}",response_model=ResponseModel[LaporanPklSiswaBase],tags=["ADMIN/LAPORAN PKL SISWA"])
 async def getAllLaporanPklSiswa(id_laporan : int,admin : dict = Depends(getAdminAuth), session : sessionDepedency = None) :
-    return await laporanPklDudiService.getLaporanPkl(id_laporan,admin["id_sekolah"],session)
+    return await laporanPklSiswaService.getLaporanPkl(id_laporan,admin["id_sekolah"],session)
 
 # absen
 @adminRouter.get("/absen",response_model=ResponseModel[ResponseAbsenPag],tags=["ADMIN/ABSEN"])
