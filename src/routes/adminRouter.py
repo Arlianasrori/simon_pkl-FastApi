@@ -1,8 +1,14 @@
 from typing import Annotated
 from fastapi import APIRouter, Body, Depends, Query, UploadFile
 # models
+
+# auth profile
+from ..domain.admin.auth_profile import authProfileService
+from ..domain.models_domain.sekolah_model import AdminWithSekolah,AdminBase
+
 # jurusan dan kelas
 from ..domain.admin.jurusan_kelas.jurusanKelasModel import AddJurusanBody, UpdateJurusanBody, AddKelasBody, UpdateKelasBody
+
 from ..domain.models_domain.kelas_jurusan_model import JurusanBase,MoreJurusanBase,KelasBase,KelasWithJurusan
 from ..domain.admin.jurusan_kelas import jurusanKelasService
 
@@ -58,7 +64,17 @@ from ..db.sessionDepedency import sessionDepedency
 
 adminRouter = APIRouter(prefix="/admin",dependencies=[Depends(adminAuth)])
 
+# authProfile
+@adminRouter.get("/",response_model=ResponseModel[AdminBase],tags=["ADMIN/AUTH PROFILE"])
+async def getAdmin(admin : dict = Depends(getAdminAuth),session : sessionDepedency = None) :
+    return await authProfileService.getAdmin(admin["id"],session)
+
+@adminRouter.get("/profile",response_model=ResponseModel[AdminWithSekolah],tags=["ADMIN/AUTH PROFILE"])
+async def getProfileAdmin(admin : dict = Depends(getAdminAuth),session : sessionDepedency = None) :
+    return await authProfileService.getProfile(admin["id"],session)
+
 # tahun sekolah
+
 @adminRouter.post("/tahun-sekolah",response_model=ResponseModel[TahunSekolahBase],tags=["ADMIN/TAHUN SEKOLAH"])
 async def addTahunSekolah(tahun : AddTahunSekolahBody,admin : dict = Depends(getAdminAuth), session : sessionDepedency = None) :
     return await tahunSekolahService.addTahunSekolah(admin["id_sekolah"],tahun,session)

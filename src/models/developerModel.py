@@ -7,6 +7,7 @@ class Developer(Base):
     id = Column(Integer, primary_key=True)
     username = Column(String, unique=True, nullable=False)
     password = Column(String, nullable=False)
+    no_telepon = Column(String(255), unique=True, nullable=False)
 
     def __repr__(self):
         return f"<Developer(id={self.id}, username='{self.username}')>"
