@@ -6,4 +6,5 @@ def updateTable(data : BaseModel | dict,models) :
             setattr(models, field, value)
     else :
         for field, value in data.items():
-            setattr(models, field, value)
+            if value is not None:
+                setattr(models, field, value)

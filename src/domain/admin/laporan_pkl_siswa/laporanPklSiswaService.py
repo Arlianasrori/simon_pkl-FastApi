@@ -14,7 +14,7 @@ import math
 import datetime
 from ....error.errorHandling import HttpException
 
-async def getAllLaporanPkl(page: int, id_sekolah: int, id_tahun: int, query: FilterLaporanPklSiswaQuery | None, session: AsyncSession) -> ResponseLaporanPklSiswaPag:
+async def getAllLaporanPkl(page: int | None, id_sekolah: int, id_tahun: int, query: FilterLaporanPklSiswaQuery | None, session: AsyncSession) -> ResponseLaporanPklSiswaPag:
     """
     Retrieves all LaporanSiswaPKL records based on the provided parameters.
 
@@ -41,8 +41,8 @@ async def getAllLaporanPkl(page: int, id_sekolah: int, id_tahun: int, query: Fil
         startQuery = datetime.date(query.year if query.year else now.year, query.month if query.month else 1, 1)
         endQuery = datetime.date(query.year if query.year else now.year, query.month if query.month else 12, 31)
         print(startQuery)
-
-    getLapoaran = (await session.execute(select(LaporanSiswaPKL).options(joinedload(LaporanSiswaPKL.siswa), joinedload(LaporanSiswaPKL.dudi)).where(and_(and_(LaporanSiswaPKL.tanggal >= startQuery, LaporanSiswaPKL.tanggal <= endQuery)) if query.month else True, LaporanSiswaPKL.tanggal == query.tanggal if query.tanggal else True, LaporanSiswaPKL.siswa.has(id_sekolah == id_sekolah), LaporanSiswaPKL.id_siswa == query.id_siswa if query.id_siswa else True).limit(10).offset(10 * (page - 1)))).scalars().all()
+    
+    getLaporan = (await session.execute(select(LaporanSiswaPKL).options(joinedload(LaporanSiswaPKL.siswa), joinedload(LaporanSiswaPKL.dudi)).where(and_(and_(LaporanSiswaPKL.tanggal >= startQuery, LaporanSiswaPKL.tanggal <= endQuery)) if query.month else True, LaporanSiswaPKL.tanggal == query.tanggal if query.tanggal else True, LaporanSiswaPKL.siswa.has(id_sekolah == id_sekolah), LaporanSiswaPKL.id_siswa == query.id_siswa if query.id_siswa else True).limit(10).offset(10 * (page - 1)))).scalars().all()
 
     conntData = (await session.execute(func.count(LaporanSiswaPKL.id))).scalar_one()
     countPage = math.ceil(conntData / 10)
@@ -50,8 +50,8 @@ async def getAllLaporanPkl(page: int, id_sekolah: int, id_tahun: int, query: Fil
     return {
         "msg": "success",
         "data": {
-            "data": getLapoaran,
-            "count_data": len(getLapoaran),
+            "data": getLaporan,
+            "count_data": len(getLaporan),
             "count_page": countPage
         }
     }
@@ -72,6 +72,7 @@ async def getLaporanPkl(id_laporan: int, id_sekolah: int, session: AsyncSession)
     - HttpException: If the laporan pkl is not found.
     """
     findLaporanPkl = (await session.execute(select(LaporanSiswaPKL).options(joinedload(LaporanSiswaPKL.siswa), joinedload(LaporanSiswaPKL.dudi)).where(and_(LaporanSiswaPKL.id == id_laporan, LaporanSiswaPKL.siswa.has(Siswa.id_sekolah == id_sekolah))))).scalar_one_or_none()
+    print(findLaporanPkl)
 
     if not findLaporanPkl:
         raise HttpException(404, "laporan pkl tidak ditemukan")

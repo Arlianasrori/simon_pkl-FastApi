@@ -4,6 +4,9 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 import uvicorn
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
+from apscheduler.triggers.cron import CronTrigger
+
 from dotenv import load_dotenv
 
 # Load environment variables from .env file
@@ -22,6 +25,7 @@ from src.routes.adminRouter import adminRouter
 from src.routes.pembimbingDudiRouter import pembimbingDudiRouter
 from src.routes.guruPembimbingRouter import guruPembimbingRouter
 from src.routes.siswaRouter import siswaRouter
+from src.cron_job.addAbsenSiswaCron import addAbsenSiswaCron
 
 # Initialize FastAPI application with configuration
 App = FastAPI(
@@ -68,10 +72,16 @@ App.add_middleware(
 # Add error handling to the application
 add_exception_server(App)
 
+# Inisialisasi scheduler
+scheduler = AsyncIOScheduler()
+scheduler.add_job(addAbsenSiswaCron, CronTrigger(hour=0, minute=0))
+
 # Function to run the server
 async def runServer():
-    uvicorn.run(app="main:App", port=2008, reload=True)
-
+    scheduler.start()
+    # config = uvicorn.Config("main:App", port=2008, reload=True)
+    # server = uvicorn.Server(config)
+    # await server.serve()
 # Run the server if the script is executed directly
 if __name__ == "__main__":
     asyncio.run(runServer())

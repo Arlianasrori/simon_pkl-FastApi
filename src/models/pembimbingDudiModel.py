@@ -22,7 +22,6 @@ class PembimbingDudi(Base):
     alamat = relationship("AlamatPembimbingDudi", uselist=False,back_populates="pembimbing_dudi",cascade="all")
     notifications = relationship("Notification", back_populates="pembimbing_dudi")
     notification_reads = relationship("NotificationRead", back_populates="pembimbing_dudi")
-    kordinat_absen = relationship("KordinatAbsen", back_populates="pembimbing_dudi")
     laporan_pkl = relationship("LaporanPKL", back_populates="pembimbing_dudi")
 
     dudi = relationship("Dudi", back_populates="pembimbing_dudi")

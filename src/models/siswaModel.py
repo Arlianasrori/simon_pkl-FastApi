@@ -34,6 +34,7 @@ class Siswa(Base):
     alamat = relationship("AlamatSiswa", uselist=False, back_populates="siswa",cascade="all")
     pengajuan_pkl = relationship("PengajuanPKL", back_populates="siswa")
     laporan_pkl = relationship("LaporanPKL", back_populates="siswa")
+    laporan_kendala = relationship("LaporanKendalaSiswa", back_populates="siswa")
     laporans_siswa_pkl = relationship("LaporanSiswaPKL", back_populates="siswa")
     pengajuan_cancel_pkl = relationship("PengajuanCancelPKL", back_populates="siswa")
     notifications = relationship("Notification", back_populates="siswa")
@@ -62,7 +63,7 @@ class Jurusan(Base):
     kelas = relationship("Kelas", back_populates="jurusan")
     sekolah = relationship("Sekolah", back_populates="jurusan")
     tahun = relationship("TahunSekolah", back_populates="jurusan")
-    kouta_jurusan = relationship("KoutaSiswaByJurusan", back_populates="jurusan")
+    kuota_jurusan = relationship("KuotaSiswaByJurusan", back_populates="jurusan")
 
 class Kelas(Base):
     __tablename__ = 'kelas'

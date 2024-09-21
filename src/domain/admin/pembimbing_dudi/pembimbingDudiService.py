@@ -1,3 +1,4 @@
+import aiofiles
 from fastapi import UploadFile
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import func, select,and_
@@ -20,6 +21,8 @@ import os
 from python_random_strings import random_strings
 from ....error.errorHandling import HttpException
 from ....utils.updateTable import updateTable
+from multiprocessing import Process
+from ....utils.removeFile import removeFile
 
 async def addPembimbingDudi(id_sekolah : int,pembimbingDudi : AddPembimbingDudiBody,alamat : AlamatBase,session : AsyncSession) -> PembimbingDudiWithAlamatDudi :
     """
@@ -103,8 +106,8 @@ async def add_update_foto_profile(id : int,id_sekolah : int,foto_profile : Uploa
         
     fotoProfileBefore = findPembimbingDudi.foto_profile
 
-    with open(file_name_save, "wb") as f:
-        f.write(foto_profile.file.read())
+    async with aiofiles.open(file_name_save, "wb") as f:
+        await f.write(foto_profile.file.read())
         print(PROFILE_BASE_URL)
         findPembimbingDudi.foto_profile = f"{PROFILE_BASE_URL}/{file_name}"
     
@@ -243,9 +246,18 @@ async def deletePembimbingDudi(id_sekolah : int,id_pembimbing_dudi : int,session
     if not findPembimbingDudi :
         raise HttpException(404,f"Pembimbing Dudi dengan id {id_pembimbing_dudi} tidak ditemukan")
     
+    fotoProfileBefore = deepcopy(findPembimbingDudi.foto_profile)
     pembimbingDudiDictCopy = deepcopy(findPembimbingDudi.__dict__)
     await session.delete(findPembimbingDudi)
     await session.commit()
+
+    if fotoProfileBefore :
+        file_nama_db_split = fotoProfileBefore.split("/")
+        file_name_db = file_nama_db_split[-1]
+
+        proccess = Process(target=removeFile,args=(f"{PROFILE_STORE}/{file_name_db}",))
+        proccess.start()
+
     return {
         "msg" : "success",
         "data" : pembimbingDudiDictCopy

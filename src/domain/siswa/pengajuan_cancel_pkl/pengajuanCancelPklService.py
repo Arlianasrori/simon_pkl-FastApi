@@ -7,11 +7,17 @@ from sqlalchemy.orm import joinedload
 from ...models_domain.pengajuan_cancel_pkl_model import PengajuanCancelPklWithDudi,PengajuanCancelPklBase
 from ....models.pengajuanPklModel import PengajuanCancelPKL,StatusCancelPKLENUM
 from ....models.siswaModel import Siswa,StatusPKLEnum
+from ....models.pembimbingDudiModel import PembimbingDudi
 
 # common
 from ....error.errorHandling import HttpException
 from python_random_strings import random_strings
 from datetime import datetime
+
+from multiprocessing import Process
+
+# notification
+from ..notification.notifUtils import runningProccessSync
 
 async def addPengajuanCancelPkl(id_siswa : int,session : AsyncSession) -> PengajuanCancelPklBase :
     findSiswa = (await session.execute(select(Siswa).filter(Siswa.id == id_siswa))).scalar_one_or_none()
@@ -29,8 +35,13 @@ async def addPengajuanCancelPkl(id_siswa : int,session : AsyncSession) -> Pengaj
         "waktu_pengajuan" : datetime.utcnow()
     }
 
+    siswaDictCopy = deepcopy(findSiswa.__dict__)
     session.add(PengajuanCancelPKL(**pengajuanCancelMapping))
     await session.commit()
+
+    # Menjalankan addNotif dalam proses terpisah
+    proccess = Process(target=runningProccessSync,args=(pengajuanCancelMapping["id_dudi"],siswaDictCopy["nama"],True))
+    proccess.start()
 
     return {
         "msg" : "success",
@@ -60,7 +71,7 @@ async def cancelPengjuan(id_siswa : int,id_pengajuan : int,session : AsyncSessio
 
     return {
         "msg" : "success",
-        "data" : findPengajuanCancelPkl
+        "data" : pengajuanDict
     }
 
 async def getPengajuanCancelPklById(id_siswa : int,id_pengajuan : int,session : AsyncSession) -> PengajuanCancelPklWithDudi :

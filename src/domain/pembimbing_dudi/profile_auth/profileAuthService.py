@@ -1,4 +1,5 @@
 import os
+import aiofiles
 from fastapi import UploadFile
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select,and_
@@ -48,7 +49,7 @@ async def updateProfile(id_pembimbing_dudi : int,pembimbingDudi : UpdateProfileB
         findPembimbingDudiByUsername = (await session.execute(select(PembimbingDudi).where(and_(PembimbingDudi.username == pembimbingDudi.username,PembimbingDudi.id != id_pembimbing_dudi)))).scalar_one_or_none()
         if findPembimbingDudiByUsername :
             raise HttpException(400,f"Pembimbing Dudi dengan username {pembimbingDudi.username} sudah ada")
-
+    print(pembimbingDudi.model_dump())
     if pembimbingDudi.model_dump() != {} :
         updateTable(pembimbingDudi,findPembimbingDudi)
     
@@ -77,8 +78,8 @@ async def updateFotoProfile(id_pembimbing_dudi : int,foto_profile : UploadFile,s
         
     fotoProfileBefore = findPembimbingDudi.foto_profile
 
-    with open(file_name_save, "wb") as f:
-        f.write(foto_profile.file.read())
+    async with aiofiles.open(file_name_save, "wb") as f:
+        await f.write(foto_profile.file.read())
         print(PROFILE_BASE_URL)
         findPembimbingDudi.foto_profile = f"{PROFILE_BASE_URL}/{file_name}"
     

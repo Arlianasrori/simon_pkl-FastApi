@@ -1,12 +1,12 @@
 from fastapi import UploadFile
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select,and_,func
+from sqlalchemy import select,and_,func,extract
 from sqlalchemy.orm import joinedload
 
 # models
 from ...models_domain.laporan_pkl_siswa_model import LaporanPklSiswaBase,LaporanPklWithoutDudiAndSiswa
 from ....models.laporanPklModel import LaporanSiswaPKL
-from .laporanPklSiswaModel import AddLaporanPklSiswaBody,UpdateLaporanPklSiswaBody,ResponseGetLaporanPklSiswaPag
+from .laporanPklSiswaModel import AddLaporanPklSiswaBody,UpdateLaporanPklSiswaBody,ResponseGetLaporanPklSiswaPag,FilterLaporan
 
 # common
 from copy import deepcopy
@@ -15,6 +15,9 @@ from ....error.errorHandling import HttpException
 from python_random_strings import random_strings
 import os
 from ....utils.updateTable import updateTable
+import aiofiles
+from multiprocessing import Process
+from ....utils.removeFile import removeFile
 
 async def addLaporanPklSiswa(id_siswa : int,id_dudi : int,laporan : AddLaporanPklSiswaBody,session : AsyncSession) -> LaporanPklWithoutDudiAndSiswa :
     if not id_dudi :
@@ -50,8 +53,8 @@ async def addUpdateFileLaporanPkl(id_siswa : int,id_laporan_pkl : int,file : Upl
     file_name_save = f"{FILE_LAPORAN_STORE}{file_name}"
     fotoProfileBefore = findLaporanPkl.dokumentasi
 
-    with open(file_name_save, "wb") as f:
-        f.write(file.file.read())
+    async with aiofiles.open(file_name_save, "wb") as f:
+        await f.write(file.file.read())
         findLaporanPkl.dokumentasi = f"{FILE_LAPORAN_BASE_URL}/{file_name}"
     
     if fotoProfileBefore :
@@ -90,9 +93,17 @@ async def deleteLaporanPklSiswa(id_siswa : int,id_laporan_pkl : int,session : As
     if not findLaporanPkl :
         raise HttpException(404,f"laporan pkl tidak ditemukan")
     
+    fotoProfileBefore = deepcopy(findLaporanPkl.dokumentasi)
     await session.delete(findLaporanPkl)
     laporanPklDictCopy = deepcopy(findLaporanPkl.__dict__)
     await session.commit()
+
+    if fotoProfileBefore :
+        file_nama_db_split = fotoProfileBefore.split("/")
+        file_name_db = file_nama_db_split[-1]
+
+        proccess = Process(target=removeFile,args=(f"{FILE_LAPORAN_STORE}/{file_name_db}",))
+        proccess.start()
     
     return {
         "msg" : "success",
@@ -101,9 +112,9 @@ async def deleteLaporanPklSiswa(id_siswa : int,id_laporan_pkl : int,session : As
     
 
 
-async def getAllLaporanPklSiswa(id_siswa : int,page : int,session : AsyncSession) -> ResponseGetLaporanPklSiswaPag :
-    findLaporan = (await session.execute(select(LaporanSiswaPKL).where(LaporanSiswaPKL.id_siswa == id_siswa).limit(10).offset(10 * (page - 1)))).scalars().all()
-    countData = (await session.execute(select(func.count(LaporanSiswaPKL.id).filter(LaporanSiswaPKL.id_siswa == id_siswa)))).scalar_one()
+async def getAllLaporanPklSiswa(id_siswa : int,page : int,filter : FilterLaporan,session : AsyncSession) -> ResponseGetLaporanPklSiswaPag :
+    findLaporan = (await session.execute(select(LaporanSiswaPKL).where(and_(LaporanSiswaPKL.id_siswa == id_siswa,extract('month', LaporanSiswaPKL.tanggal) == filter.month,extract('year', LaporanSiswaPKL.tanggal) == filter.year)).limit(10).offset(10 * (page - 1)))).scalars().all()
+    countData = (await session.execute(select(func.count(LaporanSiswaPKL.id).filter(and_(LaporanSiswaPKL.id_siswa == id_siswa,extract('month', LaporanSiswaPKL.tanggal) == filter.month,extract('year', LaporanSiswaPKL.tanggal) == filter.year))))).scalar_one()
     countPage = math.ceil(countData / 10)
     print(findLaporan[0].__dict__)
 

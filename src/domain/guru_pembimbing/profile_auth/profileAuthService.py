@@ -1,4 +1,5 @@
 from copy import deepcopy
+import aiofiles
 from fastapi import UploadFile
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select,and_
@@ -82,8 +83,8 @@ async def updateFotoProfile(id_guru : int,foto_profile : UploadFile,session : As
         
     fotoProfileBefore = findguruPembimbing.foto_profile
 
-    with open(file_name_save, "wb") as f:
-        f.write(foto_profile.file.read())
+    async with aiofiles.open(file_name_save, "wb") as f:
+        await f.write(foto_profile.file.read())
         print(PROFILE_BASE_URL)
         findguruPembimbing.foto_profile = f"{PROFILE_BASE_URL}/{file_name}"
     

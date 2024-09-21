@@ -15,3 +15,7 @@ class UpdateLaporanPklSiswaBody(BaseModel):
 
 class ResponseGetLaporanPklSiswaPag(PaginationBase) :
     data : list[LaporanPklWithoutDudiAndSiswa]
+
+class FilterLaporan(BaseModel) :
+    month : int | None = None
+    year : int | None = None

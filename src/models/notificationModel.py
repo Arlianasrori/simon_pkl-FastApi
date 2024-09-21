@@ -1,18 +1,19 @@
-from sqlalchemy import Column, Integer, String, Boolean, ForeignKey
+from sqlalchemy import Column, Integer, String, Boolean, ForeignKey,DateTime
 from sqlalchemy.orm import relationship
 from ..db.db import Base
+from datetime import datetime
 
 class Notification(Base):
     __tablename__ = 'notification'
 
     id = Column(Integer, primary_key=True)
-    id_siswa = Column(Integer, ForeignKey('siswa.id'))
-    id_dudi = Column(Integer, ForeignKey('dudi.id'))
-    id_pembimbing_dudi = Column(Integer, ForeignKey('pembimbing_dudi.id'))
-    id_guru_pembimbing = Column(Integer, ForeignKey('guru_pembimbing.id'))
+    id_siswa = Column(Integer, ForeignKey('siswa.id'),nullable=True)
+    id_dudi = Column(Integer, ForeignKey('dudi.id'),nullable=True)
+    id_pembimbing_dudi = Column(Integer, ForeignKey('pembimbing_dudi.id'),nullable=True)
+    id_guru_pembimbing = Column(Integer, ForeignKey('guru_pembimbing.id'),nullable=True)
     title = Column(String(255))
     body = Column(String(1500))
-    is_read = Column(Boolean, default=False)
+    created_at = Column(DateTime, default=datetime.now())
 
     siswa = relationship("Siswa", back_populates="notifications")
     dudi = relationship("Dudi", back_populates="notifications")
@@ -25,10 +26,10 @@ class NotificationRead(Base):
 
     id = Column(Integer, primary_key=True)
     notification_id = Column(Integer, ForeignKey('notification.id'))
-    id_siswa = Column(Integer, ForeignKey('siswa.id'))
-    id_pembimbing_dudi = Column(Integer, ForeignKey('pembimbing_dudi.id'))
-    id_guru_pembimbing = Column(Integer, ForeignKey('guru_pembimbing.id'))
-    is_read = Column(Boolean, default=False)
+    id_siswa = Column(Integer, ForeignKey('siswa.id'),nullable=True)
+    id_pembimbing_dudi = Column(Integer, ForeignKey('pembimbing_dudi.id'),nullable=True)
+    id_guru_pembimbing = Column(Integer, ForeignKey('guru_pembimbing.id'),nullable=True)
+    is_read = Column(Boolean, default=True)
 
     notification = relationship("Notification", back_populates="reads")
     siswa = relationship("Siswa", back_populates="notification_reads")
