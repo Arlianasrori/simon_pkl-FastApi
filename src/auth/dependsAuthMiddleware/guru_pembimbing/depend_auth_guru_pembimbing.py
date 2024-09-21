@@ -55,6 +55,7 @@ async def guruPembimbingAuth(access_token: str | None = Cookie(None), Authorizat
             raise HttpException(status=401, message="invalid token(unauthorized)")
         
         # Add guru pembimbing information to the request object
+        print("masuk")
         req.guruPembimbing = findGuruPembimbing._asdict()
     except JWTError as error:
         # Handle JWT decoding errors

@@ -7,7 +7,8 @@ class PembimbingDudi(Base):
     __tablename__ = 'pembimbing_dudi'
 
     id = Column(Integer, primary_key=True)
-    username = Column(String(255), nullable=False)
+    nama = Column(String(255), nullable=False)
+    username = Column(String(255),unique=True, nullable=False)
     no_telepon = Column(String(12), unique=True, nullable=False)
     foto_profile = Column(String, nullable=True)
     jenis_kelamin = Column(Enum(JenisKelaminEnum), nullable=False)
@@ -19,7 +20,6 @@ class PembimbingDudi(Base):
 
     siswa = relationship("Siswa", back_populates="pembimbing_dudi")
     alamat = relationship("AlamatPembimbingDudi", uselist=False,back_populates="pembimbing_dudi",cascade="all")
-    kunjungan_guru_pembimbing = relationship("KunjunganGuruPembimbingPKL", back_populates="pembimbing_dudi")
     notifications = relationship("Notification", back_populates="pembimbing_dudi")
     notification_reads = relationship("NotificationRead", back_populates="pembimbing_dudi")
     kordinat_absen = relationship("KordinatAbsen", back_populates="pembimbing_dudi")

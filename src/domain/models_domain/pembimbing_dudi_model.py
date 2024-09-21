@@ -5,6 +5,7 @@ from .alamat_model import AlamatBase
 class PembimbingDudiBase(BaseModel) :
     id : int
     username : str
+    nama : str
     no_telepon : str
     foto_profile : str | None = None
     jenis_kelamin : str

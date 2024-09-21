@@ -20,6 +20,8 @@ from src.routes.authRouter import authRouter
 from src.routes.developerRouter import developerRouter
 from src.routes.adminRouter import adminRouter
 from src.routes.pembimbingDudiRouter import pembimbingDudiRouter
+from src.routes.guruPembimbingRouter import guruPembimbingRouter
+from src.routes.siswaRouter import siswaRouter
 
 # Initialize FastAPI application with configuration
 App = FastAPI(
@@ -30,9 +32,22 @@ App = FastAPI(
 )
 
 # Add routers to the application
-routes = [authRouter, developerRouter, adminRouter,pembimbingDudiRouter]
+routes = [authRouter, developerRouter, adminRouter,pembimbingDudiRouter,guruPembimbingRouter,siswaRouter]
 for router in routes:
     App.include_router(router)
+
+# add middleware
+origins = [
+    "http://localhost:2008",
+]
+
+App.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # Mount static directory for public files
 App.mount("/public", StaticFiles(directory="src/public"), name="public")

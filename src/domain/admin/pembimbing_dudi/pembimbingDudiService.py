@@ -45,6 +45,10 @@ async def addPembimbingDudi(id_sekolah : int,pembimbingDudi : AddPembimbingDudiB
     if not findDudi :
         raise HttpException(404,f"Dudi dengan id {pembimbingDudi.id_dudi} tidak ditemukan")
     
+    findPembibingDudiByUsername = (await session.execute(select(PembimbingDudi).where(PembimbingDudi.username == pembimbingDudi.username))).scalar_one_or_none()
+    if findPembibingDudiByUsername :
+        raise HttpException(400,f"Pembimbing Dudi dengan username {pembimbingDudi.username} sudah ada")
+    
     pembimbingDudiMapping = pembimbingDudi.model_dump()
     pembimbingDudiMapping.update({"id" : random_strings.random_digits(6),"id_sekolah" : id_sekolah,"password" : bcrypt.create_hash_password(pembimbingDudi.password)})
     alamatPembimbingDudiMapping = alamat.model_dump()
@@ -203,6 +207,10 @@ async def updatePembimbingDudi(id_sekolah : int,id_pembimbing_dudi : int,pembimb
         findDudi = (await session.execute(select(Dudi).where(Dudi.id == pembimbingDudi.id_dudi))).scalar_one_or_none()
         if not findDudi :
             raise HttpException(404,f"Dudi dengan id {pembimbingDudi.id_dudi} tidak ditemukan")
+    if pembimbingDudi.username :
+        findPembimbingDudiByUsername = (await session.execute(select(PembimbingDudi).where(and_(PembimbingDudi.username == pembimbingDudi.username,PembimbingDudi.id != id_pembimbing_dudi)))).scalar_one_or_none()
+        if findPembimbingDudiByUsername :
+            raise HttpException(400,f"Pembimbing Dudi dengan username {pembimbingDudi.username} sudah ada")
 
     if pembimbingDudi.model_dump() != {} :
         updateTable(pembimbingDudi,findPembimbingDudi)

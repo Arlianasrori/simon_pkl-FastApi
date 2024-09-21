@@ -118,7 +118,7 @@ async def updateJurusan(id : int,jurusan : UpdateJurusanBody,id_sekolah : int, s
     
     jurusanDictCopy = findJurusanById.__dict__
     if jurusan.nama :
-        findJurusanByName = (await session.execute(select(Jurusan).where(and_(Jurusan.nama == jurusan.nama,Jurusan.id_sekolah == findJurusanById.id_sekolah)))).scalar_one_or_none()
+        findJurusanByName = (await session.execute(select(Jurusan).where(and_(Jurusan.nama == jurusan.nama,Jurusan.id_sekolah == findJurusanById.id_sekolah,Jurusan.id != id)))).scalar_one_or_none()
 
         if findJurusanByName :
             raise HttpException(400,f"jurusan dengan nama {jurusan.nama} telah ditambahkan")

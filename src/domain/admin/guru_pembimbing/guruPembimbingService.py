@@ -198,12 +198,12 @@ async def updateGuruPembimbing(id : int,id_sekolah : int,guruPembimbing : Update
         raise HttpException(404,f"Guru Pembimbing dengan id {id} tidak ditemukan")
     
     if guruPembimbing.nip :
-        findGuruPembimbingByNip = (await session.execute(select(GuruPembimbing).where(GuruPembimbing.nip == guruPembimbing.nip))).scalar_one_or_none()
+        findGuruPembimbingByNip = (await session.execute(select(GuruPembimbing).where(and_(GuruPembimbing.nip == guruPembimbing.nip,GuruPembimbing.id != id)))).scalar_one_or_none()
         if findGuruPembimbingByNip :
             raise HttpException(400,f"Guru Pembimbing dengan nip {guruPembimbing.nip} sudah ditambahkan")
     
     if guruPembimbing.no_telepon :
-        findGuruPembimbingByNoTelepon = (await session.execute(select(GuruPembimbing).where(GuruPembimbing.no_telepon == guruPembimbing.no_telepon))).scalar_one_or_none()
+        findGuruPembimbingByNoTelepon = (await session.execute(select(GuruPembimbing).where(and_(GuruPembimbing.no_telepon == guruPembimbing.no_telepon,GuruPembimbing.id != id)))).scalar_one_or_none()
         if findGuruPembimbingByNoTelepon :
             raise HttpException(400,f"Guru Pembimbing dengan nomor telepon {guruPembimbing.no_telepon} sudah ditambahkan")
     

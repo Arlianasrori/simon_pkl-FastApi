@@ -8,7 +8,17 @@ class LaporanPklDudiBase(BaseModel) :
     id : int
     tanggal : Date
     keterangan : str
-    file_laporan : str
+    file_laporan : str | None = None
     siswa : SiswaBase
     dudi : DudiBase
     pembimbing_dudi : PembimbingDudiBase
+
+class LaporanPklDudiWithOut(BaseModel) :
+    id : int
+    tanggal : Date
+    keterangan : str
+    file_laporan : str | None = None
+
+class LaporanPklDudiWithoutSiswaAndPembimbing(LaporanPklDudiWithOut) :
+    dudi : DudiBase
+

@@ -1,5 +1,5 @@
 from typing import Annotated
-from fastapi import APIRouter, Body, Depends, UploadFile
+from fastapi import APIRouter, Body, Depends, Query, UploadFile
 # models
 # jurusan dan kelas
 from ..domain.admin.jurusan_kelas.jurusanKelasModel import AddJurusanBody, UpdateJurusanBody, AddKelasBody, UpdateKelasBody
@@ -225,25 +225,25 @@ async def deletePembimbingDudi(id_pembimbing_dudi : int,admin : dict = Depends(g
 
 # laporan pkl
 @adminRouter.get("/laporan-pkl-dudi",response_model=ResponseModel[ResponseLaporanPklDudiPag],tags=["ADMIN/LAPORAN PKL DUDI"])
-async def getAllLaporanPklDudi(id_tahun : int,page : int,filter : Annotated[FilterLaporanPklDudiQuery,Body(examples=[{"id_siswa" : 878654,"month" : 8,"tanggal" : "2024-08-30"}])] = FilterLaporanPklDudiQuery(),admin : dict = Depends(getAdminAuth), session : sessionDepedency = None) :
+async def getAllLaporanPklDudi(id_tahun : int,page : int,filter : FilterLaporanPklDudiQuery = Depends(),admin : dict = Depends(getAdminAuth), session : sessionDepedency = None) :
     return await laporanPklDudiService.getAllLaporanPkl(page,admin["id_sekolah"],id_tahun,filter,session)
 
 @adminRouter.get("/laporan-pkl-dudi/{id_laporan}",response_model=ResponseModel[LaporanPklDudiBase],tags=["ADMIN/LAPORAN PKL DUDI"])
-async def getAllLaporanPklDudi(id_laporan : int,admin : dict = Depends(getAdminAuth), session : sessionDepedency = None) :
+async def getLaporanPklDudiById(id_laporan : int,admin : dict = Depends(getAdminAuth), session : sessionDepedency = None) :
     return await laporanPklDudiService.getLaporanPkl(id_laporan,admin["id_sekolah"],session)
 
 # laporan pkl siswa
 @adminRouter.get("/laporan-pkl-siswa",response_model=ResponseModel[ResponseLaporanPklSiswaPag],tags=["ADMIN/LAPORAN PKL SISWA"])
-async def getAllLaporanPklSiswa(id_tahun : int,page : int | None = None,filter : Annotated[FilterLaporanPklSiswaQuery,Body(examples=[{"id_siswa" : 878654,"month" : 8,"tanggal" : "2024-08-30"}])] = FilterLaporanPklSiswaQuery(),admin : dict = Depends(getAdminAuth), session : sessionDepedency = None) :
+async def getAllLaporanPklSiswa(id_tahun : int,page : int | None = None,filter : FilterLaporanPklSiswaQuery = Depends(),admin : dict = Depends(getAdminAuth), session : sessionDepedency = None) :
     return await laporanPklSiswaService.getAllLaporanPkl(page,admin["id_sekolah"],id_tahun,filter,session)
 
 @adminRouter.get("/laporan-pkl-siswa/{id_laporan}",response_model=ResponseModel[LaporanPklSiswaBase],tags=["ADMIN/LAPORAN PKL SISWA"])
-async def getAllLaporanPklDudi(id_laporan : int,admin : dict = Depends(getAdminAuth), session : sessionDepedency = None) :
+async def getAllLaporanPklSiswa(id_laporan : int,admin : dict = Depends(getAdminAuth), session : sessionDepedency = None) :
     return await laporanPklDudiService.getLaporanPkl(id_laporan,admin["id_sekolah"],session)
 
 # absen
 @adminRouter.get("/absen",response_model=ResponseModel[ResponseAbsenPag],tags=["ADMIN/ABSEN"])
-async def getAllAbsen(id_tahun : int,page : int,filter : Annotated[FilterAbsenQuery,Body(examples=[{"id_siswa" : 878654,"month" : 8,"tanggal" : "2024-08-30"}])] = FilterAbsenQuery(),admin : dict = Depends(getAdminAuth), session : sessionDepedency = None) :
+async def getAllAbsen(id_tahun : int,page : int,filter : FilterAbsenQuery = Depends(),admin : dict = Depends(getAdminAuth), session : sessionDepedency = None) :
     return await absenService.getAllAbsen(page,admin["id_sekolah"],id_tahun,filter,session)
 
 @adminRouter.get("/absen/{id_absen}",response_model=ResponseModel[MoreAbsen],tags=["ADMIN/ABSEN"])
