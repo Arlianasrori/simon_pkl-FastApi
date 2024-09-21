@@ -17,10 +17,10 @@ from ..domain.pembimbing_dudi.siswa_manage import siswaManageService
 from ..domain.pembimbing_dudi.siswa_manage.siswaManageModel import ResponseCountSiswa,ResponseSiswaPag
 from ..domain.models_domain.siswa_model import JurusanBase
 
-# kouta
-from ..domain.pembimbing_dudi.kouta_dudi.koutaDudiService import AddKoutaDudiBody,UpdateKoutaDudiBody,AddKoutaJurusanBody
-from ..domain.models_domain.dudi_model import DudiWithKouta
-from ..domain.pembimbing_dudi.kouta_dudi import koutaDudiService
+# kuota
+from ..domain.pembimbing_dudi.kuota_dudi.kuotaDudiService import AddKuotaDudiBody,UpdateKuotaDudiBody,AddKuotaJurusanBody
+from ..domain.models_domain.dudi_model import DudiWithKuota
+from ..domain.pembimbing_dudi.kuota_dudi import kuotaDudiService
 
 # laporan pkl
 from ..domain.pembimbing_dudi.laporan_pkl import laporanPklService
@@ -39,7 +39,7 @@ from ..domain.models_domain.pengajuan_cancel_pkl_model import PengajuanCancelPkl
 
 # jadwal absen
 from ..domain.pembimbing_dudi.absen.jadwal_absen import absenJadwalService
-from ..domain.pembimbing_dudi.absen.jadwal_absen.absenJadwalModel import AddJadwalAbsenBody,UpdateJadwalAbsenBody
+from ..domain.pembimbing_dudi.absen.jadwal_absen.absenJadwalModel import AddHariAbsen, AddJadwalAbsenBody,UpdateJadwalAbsenBody
 from ..domain.models_domain.absen_model import JadwalAbsenWithHari
 
 # koordinat absen
@@ -100,22 +100,22 @@ async def getCountSiswa(pembimbing : dict = Depends(getPembimbingDudiAuth),sessi
 async def getAllJurusan(pembimbing : dict = Depends(getPembimbingDudiAuth),session : sessionDepedency = None) :
     return await siswaManageService.getAllJurusan(pembimbing["id_sekolah"],session)
 
-# kouta
-@pembimbingDudiRouter.get("/kouta",response_model=ResponseModel[DudiWithKouta],tags=["PEMBIMBING-DUDI/KOUTA"])
-async def getKoutaDudi(pembimbing : dict = Depends(getPembimbingDudiAuth),session : sessionDepedency = None) :
-    return await koutaDudiService.getKoutaDudi(pembimbing["id_dudi"],session)
+# kuota
+@pembimbingDudiRouter.get("/kuota",response_model=ResponseModel[DudiWithKuota],tags=["PEMBIMBING-DUDI/KUOTA"])
+async def getKuotaDudi(pembimbing : dict = Depends(getPembimbingDudiAuth),session : sessionDepedency = None) :
+    return await kuotaDudiService.getKuotaDudi(pembimbing["id_dudi"],session)
 
-@pembimbingDudiRouter.post("/kouta",response_model=ResponseModel[DudiWithKouta],tags=["PEMBIMBING-DUDI/KOUTA"])
-async def addKoutaDudi(kouta : AddKoutaDudiBody,pembimbing : dict = Depends(getPembimbingDudiAuth),session : sessionDepedency = None) :
-    return await koutaDudiService.addKoutaDudi(pembimbing["id_dudi"],kouta,session)
+@pembimbingDudiRouter.post("/kuota",response_model=ResponseModel[DudiWithKuota],description="The total number of men specified in each major must not exceed the quota specified above. The total number of men and women in each major must not exceed the number of men and women specified in the quota.",tags=["PEMBIMBING-DUDI/KUOTA"])
+async def addKuotaDudi(kuota : AddKuotaDudiBody,pembimbing : dict = Depends(getPembimbingDudiAuth),session : sessionDepedency = None) :
+    return await kuotaDudiService.addKuotaDudi(pembimbing["id_dudi"],kuota,session)
 
-@pembimbingDudiRouter.put("/kouta",response_model=ResponseModel[DudiWithKouta],tags=["PEMBIMBING-DUDI/KOUTA"])
-async def updateKoutaDudi(kouta : UpdateKoutaDudiBody,pembimbing : dict = Depends(getPembimbingDudiAuth),session : sessionDepedency = None) :
-    return await koutaDudiService.updateKoutaDudi(pembimbing["id_dudi"],kouta,session)
+@pembimbingDudiRouter.put("/kuota",response_model=ResponseModel[DudiWithKuota],description="The number of men who are entered or wish to be updated and added to the existing department quota must not exceed the number of men and the number of women in the student quota and must also not be less than the number of students being studied.",tags=["PEMBIMBING-DUDI/KUOTA"])
+async def updateKuotaDudi(kuota : UpdateKuotaDudiBody,pembimbing : dict = Depends(getPembimbingDudiAuth),session : sessionDepedency = None) :
+    return await kuotaDudiService.updateKuotaDudi(pembimbing["id_dudi"],kuota,session)
 
-@pembimbingDudiRouter.post("/kouta/kouta-jurusan",response_model=ResponseModel[DudiWithKouta],tags=["PEMBIMBING-DUDI/KOUTA"])
-async def addKoutaJurusan(kouta : list[AddKoutaJurusanBody],pembimbing : dict = Depends(getPembimbingDudiAuth),session : sessionDepedency = None) :
-    return await koutaDudiService.addKoutaJurusan(pembimbing["id_dudi"],kouta,session)
+@pembimbingDudiRouter.post("/kuota/kuota-jurusan",response_model=ResponseModel[DudiWithKuota],description="The number of men and women in the added major quota plus the number in the previous major quota must not exceed the number of men and women in the student quota",tags=["PEMBIMBING-DUDI/KUOTA"])
+async def addKuotaJurusan(kuota : list[AddKuotaJurusanBody],pembimbing : dict = Depends(getPembimbingDudiAuth),session : sessionDepedency = None) :
+    return await kuotaDudiService.addKuotaJurusan(pembimbing["id_dudi"],kuota,session)
 
 # laporan pkl
 @pembimbingDudiRouter.post("/laporan-pkl",response_model=ResponseModel[LaporanPklDudiBase],tags=["PEMBIMBING-DUDI/LAPORAN-PKL"])
@@ -170,7 +170,7 @@ async def accDccPengajuanCancelPkl(id_pengajuan_cancel_pkl : int,pengajuan_cance
     return await pengajuanCancelPklService.accDccPengajuanPkl(id_pengajuan_cancel_pkl,pembimbing["id_dudi"],pengajuan_cancel_pkl,session)
 
 # jadwal-absen
-@pembimbingDudiRouter.post("/jadwal-absen",response_model=ResponseModel[JadwalAbsenWithHari],tags=["PEMBIMBING-DUDI/JADWAL-ABSEN"])
+@pembimbingDudiRouter.post("/jadwal-absen",response_model=ResponseModel[JadwalAbsenWithHari],description="The start date cannot be greater than the end date and days cannot be duplicates",tags=["PEMBIMBING-DUDI/JADWAL-ABSEN"])
 async def addJadwalAbsen(jadwal : AddJadwalAbsenBody,pembimbing : dict = Depends(getPembimbingDudiAuth),session : sessionDepedency = None) :
     return await absenJadwalService.addJadwalAbsen(pembimbing["id_dudi"],jadwal,session)
 
@@ -182,9 +182,9 @@ async def getAllJadwalAbsen(pembimbing : dict = Depends(getPembimbingDudiAuth),s
 async def getJadwalAbsenById(id_jadwal_absen : int,pembimbing : dict = Depends(getPembimbingDudiAuth),session : sessionDepedency = None) :
     return await absenJadwalService.getJadwalById(id_jadwal_absen,pembimbing["id_dudi"],session)
 
-@pembimbingDudiRouter.put("/jadwal-absen/{id_jadwal_absen}",response_model=ResponseModel[JadwalAbsenWithHari],tags=["PEMBIMBING-DUDI/JADWAL-ABSEN"])
-async def updateJadwalAbsen(id_jadwal_absen : int,jadwal : UpdateJadwalAbsenBody = UpdateJadwalAbsenBody(),pembimbing : dict = Depends(getPembimbingDudiAuth),session : sessionDepedency = None) :
-    return await absenJadwalService.UpdateJadwalAbsen(id_jadwal_absen,pembimbing["id_dudi"],jadwal,session)
+@pembimbingDudiRouter.put("/jadwal-absen/{id_jadwal_absen}",response_model=ResponseModel[JadwalAbsenWithHari],description="used to update existing schedules or days, or add new days provided they do notduplicate the days already added",tags=["PEMBIMBING-DUDI/JADWAL-ABSEN"])
+async def updateJadwalAbsen(id_jadwal_absen : int,jadwal : UpdateJadwalAbsenBody = UpdateJadwalAbsenBody(),addHari : list[AddHariAbsen] = [],pembimbing : dict = Depends(getPembimbingDudiAuth),session : sessionDepedency = None) :
+    return await absenJadwalService.UpdateJadwalAbsen(id_jadwal_absen,pembimbing["id_dudi"],jadwal,addHari,session)
 
 @pembimbingDudiRouter.delete("/jadwal-absen/{id_jadwal_absen}",response_model=ResponseModel[JadwalAbsenWithHari],tags=["PEMBIMBING-DUDI/JADWAL-ABSEN"])
 async def deleteJadwalAbsen(id_jadwal_absen : int,pembimbing : dict = Depends(getPembimbingDudiAuth),session : sessionDepedency = None) :

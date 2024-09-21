@@ -176,11 +176,11 @@ async def getLaporanPklDudiById(id_laporan_pkl_dudi : int,siswa : dict = Depends
     return await laporanPklDudiService.getLaporanPklDudiById(id_laporan_pkl_dudi,siswa["id"],session)
 
 # radius-absen
-@siswaRouter.get("/koordinat-absen",response_model=ResponseModel[list[koordinatAbsenBase]],tags=["SISWA/RADIUS-ABSEN"])
+@siswaRouter.get("/koordinat-absen",response_model=ResponseModel[list[koordinatAbsenBase]],description="used to view the list of coordinates permitted by dudi",tags=["SISWA/RADIUS-ABSEN"])
 async def getKoordinatAbsen(siswa : dict = Depends(getSiswaAuth),session : sessionDepedency = None):
     return await radiusAbsenService.getAllkoordinatAbsen(siswa["id_dudi"],session)
 
-@siswaRouter.post("/koordinat-absen/cek",response_model=ResponseModel[ResponseCekRadius],tags=["SISWA/RADIUS-ABSEN"])
+@siswaRouter.post("/koordinat-absen/cek",response_model=ResponseModel[ResponseCekRadius],description="if the user is outside the radius and clicks the absent button outside the radius: call checkabsenschedule first, if the type of absence is home absence then it is permissible to be absent outside the radius and if other than that it is not permitted",tags=["SISWA/RADIUS-ABSEN"])
 async def cekRadiusAbsen(koordinat : CekRadiusAbsenBody,siswa : dict = Depends(getSiswaAuth),session : sessionDepedency = None):
     return await radiusAbsenService.cekRadiusAbsen(siswa["id_dudi"],koordinat,session)
 
@@ -193,7 +193,14 @@ async def getAllAbsenJadwal(siswa : dict = Depends(getSiswaAuth),session : sessi
 async def getAbsenJadwalById(id_jadwal : int,siswa : dict = Depends(getSiswaAuth),session : sessionDepedency = None):
     return await absenJadwalService.getJadwalAbsenById(siswa["id_dudi"],id_jadwal,session)
 
-@siswaRouter.post("/absen-jadwal/cek",response_model=ResponseModel[ResponseCekAbsen],tags=["SISWA/ABSEN-JADWAL"])
+@siswaRouter.post("/absen-jadwal/cek",response_model=ResponseModel[ResponseCekAbsen],description="""used to check what the user can do today.
+
+flow : 
+- check the type of absence first
+- if absence_type == "pulang" continue to look at home_absence_type to determine the button
+and vice versa.
+                  
+canAbsent: used to check whether students can be absent today or not""",tags=["SISWA/ABSEN-JADWAL"])
 async def cekAbsenJadwal(koordinat : RadiusBody,siswa : dict = Depends(getSiswaAuth),session : sessionDepedency = None):
     return await absenJadwalService.cekAbsen(siswa["id"],siswa["id_dudi"],koordinat,session)
 
@@ -222,7 +229,6 @@ async def absenizinTelat(latitude: float = Form(...),longitude: float = Form(...
 async def absenSakit(latitude: float = Form(...),longitude: float = Form(...),siswa : dict = Depends(getSiswaAuth),session : sessionDepedency = None):
     radius = RadiusBody(latitude=latitude, longitude=longitude)
     return await absenEventService.absenSakit(siswa["id"],radius,session)
-
 
 # get-absen
 @siswaRouter.get("/absen",response_model=ResponseModel[list[MoreAbsen]] | AbsenResponse,tags=["SISWA/GETABSEN"])

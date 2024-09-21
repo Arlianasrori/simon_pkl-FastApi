@@ -173,6 +173,16 @@ async def cekAbsen(id_siswa : int,id_dudi : int | None,koordinat : RadiusBody,se
 
         # handle jika siswa sudah melakukan absen masuk atau handle siswa untuk absen pulang
         else :
+            # validasi jika user diluar radius
+            if cekRadius["data"]["inside_radius"] is False :
+                return {
+                        "msg" : "anda belum melakukan absen pulang dan berada diluar radius,silahkan melakukan absen diluar radius untuk absen pulang",
+                        "data" : {
+                            "canAbsen" : True,
+                            "jenis_absen" : JenisAbsenEnum.PULANG,
+                            "jenis_absen_pulang" : StatusAbsenPulangEnum.DILUAR_RADIUS
+                        }
+                    }
             # validasi jika user belum memenuhi batas minimum kerja
             timeNowFloat : float = await time_to_float(timeNow)
             absenMasukFloat : float = await time_to_float(findAbsenSiswaToday.absen_masuk)
@@ -183,16 +193,6 @@ async def cekAbsen(id_siswa : int,id_dudi : int | None,koordinat : RadiusBody,se
                             "canAbsen" : False,
                             "jenis_absen" : JenisAbsenEnum.PULANG,
                             "jenis_absen_pulang" : StatusAbsenPulangEnum.IZIN
-                        }
-                    }
-            # validasi jika user diluar radius
-            if cekRadius["data"]["inside_radius"] is False :
-                return {
-                        "msg" : "anda belum melakukan absen pulang dan berada diluar radius,silahkan melakukan absen diluar radius untuk absen pulang",
-                        "data" : {
-                            "canAbsen" : True,
-                            "jenis_absen" : JenisAbsenEnum.PULANG,
-                            "jenis_absen_pulang" : StatusAbsenPulangEnum.DILUAR_RADIUS
                         }
                     }
             # validasi jika waktu sekarang sudah melebihi batas absen pulang

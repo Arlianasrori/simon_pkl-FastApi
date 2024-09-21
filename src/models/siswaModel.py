@@ -63,7 +63,7 @@ class Jurusan(Base):
     kelas = relationship("Kelas", back_populates="jurusan")
     sekolah = relationship("Sekolah", back_populates="jurusan")
     tahun = relationship("TahunSekolah", back_populates="jurusan")
-    kouta_jurusan = relationship("KoutaSiswaByJurusan", back_populates="jurusan")
+    kuota_jurusan = relationship("KuotaSiswaByJurusan", back_populates="jurusan")
 
 class Kelas(Base):
     __tablename__ = 'kelas'

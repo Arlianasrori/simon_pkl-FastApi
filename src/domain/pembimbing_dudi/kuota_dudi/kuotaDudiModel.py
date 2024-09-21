@@ -1,21 +1,21 @@
 from pydantic import BaseModel
 
-class AddKoutaJurusanBody(BaseModel) :
+class AddKuotaJurusanBody(BaseModel) :
     id_jurusan : int
     jumlah_pria : int
     jumlah_wanita : int
 
-class UpdateKoutaJurusanBody(BaseModel) :
+class UpdateKuotaJurusanBody(BaseModel) :
     id : int 
     jumlah_pria : int | None = None
     jumlah_wanita : int | None = None
 
-class AddKoutaDudiBody(BaseModel) :
+class AddKuotaDudiBody(BaseModel) :
     jumlah_pria : int
     jumlah_wanita : int
-    kouta_jurusan : list[AddKoutaJurusanBody] | None = None
+    kuota_jurusan : list[AddKuotaJurusanBody] | None = None
 
-class UpdateKoutaDudiBody(BaseModel) :
+class UpdateKuotaDudiBody(BaseModel) :
     jumlah_pria : int | None = None
     jumlah_wanita : int | None = None
-    kouta_jurusan : list[UpdateKoutaJurusanBody] | None = None
+    kuota_jurusan : list[UpdateKuotaJurusanBody] | None = None

@@ -5,7 +5,7 @@ from python_random_strings import random_strings
 from .....utils.timeToFloat import time_to_float
 
 async def cek_hari_absen(id_jadwal_absen : int,listHari : list[AddHariAbsen]) :
-    listHariReturn = []
+    listHariReturn = [] ## 
     listForResponse = []
     for i in range(0,len(listHari)) :
         hariMapping = listHari[i].model_dump()

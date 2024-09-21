@@ -26,7 +26,7 @@ from ..domain.models_domain.siswa_model import SiswaBase,MoreSiswa
 # dudi
 from ..domain.admin.dudi.dudiModel import AddDudiBody,UpdateDudiBody,ResponseDudiPag
 from ..domain.admin.dudi import dudiService
-from ..domain.models_domain.dudi_model import DudiBase,DudiWithAlamat, DudiWithAlamatKouta
+from ..domain.models_domain.dudi_model import DudiBase,DudiWithAlamat, DudiWithAlamatKuota
 
 # pembimbing dudi
 from ..domain.admin.pembimbing_dudi.pembimbingDudiModel import AddPembimbingDudiBody, ResponsePembimbingDudiPagination,UpdatePembimbingDudiBody
@@ -184,7 +184,7 @@ async def addDudi(dudi : AddDudiBody,alamat : AlamatBase,admin : dict = Depends(
 async def getAllDudi(id_tahun : int,page : int | None = None,admin : dict = Depends(getAdminAuth), session : sessionDepedency = None) :
     return await dudiService.getAllDudi(page,admin["id_sekolah"],id_tahun,session)
 
-@adminRouter.get("/dudi/{id_dudi}",response_model=ResponseModel[DudiWithAlamatKouta],tags=["ADMIN/DUDI"])
+@adminRouter.get("/dudi/{id_dudi}",response_model=ResponseModel[DudiWithAlamatKuota],tags=["ADMIN/DUDI"])
 async def getDudiById(id_dudi : int,admin : dict = Depends(getAdminAuth),session : sessionDepedency = None) :
     return await dudiService.getDudiById(id_dudi,admin["id_sekolah"],session)
 
