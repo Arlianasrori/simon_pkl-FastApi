@@ -39,7 +39,6 @@ async def addPengajuanPkl(id_siswa : int,id_sekolah : int,pengajuan : AddPengaju
     
     lastPengajuanSiswa = (await session.execute(select(PengajuanPKL).where(PengajuanPKL.id_siswa == id_siswa).order_by(PengajuanPKL.waktu_pengajuan.desc()).limit(1))).scalar_one_or_none()
 
-    print(lastPengajuanSiswa)
     if lastPengajuanSiswa :
         if lastPengajuanSiswa.status == StatusPengajuanENUM.proses :
             raise HttpException(400,"siswa tidak dapat melakukan pengjuan,karena siswa sedang menunggu konfirmasi pengjuan sebelumnya,silahkan batalkan pengajuan sebelumnya untuk melakukan pengajuan baru")
@@ -48,6 +47,9 @@ async def addPengajuanPkl(id_siswa : int,id_sekolah : int,pengajuan : AddPengaju
 
     if not findDudi :
         raise HttpException(404,"dudi yang ingin diajukan tidak ditemukan")
+
+    if not findDudi.kuota :
+        raise HttpException(400,"dudi belum tersedia dan tidak dapat melakukan pengajuan")
 
     jumlahSiswaPria = (await session.execute(select(func.count(Siswa.id)).where(and_(Siswa.id_dudi == findDudi.id,Siswa.jenis_kelamin == JenisKelaminEnum.laki)))).scalar_one()
     jumlahSiswaWanita = (await session.execute(select(func.count(Siswa.id)).where(and_(Siswa.id_dudi == findDudi.id,Siswa.jenis_kelamin == JenisKelaminEnum.perempuan)))).scalar_one()

@@ -204,6 +204,10 @@ canAbsent: used to check whether students can be absent today or not""",tags=["S
 async def cekAbsenJadwal(koordinat : RadiusBody,siswa : dict = Depends(getSiswaAuth),session : sessionDepedency = None):
     return await absenJadwalService.cekAbsen(siswa["id"],siswa["id_dudi"],koordinat,session)
 
+@siswaRouter.get("/absen-jadwal/cek/today",response_model=ResponseModel[list[JadwalAbsenWithHari]],tags=["SISWA/ABSEN-JADWAL"])
+async def cekAbsenJadwalToday(koordinat : RadiusBody,siswa : dict = Depends(getSiswaAuth),session : sessionDepedency = None):
+    return await absenJadwalService.getJadwalAbsenToday(siswa["id"],siswa["id_dudi"],koordinat,session)
+
 # absen
 @siswaRouter.post("/absen/absen-masuk",response_model=ResponseModel[AbsenBase],tags=["SISWA/ABSEN"])
 async def absenMasuk(latitude: float = Form(...),longitude: float = Form(...),foto: UploadFile = File(...),siswa : dict = Depends(getSiswaAuth),session : sessionDepedency = None):
