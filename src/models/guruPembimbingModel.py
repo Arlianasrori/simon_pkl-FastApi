@@ -10,6 +10,7 @@ class GuruPembimbing(Base):
     nip = Column(String, unique=True, nullable=False)
     nama = Column(String(255), nullable=False)
     no_telepon = Column(String(12), unique=True, nullable=False)
+    email = Column(String(255), unique=True, nullable=False)
     jenis_kelamin = Column(Enum(JenisKelaminEnum), nullable=False)
     tempat_lahir = Column(String(255), nullable=False)
     tanggal_lahir = Column(String, nullable=False)
@@ -19,6 +20,7 @@ class GuruPembimbing(Base):
     password = Column(String(255), nullable=False)
     id_sekolah = Column(Integer, ForeignKey('sekolah.id'), nullable=False)
     id_tahun = Column(Integer, ForeignKey('tahun_sekolah.id'), nullable=False)
+    OTP_code = Column(Integer, nullable=True)
 
     siswa = relationship("Siswa", back_populates="guru_pembimbing")
     alamat = relationship("AlamatGuruPembimbing", uselist=False, back_populates="guru_pembimbing",cascade="all")

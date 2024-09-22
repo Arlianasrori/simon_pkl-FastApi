@@ -13,6 +13,7 @@ class Dudi(Base):
     id_sekolah = Column(Integer, ForeignKey('sekolah.id'), nullable=False)
     id_tahun = Column(Integer, ForeignKey('tahun_sekolah.id'), nullable=False)
     tersedia = Column(Boolean, default=False, nullable=False)
+    email = Column(String(255), unique=True, nullable=False)
 
     alamat = relationship("AlamatDudi", uselist=False, back_populates="dudi",cascade="all")
     kuota = relationship("KuotaSiswa", uselist=False, back_populates="dudi",cascade="all")

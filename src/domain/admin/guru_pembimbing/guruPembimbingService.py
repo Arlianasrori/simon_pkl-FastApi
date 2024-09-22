@@ -39,12 +39,19 @@ async def addGuruPembimbing(id_sekolah : int,guruPembimbing : AddGuruPembimbingB
         HttpException: If a Guru Pembimbing with the same NIP or phone number already exists,
                        or if the specified school year is not found.
     """
-    findGuruPembimbing = (await session.execute(select(GuruPembimbing).where(GuruPembimbing.nip == guruPembimbing.nip))).scalar_one_or_none()
-    if findGuruPembimbing :
+    findGuruPembimbingByNip = (await session.execute(select(GuruPembimbing).where(GuruPembimbing.nip == guruPembimbing.nip))).scalar_one_or_none()
+    if findGuruPembimbingByNip :
         raise HttpException(400,f"Guru Pembimbing dengan nip {guruPembimbing.nip} telah ditambahkan")
+
     
-    findGuruPembimbing = (await session.execute(select(GuruPembimbing).where(GuruPembimbing.no_telepon == guruPembimbing.no_telepon))).scalar_one_or_none()
-    if findGuruPembimbing :
+    findGuruPembimbingByEmail = (await session.execute(select(GuruPembimbing).where(GuruPembimbing.email == guruPembimbing.email))).scalar_one_or_none()
+    if findGuruPembimbingByEmail :
+        raise HttpException(400,f"Guru Pembimbing dengan email {guruPembimbing.email} telah ditambahkan")
+
+    findGuruPembimbingByNoTelepon = (await session.execute(select(GuruPembimbing).where(GuruPembimbing.no_telepon == guruPembimbing.no_telepon))).scalar_one_or_none()
+
+    if findGuruPembimbingByNoTelepon :
+
         raise HttpException(400,f"nomor telepon {guruPembimbing.no_telepon} sudah ditambahkan")
     
     findTahun = (await session.execute(select(TahunSekolah).where(TahunSekolah.id == guruPembimbing.id_tahun))).scalar_one_or_none()
@@ -210,8 +217,14 @@ async def updateGuruPembimbing(id : int,id_sekolah : int,guruPembimbing : Update
         if findGuruPembimbingByNoTelepon :
             raise HttpException(400,f"Guru Pembimbing dengan nomor telepon {guruPembimbing.no_telepon} sudah ditambahkan")
     
+    if guruPembimbing.email :
+        findGuruPembimbingByEmail = (await session.execute(select(GuruPembimbing).where(and_(GuruPembimbing.email == guruPembimbing.email,GuruPembimbing.id != id)))).scalar_one_or_none()
+        if findGuruPembimbingByEmail :
+            raise HttpException(400,f"Guru Pembimbing dengan email {guruPembimbing.email} sudah ditambahkan")
+
     if guruPembimbing.model_dump(exclude_unset=True) :
         updateTable(guruPembimbing,findGuruPembimbing)
+
 
     if alamat.model_dump(exclude_unset=True):
         updateTable(alamat,findGuruPembimbing.alamat)

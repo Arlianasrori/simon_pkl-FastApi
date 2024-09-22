@@ -1,4 +1,4 @@
-from pydantic import BaseModel,field_validator
+from pydantic import BaseModel,field_validator,EmailStr
 from ....models.siswaModel import StatusPKLEnum
 from ...models_domain.common_model import PaginationBase
 from ...models_domain.siswa_model import MoreSiswa
@@ -8,6 +8,7 @@ class AddSiswaBody(BaseModel) :
     nama : str
     jenis_kelamin : str
     no_telepon : str
+    email : EmailStr
     id_kelas : int
     id_jurusan : int
     id_guru_pembimbing : int | None = None
@@ -25,6 +26,7 @@ class UpdateSiswaBody(BaseModel) :
     nama : str | None = None
     jenis_kelamin : str | None = None
     no_telepon : str | None = None
+    email : EmailStr | None = None
     status : StatusPKLEnum | None = None
     id_kelas : int | None = None
     id_jurusan : int | None = None

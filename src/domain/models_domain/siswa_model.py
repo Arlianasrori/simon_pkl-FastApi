@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel,EmailStr
 from .alamat_model import AlamatBase
 from .kelas_jurusan_model import JurusanBase,KelasBase
 from .guru_pembimbing_model import GuruPembimbingBase
@@ -11,6 +11,7 @@ class SiswaBase(BaseModel) :
     nis : str
     nama : str
     jenis_kelamin : str
+    email : EmailStr
     no_telepon : str
     status : StatusPKLEnum
     token_FCM : str | None = None

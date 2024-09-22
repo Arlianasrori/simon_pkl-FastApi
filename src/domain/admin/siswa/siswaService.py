@@ -55,7 +55,13 @@ async def addSiswa(id_sekolah : int,siswa : AddSiswaBody,alamat : AlamatBase,ses
     if not findKelas :
         raise HttpException(400,f"Kelas dengan id {siswa.id_kelas} tidak ditemukan")
     
+    findSiswaByEmail = (await session.execute(select(Siswa).where(Siswa.email == siswa.email))).scalar_one_or_none()
+
+    if findSiswaByEmail :
+        raise HttpException(400,f"Siswa dengan email {siswa.email} sudah ada")
+    
     if siswa.id_guru_pembimbing :
+
         findGuruPembimbing = (await session.execute(select(GuruPembimbing).where(GuruPembimbing.id == siswa.id_guru_pembimbing))).scalar_one_or_none()
         if not findGuruPembimbing :
             raise HttpException(400,f"Guru Pembimbing dengan id {siswa.id_guru_pembimbing} tidak ditemukan")
@@ -204,8 +210,14 @@ async def updateSiswa(id_siswa : int,id_sekolah : int,siswa : UpdateSiswaBody,al
     if not findSiswa :
         raise HttpException(400,f"Siswa dengan id {id_siswa} tidak ditemukan")
     
+    if siswa.email :
+        findSiswaByEmail = (await session.execute(select(Siswa).where(and_(Siswa.email == siswa.email,Siswa.id != id_siswa)))).scalar_one_or_none()
+        if findSiswaByEmail :
+            raise HttpException(400,f"Siswa dengan email {siswa.email} sudah ada")
+
     if siswa.nis :
         findSiswaByNis = (await session.execute(select(Siswa).where(and_(Siswa.nis == siswa.nis,Siswa.id != id_siswa)))).scalar_one_or_none()
+
         if findSiswaByNis :
             raise HttpException(400,f"Siswa dengan NIS {siswa.nis} sudah ada")
     if siswa.id_jurusan :
