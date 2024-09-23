@@ -236,6 +236,11 @@ async def add_admin_sekolah(admin : AddAdminBody,session : AsyncSession) -> Admi
     if findAdminByUsername :
         raise HttpException(400,f"admin dengan username {admin.username} telah digunakan")
     
+    findAdminByNoTelepon = (await session.execute(select(Admin).where(Admin.no_telepon == admin.no_telepon))).scalar_one_or_none()
+
+    if findAdminByNoTelepon :
+        raise HttpException(400,f"admin dengan username {admin.no_telepon} telah digunakan")
+    
     adminMApping = admin.model_dump()
     adminMApping.update({"id" : random_strings.random_digits(6),"password" : bcrypt.create_hash_password(admin.password)})
 
@@ -309,8 +314,20 @@ async def update_admin_sekolah(id_admin : int,admin : UpdateAdminBody,session : 
     if not findAdmin :
         raise HttpException(404,f"admin tidak ditemukan")
 
+    if admin.no_telepon :
+        findAdminByNoTelepon = (await session.execute(select(Admin).where(Admin.no_telepon == admin.no_telepon))).scalar_one_or_none()
+        if findAdminByNoTelepon :
+            raise HttpException(400,f"admin dengan no telepon {admin.no_telepon} telah digunakan")
+
+    if admin.username :
+        findAdminByUsername = (await session.execute(select(Admin).where(Admin.username == admin.username))).scalar_one_or_none()
+        if findAdminByUsername :
+            raise HttpException(400,f"admin dengan username {admin.username} telah digunakan")
+
     if admin :
         updateTable(admin,findAdmin)
+
+
 
     adminDictCopy = deepcopy(findAdmin.__dict__)
     await session.commit()

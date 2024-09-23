@@ -49,10 +49,24 @@ async def getDudi(id_siswa : int,id_sekolah : int,page : int,filter : FilterGetD
             **dudiDictDecode,
             "jumlah_siswa_pria" : dudiDecode["jumlah_siswa_pria"] if dudiDecode["jumlah_siswa_pria"] else 0,
             "jumlah_siswa_wanita" : dudiDecode["jumlah_siswa_wanita"] if dudiDecode["jumlah_siswa_wanita"] else 0,
-            "jumlah_kuota_pria" : dudiDecode["Dudi"].kuota.jumlah_pria,
-            "jumlah_kuota_wanita" : dudiDecode["Dudi"].kuota.jumlah_wanita,
             "tersedia" : True
         }
+
+        # cek apakah dudi memiliki kouta atau tidak
+        
+        if not dudiDecode["Dudi"].kuota :
+            dudiDict.update({
+            "jumlah_kuota_pria" : 0,
+            "jumlah_kuota_wanita" : 0,
+            "tersedia" : False
+            })
+            responseDudiList.append(dudiDict)
+            continue
+        else :
+            dudiDict.update({
+            "jumlah_kuota_pria" : dudiDecode["Dudi"].kuota.jumlah_pria if dudiDecode["Dudi"].kuota.jumlah_pria else 0,
+            "jumlah_kuota_wanita" : dudiDecode["Dudi"].kuota.jumlah_wanita if dudiDecode["Dudi"].kuota.jumlah_wanita else 0
+            })
 
         # cek apakah dudi sudah penuh
         # apakah jumlah siswa sudah melebihi atau sama dengan total yang ada

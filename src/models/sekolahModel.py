@@ -71,6 +71,7 @@ class Admin(Base):
     id_sekolah = Column(Integer, ForeignKey('sekolah.id'))
     username = Column(String(255), unique=True, nullable=False)
     password = Column(String(255), nullable=False)
+    no_telepon = Column(String(255),unique=True,nullable=False)
 
     sekolah = relationship("Sekolah", back_populates="admin")
 

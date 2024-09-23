@@ -40,25 +40,12 @@ routes = [authRouter, developerRouter, adminRouter,pembimbingDudiRouter,guruPemb
 for router in routes:
     App.include_router(router)
 
-# add middleware
-origins = [
-    "http://localhost:2008",
-]
-
-App.add_middleware(
-    CORSMiddleware,
-    allow_origins=origins,
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
 # Mount static directory for public files
 App.mount("/public", StaticFiles(directory="src/public"), name="public")
 
 # Configure CORS middleware
 origins = [
-    "http://localhost:2008",
+    "http://localhost:3000",
 ]
 
 App.add_middleware(

@@ -75,7 +75,7 @@ async def adminDeveloperLogin(auth : LoginBody,Res : Response,session : AsyncSes
                 }
             }
             
-    raise HttpException(status=401,message="username or password wrong")
+    raise HttpException(status=400,message="username or password wrong")
 
 
 async def allUserAuth(auth : LoginBody,Res : Response,session : AsyncSession) -> ResponseAuthToken :
@@ -184,7 +184,7 @@ async def allUserAuth(auth : LoginBody,Res : Response,session : AsyncSession) ->
                     "role" : RoleEnum.PEMBIMBING_DUDI
                 }
             }
-    raise HttpException(status=401,message="username or password wrong")
+    raise HttpException(status=400,message="username or password wrong")
 
 
 async def refresh_token_admin(data,Res : Response) -> ResponseRefreshToken :
@@ -314,7 +314,7 @@ async def publicLogin(auth : LoginBody,Res : Response,session : AsyncSession) ->
                 }
             } 
             
-    raise HttpException(status=401,message="nis/username/password or password wrong")
+    raise HttpException(status=400,message="nis/username/password or password wrong")
 
 
 # siswa

@@ -3,6 +3,7 @@ from pydantic import BaseModel, field_validator
 class Developer(BaseModel) :
     id : int
     username : str
+    no_telepon : str
 
 class AddSekolahBody(BaseModel) :
     npsn : str
@@ -17,6 +18,7 @@ class AddAdminBody(BaseModel) :
     id_sekolah : int
     username : str
     password : str
+    no_telepon : str
 
     @field_validator("password")
     def validate_password(cls, v):
@@ -27,6 +29,7 @@ class AddAdminBody(BaseModel) :
 class UpdateAdminBody(BaseModel) :
     username : str | None = None
     password : str | None = None
+    no_telepon : str | None = None
 
     @field_validator("password")
     def validate_password(cls, v):
