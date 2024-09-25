@@ -1,6 +1,6 @@
 from fastapi import APIRouter,Depends, Request,Response
 from ..domain.auth import authService
-from ..domain.auth.authModel import LoginBody,ResponseForgotPassword
+from ..domain.auth.authModel import LoginBody,ResponseForgotPassword,TextBodyVerifyModel,SendOtpAgainModel,UpdatePasswordModel
 from ..domain.models_domain.auth_model import ResponseAuthToken,ResponseRefreshToken, RoleEnum
 from ..models.responseModel import ResponseModel,ResponseModelJustMsg
 from ..db.sessionDepedency import sessionDepedency
@@ -68,14 +68,14 @@ async def logout(Res : Response) :
 
 # reset password
 @authRouter.post("/cekAkunAndSendOtp",response_model=ResponseModel[ResponseForgotPassword],tags=["AUTH/RESET_PASSWORD"])
-async def cek_akun_and_send_otp(textBody : str,session : sessionDepedency) :
-    return await authService.cekAkunAndSendOtp(textBody,session)
+async def cek_akun_and_send_otp(textBody : TextBodyVerifyModel,session : sessionDepedency = None) :
+    return await authService.cekAkunAndSendOtp(textBody.textBody,session)
 
 @authRouter.post("/sendOTPAgain",response_model=ResponseModelJustMsg,tags=["AUTH/RESET_PASSWORD"])
-async def sendUlangOTP(id : int,role : RoleEnum,session : sessionDepedency) :
-    return await authService.send_otp_again(id,role,session)
+async def sendUlangOTP(body : SendOtpAgainModel,session : sessionDepedency) :
+    return await authService.send_otp_again(body.id,body.role,session)
 
 @authRouter.patch("/updatePassword",response_model=ResponseModelJustMsg,tags=["AUTH/RESET_PASSWORD"])
-async def update_password(id : int,role : RoleEnum,password : str,session : sessionDepedency) :
-    return await authService.update_password(id,role,password,session)
+async def update_password(body : UpdatePasswordModel,session : sessionDepedency) :
+    return await authService.update_password(body.id,body.role,body.password,body.otp,session)
 

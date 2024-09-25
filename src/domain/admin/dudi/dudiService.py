@@ -37,7 +37,9 @@ async def addDudi(id_sekolah : int,dudi : AddDudiBody,alamat : AlamatBase,sessio
     findTahun = (await session.execute(select(TahunSekolah).where(TahunSekolah.id == dudi.id_tahun))).scalar_one_or_none()
     if not findTahun :
         raise HttpException(404,f"Tahun Sekolah dengan id {dudi.id_tahun} tidak ditemukan")
-    
+    findDudiByEmail = (await session.execute(select(Dudi).where(Dudi.email == dudi.email))).scalar_one_or_none()
+    if findDudiByEmail :
+        raise HttpException(400,f"Dudi dengan email {dudi.email} sudah terdaftar")
     dudiMapping = dudi.model_dump()
     dudiMapping.update({"id" : random_strings.random_digits(6),"id_sekolah" : id_sekolah})
     alamatMapping = alamat.model_dump()
