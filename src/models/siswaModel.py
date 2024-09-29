@@ -1,18 +1,21 @@
-from sqlalchemy import Column, Integer, String, ForeignKey, Enum
+from sqlalchemy import Column, Integer, String, ForeignKey, Enum, Boolean
+
 from sqlalchemy.orm import relationship
 from ..db.db import Base
 import enum
 from .types import JenisKelaminEnum
+from .types import UserTypeEnum
+from .userBaseModel import User
 
 class StatusPKLEnum(enum.Enum):
     sudah_pkl = "sudah_pkl"
     belum_pkl = "belum_pkl"
     menunggu = "menunggu"
 
-class Siswa(Base):
+class Siswa(User):
     __tablename__ = 'siswa'
 
-    id = Column(Integer, primary_key=True)
+    id = Column(Integer, ForeignKey('user.id'),primary_key=True)
     nis = Column(String, unique=True, nullable=False)
     nama = Column(String(255), nullable=False)
     jenis_kelamin = Column(Enum(JenisKelaminEnum), nullable=False)
@@ -30,10 +33,12 @@ class Siswa(Base):
     id_sekolah = Column(Integer, ForeignKey('sekolah.id'), nullable=False)
     id_tahun = Column(Integer, ForeignKey('tahun_sekolah.id'), nullable=False)
     OTP_code = Column(Integer, nullable=True)
+    is_online = Column(Boolean, default=False, nullable=False)
 
+    # Relasi yang sudah ada
     jurusan = relationship("Jurusan", back_populates="siswa")
     kelas = relationship("Kelas", back_populates="siswa")
-    alamat = relationship("AlamatSiswa", uselist=False, back_populates="siswa",cascade="all")
+    alamat = relationship("AlamatSiswa", uselist=False, back_populates="siswa", cascade="all")
     pengajuan_pkl = relationship("PengajuanPKL", back_populates="siswa")
     laporan_pkl = relationship("LaporanPKL", back_populates="siswa")
     laporan_kendala = relationship("LaporanKendalaSiswa", back_populates="siswa")
@@ -42,14 +47,16 @@ class Siswa(Base):
     notifications = relationship("Notification", back_populates="siswa")
     notification_reads = relationship("NotificationRead", back_populates="siswa")
     absen = relationship("Absen", back_populates="siswa")
-
-
     sekolah = relationship("Sekolah", back_populates="siswa")
-    guru_pembimbing = relationship("GuruPembimbing", back_populates="siswa")
+    guru_pembimbing = relationship("GuruPembimbing",foreign_keys=[id_guru_pembimbing], back_populates="siswa")
     dudi = relationship("Dudi", back_populates="siswa")
-    pembimbing_dudi = relationship("PembimbingDudi", back_populates="siswa")
+    pembimbing_dudi = relationship("PembimbingDudi",foreign_keys=[id_pembimbing_dudi], back_populates="siswa")
     tahun = relationship("TahunSekolah", back_populates="siswa")
 
+    __mapper_args__ = {
+        'polymorphic_identity':UserTypeEnum.SISWA
+    }
+    
     def __repr__(self):
         return f"<Siswa(id={self.id}, nis='{self.nis}', nama='{self.nama}')>"
 

@@ -2,13 +2,14 @@ from email.message import EmailMessage
 import os
 import smtplib
 from  python_random_strings.python_random_strings import random_strings 
+from multiprocessing import Process
 
-async def sendOtp(toEmail : str) :
-    fromEmail = os.getenv("EMAIL_USER")
-    password = os.getenv("EMAIL_PASSWORD")
+
+fromEmail = os.getenv("EMAIL_USER")
+password = os.getenv("EMAIL_PASSWORD")
+    
+def send_otp_proccess(toEmail : str,otp : int) :
     em = EmailMessage()
-
-    otp = random_strings.random_digits(6)
 
     em['Subject'] = f'Permintaan Reset Password'
     em.set_content(f"Reset Password Dengan OTP {otp}")
@@ -24,5 +25,9 @@ async def sendOtp(toEmail : str) :
     smtp.starttls()
     smtp.login(fromEmail,password)
     smtp.sendmail(fromEmail,toEmail,em.as_string())
-
+    
+async def sendOtp(toEmail : str) :
+    otp = random_strings.random_digits(6)
+    p = Process(target=send_otp_proccess,args=(toEmail,otp,))
+    p.start()
     return otp

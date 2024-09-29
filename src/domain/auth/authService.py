@@ -650,6 +650,3 @@ async def update_password(id : int,role : RoleEnum,password : str,session : Asyn
             }
         
     raise HttpException(status=400,message="akun tidak ditemukan")
-
-
-

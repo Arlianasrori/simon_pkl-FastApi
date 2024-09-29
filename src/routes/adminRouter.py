@@ -1,5 +1,4 @@
-from typing import Annotated
-from fastapi import APIRouter, Body, Depends, Query, UploadFile
+from fastapi import APIRouter, Depends, UploadFile
 # models
 
 # auth profile
@@ -65,7 +64,7 @@ from ..db.sessionDepedency import sessionDepedency
 adminRouter = APIRouter(prefix="/admin",dependencies=[Depends(adminAuth)])
 
 # authProfile
-@adminRouter.get("/",response_model=ResponseModel[AdminBase],tags=["ADMIN/AUTH PROFILE"])
+@adminRouter.get("",response_model=ResponseModel[AdminBase],tags=["ADMIN/AUTH PROFILE"])
 async def getAdmin(admin : dict = Depends(getAdminAuth),session : sessionDepedency = None) :
     return await authProfileService.getAdmin(admin["id"],session)
 

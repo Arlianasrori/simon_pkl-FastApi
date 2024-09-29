@@ -1,11 +1,7 @@
-import asyncio
 import datetime
-import multiprocessing
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import case, select,and_,func
 from sqlalchemy.orm import joinedload
-
-from ....db.db import SessionLocal
 
 # models
 from ...models_domain.pengajuan_pkl_model import PengajuanPklWithDudi

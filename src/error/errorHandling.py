@@ -13,7 +13,6 @@ class HttpException(Exception) :
 def add_exception_server(App : FastAPI) :
     @App.exception_handler(HttpException)
     async def handlingHttpException(request: Request, exc: HttpException):
-        print(exc)
         return JSONResponse(
             status_code=exc.status,
             content={"msg" : exc.messsage},
