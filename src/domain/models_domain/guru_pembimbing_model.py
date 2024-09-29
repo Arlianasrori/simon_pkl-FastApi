@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel,EmailStr
 from ...models.types import JenisKelaminEnum
 from .alamat_model import AlamatBase
 from .sekolah_model import SekolahBase
@@ -8,6 +8,7 @@ class GuruPembimbingBase(BaseModel):
     nip : str
     nama : str
     no_telepon : str
+    email : EmailStr
     jenis_kelamin : JenisKelaminEnum
     tempat_lahir : str
     tanggal_lahir : str         

@@ -39,18 +39,22 @@ async def addPengajuanPkl(id_siswa : int,id_sekolah : int,pengajuan : AddPengaju
     
     lastPengajuanSiswa = (await session.execute(select(PengajuanPKL).where(PengajuanPKL.id_siswa == id_siswa).order_by(PengajuanPKL.waktu_pengajuan.desc()).limit(1))).scalar_one_or_none()
 
-    print(lastPengajuanSiswa)
     if lastPengajuanSiswa :
         if lastPengajuanSiswa.status == StatusPengajuanENUM.proses :
             raise HttpException(400,"siswa tidak dapat melakukan pengjuan,karena siswa sedang menunggu konfirmasi pengjuan sebelumnya,silahkan batalkan pengajuan sebelumnya untuk melakukan pengajuan baru")
 
     findDudi = (await session.execute(select(Dudi).options(joinedload(Dudi.kuota).subqueryload(KuotaSiswa.kuota_jurusan).joinedload(KuotaSiswaByJurusan.jurusan)).where(and_(Dudi.id == pengajuan.id_dudi,Dudi.id_sekolah == id_sekolah)))).scalar_one_or_none()
-
     if not findDudi :
         raise HttpException(404,"dudi yang ingin diajukan tidak ditemukan")
 
+    if not findDudi.kuota :
+        raise HttpException(400,"dudi belum tersedia dan tidak dapat melakukan pengajuan")
+
     jumlahSiswaPria = (await session.execute(select(func.count(Siswa.id)).where(and_(Siswa.id_dudi == findDudi.id,Siswa.jenis_kelamin == JenisKelaminEnum.laki)))).scalar_one()
     jumlahSiswaWanita = (await session.execute(select(func.count(Siswa.id)).where(and_(Siswa.id_dudi == findDudi.id,Siswa.jenis_kelamin == JenisKelaminEnum.perempuan)))).scalar_one()
+
+    jumlahSiswaPria = jumlahSiswaPria if jumlahSiswaPria else 0
+    jumlahSiswaWanita = jumlahSiswaWanita if jumlahSiswaWanita else 0
 
     if not findDudi :
         raise HttpException(404,"dudi tidak ditemukan")
@@ -59,21 +63,22 @@ async def addPengajuanPkl(id_siswa : int,id_sekolah : int,pengajuan : AddPengaju
         raise HttpException(400,"dudi tidak ditemukan")
 
     if (jumlahSiswaPria + jumlahSiswaWanita >= findDudi.kuota.jumlah_pria + findDudi.kuota.jumlah_wanita):
+        print("disini")
         raise HttpException(400,"kuota dudi sudah penuh")
+    print("2")
     
     if findSiswa.jenis_kelamin == JenisKelaminEnum.laki and findDudi.kuota.jumlah_pria != 0:
         if jumlahSiswaPria + 1 > findDudi.kuota.jumlah_pria:
-            print("kesinikah")
             raise HttpException(400,"kuota dudi sudah penuh")
     elif findSiswa.jenis_kelamin == JenisKelaminEnum.perempuan and findDudi.kuota.jumlah_wanita != 0:
         if jumlahSiswaWanita + 1 > findDudi.kuota.jumlah_wanita:
             raise HttpException(400,"kuota dudi sudah penuh")
-    
+
     totalKebutuhanLaki = 0
     totalKebutuhanWanita = 0
     totalSiswaLakiAlljurusan = 0
     totalSiswaWanitaAlljurusan = 0
-
+    lolosSeleksiJurusan = False
     for kuota_jurusan in findDudi.kuota.kuota_jurusan:      
         countDudiBykuota = (await session.execute(select(
                 func.count(Siswa.id).filter(Siswa.jenis_kelamin == JenisKelaminEnum.laki).label("jumlah_siswa_pria"),
@@ -85,6 +90,9 @@ async def addPengajuanPkl(id_siswa : int,id_sekolah : int,pengajuan : AddPengaju
                     )
                 ))).one()._asdict()
         
+        countDudiBykuota["jumlah_siswa_pria"] = countDudiBykuota["jumlah_siswa_pria"] if countDudiBykuota["jumlah_siswa_pria"] else 0
+        countDudiBykuota["jumlah_siswa_wanita"] = countDudiBykuota["jumlah_siswa_wanita"] if countDudiBykuota["jumlah_siswa_wanita"] else 0
+
         totalKebutuhanLaki += kuota_jurusan.jumlah_pria
         totalKebutuhanWanita += kuota_jurusan.jumlah_wanita
         totalSiswaLakiAlljurusan += countDudiBykuota["jumlah_siswa_pria"]
@@ -96,6 +104,7 @@ async def addPengajuanPkl(id_siswa : int,id_sekolah : int,pengajuan : AddPengaju
             elif findSiswa.jenis_kelamin == JenisKelaminEnum.perempuan and findDudi.kuota.jumlah_wanita != 0:
                 if countDudiBykuota["jumlah_siswa_wanita"] + 1 > kuota_jurusan.jumlah_wanita:
                     raise HttpException(400,"kuota dudi sudah penuh")
+        lolosSeleksiJurusan = True
 
     kebutuhanJurusanLaki = totalKebutuhanLaki - totalSiswaLakiAlljurusan
     kebutuhanJurusanWanita = totalKebutuhanWanita - totalSiswaWanitaAlljurusan
@@ -103,12 +112,13 @@ async def addPengajuanPkl(id_siswa : int,id_sekolah : int,pengajuan : AddPengaju
     sisaKuotaDudiPria = findDudi.kuota.jumlah_pria - jumlahSiswaPria
     sisaKuotaDudiWanita = findDudi.kuota.jumlah_wanita - jumlahSiswaWanita
 
-    if findSiswa.jenis_kelamin == JenisKelaminEnum.laki :
-        if sisaKuotaDudiPria <= kebutuhanJurusanLaki :
-            raise HttpException(400,"kuota dudi sudah penuh")
-    elif findSiswa.jenis_kelamin == JenisKelaminEnum.perempuan :
-        if sisaKuotaDudiWanita <= kebutuhanJurusanWanita :
-            raise HttpException(400,"kuota dudi sudah penuh")
+    if not lolosSeleksiJurusan :
+        if findSiswa.jenis_kelamin == JenisKelaminEnum.laki :
+            if sisaKuotaDudiPria <= kebutuhanJurusanLaki :
+                raise HttpException(400,"kuota dudi sudah penuh")
+        elif findSiswa.jenis_kelamin == JenisKelaminEnum.perempuan :
+            if sisaKuotaDudiWanita <= kebutuhanJurusanWanita :
+                raise HttpException(400,"kuota dudi sudah penuh")
     pengjuanPklMapping = pengajuan.model_dump()
     pengjuanPklMapping.update({"id" : random_strings.random_digits(6),"id_siswa":id_siswa,"status" : StatusPengajuanENUM.proses.value,"waktu_pengajuan" : datetime.utcnow()})
 

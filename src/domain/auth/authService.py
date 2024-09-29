@@ -1,9 +1,9 @@
 from fastapi import Response
-from ..auth.authModel import LoginBody
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
 # models
+from ..auth.authModel import LoginBody,ResponseForgotPassword
 from ...models.developerModel import Developer
 from ...models.sekolahModel import Admin
 from ...models.siswaModel import Siswa
@@ -15,7 +15,7 @@ from ..models_domain.auth_model import ResponseAuthToken, ResponseRefreshToken,R
 from ...error.errorHandling import HttpException
 from ...auth.bcrypt.bcrypt import verify_hash_password
 from ...auth.token.create_token import create_token,CreateTokenEnum
-
+from ...utils.sendOtp import sendOtp
 
 # admin developer
 async def adminDeveloperLogin(auth : LoginBody,Res : Response,session : AsyncSession) -> ResponseAuthToken :
@@ -102,10 +102,10 @@ async def allUserAuth(auth : LoginBody,Res : Response,session : AsyncSession) ->
 
     # find admin and check admin
     findAdmin = (await session.execute(select(Admin).where(Admin.username == auth.textBody))).scalar_one_or_none()
-
+    
     if findAdmin :
         # isPassword = verify_hash_password(auth.password,findAdmin.password)
-        isPassword = auth.password == findAdmin.password
+        isPassword = verify_hash_password(auth.password,findAdmin.password)
 
         if isPassword :
             token_payload = {"id" : findAdmin.id}
@@ -402,3 +402,254 @@ async def logout(Res : Response) :
     return {
         "msg" : "logout success"
     }
+
+async def cekAkunAndSendOtp(textBody : str,session : AsyncSession) -> ResponseForgotPassword :
+    # find developer and check developer
+    findDeveloper = (await session.execute(select(Developer).where(Developer.username == textBody))).scalar_one_or_none()
+
+    if findDeveloper :
+        otp = await sendOtp(findDeveloper.email)
+        findDeveloper.OTP_code = otp
+        await session.commit()
+        await session.refresh(findDeveloper)
+        return {       
+            "msg" : "send message success",   
+            "data" : {
+                "id" : findDeveloper.id,
+                "role" : RoleEnum.DEVELOPER,
+                "email" : findDeveloper.email
+            }
+        }
+
+    # find admin and check admin
+    findAdmin = (await session.execute(select(Admin).where(Admin.username == textBody))).scalar_one_or_none()
+
+    if findAdmin :
+        otp = await sendOtp(findAdmin.email)
+        findAdmin.OTP_code = otp
+        await session.commit()
+        await session.refresh(findAdmin)
+        return {
+            "msg" : "send message success",              
+            "data" : {
+                "id" : findAdmin.id,
+                "role" : RoleEnum.ADMIN,
+                "email" : findAdmin.email
+            }
+        }
+
+    # find siswa and check siswa
+    findSiswa = (await session.execute(select(Siswa).where(Siswa.nis == textBody))).scalar_one_or_none()
+
+    if findSiswa :
+        otp = await sendOtp(findSiswa.email)
+        findSiswa.OTP_code = otp
+        await session.commit()
+        await session.refresh(findSiswa)
+        return {
+            "msg" : "send message success",              
+            "data" : {
+                "id" : findSiswa.id,
+                "role" : RoleEnum.SISWA,
+                "email" : findSiswa.email
+            }
+        }
+        
+    # find guru and check guru
+    findGuruPembimbing = (await session.execute(select(GuruPembimbing).where(GuruPembimbing.nip == textBody))).scalar_one_or_none()
+
+    if findGuruPembimbing :
+        otp = await sendOtp(findGuruPembimbing.email)
+        findGuruPembimbing.OTP_code = otp
+        await session.commit()
+        await session.refresh(findGuruPembimbing)
+        return {
+            "msg" : "send message success",              
+            "data" : {
+                "id" : findGuruPembimbing.id,
+                "role" : RoleEnum.GURU_PEMBIMBING,
+                "email" : findGuruPembimbing.email
+            }
+        }
+        
+    # find pembimbing dudi and check pembimbing dudi
+    findPembimbngDudi = (await session.execute(select(PembimbingDudi).where(PembimbingDudi.username == textBody))).scalar_one_or_none()
+
+    if findPembimbngDudi :
+        otp = await sendOtp(findPembimbngDudi.email)
+        findPembimbngDudi.OTP_code = otp
+        await session.commit()
+        await session.refresh(findPembimbngDudi)
+        return {
+            "msg" : "send message success",              
+            "data" : {
+                "id" : findPembimbngDudi.id,
+                "role" : RoleEnum.PEMBIMBING_DUDI,
+
+                "email" : findPembimbngDudi.email,
+            }
+        }
+    
+    raise HttpException(status=400,message="akun tidak ditemukan")
+
+async def check_otp(otp : str,role : RoleEnum,session : AsyncSession) -> bool :
+    if role == RoleEnum.DEVELOPER :
+        findDeveloper = (await session.execute(select(Developer).where(Developer.OTP_code == otp))).scalar_one_or_none()
+
+        if findDeveloper :
+            return {
+                "msg" : "otp is valid"
+            }       
+    elif role == RoleEnum.ADMIN :
+        findAdmin = (await session.execute(select(Admin).where(Admin.OTP_code == otp))).scalar_one_or_none()
+
+        if findAdmin :
+            return {
+                "msg" : "otp is valid"
+
+            }
+        
+    elif role == RoleEnum.SISWA :
+        findSiswa = (await session.execute(select(Siswa).where(Siswa.OTP_code == otp))).scalar_one_or_none()
+    
+        if findSiswa :
+            return {
+                "msg" : "otp is valid"
+
+            }
+        
+    elif role == RoleEnum.GURU_PEMBIMBING :
+        findGuruPembimbing = (await session.execute(select(GuruPembimbing).where(GuruPembimbing.OTP_code == otp))).scalar_one_or_none()
+
+        if findGuruPembimbing :
+            return {
+                "msg" : "otp is valid"
+            }
+
+    elif role == RoleEnum.PEMBIMBING_DUDI :
+        findPembimbngDudi = (await session.execute(select(PembimbingDudi).where(PembimbingDudi.OTP_code == otp))).scalar_one_or_none()
+
+        if findPembimbngDudi :
+            return {
+                "msg" : "otp is valid"
+            }
+        
+    raise HttpException(status=400,message="otp is not valid")    
+
+async def send_otp_again(id : int,role : RoleEnum,session : AsyncSession) :
+    if role == RoleEnum.DEVELOPER :
+        findDeveloper = (await session.execute(select(Developer).where(Developer.id == id))).scalar_one_or_none()
+
+        if findDeveloper :
+            otp = await sendOtp(findDeveloper.email)
+            findDeveloper.OTP_code = otp
+            await session.commit()
+
+            return {
+                "msg" : "send message success"
+            }
+    elif role == RoleEnum.ADMIN :
+        findAdmin = (await session.execute(select(Admin).where(Admin.id == id))).scalar_one_or_none()
+
+        if findAdmin :
+            otp = await sendOtp(findAdmin.email)
+            findAdmin.OTP_code = otp
+            await session.commit()
+            
+            return {
+                "msg" : "send message success"
+            }     
+    elif role == RoleEnum.SISWA :
+        findSiswa = (await session.execute(select(Siswa).where(Siswa.id == id))).scalar_one_or_none()
+
+        if findSiswa :
+            otp = await sendOtp(findSiswa.email)
+            findSiswa.OTP_code = otp
+            await session.commit()
+            
+            return {
+                "msg" : "send message success"
+            }
+        
+    elif role == RoleEnum.GURU_PEMBIMBING :
+        findGuruPembimbing = (await session.execute(select(GuruPembimbing).where(GuruPembimbing.id == id))).scalar_one_or_none()
+
+        if findGuruPembimbing :
+            otp = await sendOtp(findGuruPembimbing.email)
+            findGuruPembimbing.OTP_code = otp
+            await session.commit()
+            
+            return {
+                "msg" : "send message success"
+            }
+
+    elif role == RoleEnum.PEMBIMBING_DUDI :
+        findPembimbngDudi = (await session.execute(select(PembimbingDudi).where(PembimbingDudi.id == id))).scalar_one_or_none()
+
+        if findPembimbngDudi :
+            otp = await sendOtp(findPembimbngDudi.email)
+            findPembimbngDudi.OTP_code = otp
+            await session.commit()
+            
+            return {
+                "msg" : "send message success"
+            }
+        
+    raise HttpException(status=400,message="akun tidak ditemukan")
+
+async def update_password(id : int,role : RoleEnum,password : str,session : AsyncSession) :
+    if role == RoleEnum.DEVELOPER :
+        findDeveloper = (await session.execute(select(Developer).where(Developer.id == id))).scalar_one_or_none()
+
+        if findDeveloper :
+            findDeveloper.password = password
+            await session.commit()
+            
+    elif role == RoleEnum.ADMIN :
+        findAdmin = (await session.execute(select(Admin).where(Admin.id == id))).scalar_one_or_none()
+
+        if findAdmin :
+            findAdmin.password = password
+            await session.commit()
+            
+            return {
+                "msg" : "update password success"
+            }
+        
+    elif role == RoleEnum.SISWA :
+        findSiswa = (await session.execute(select(Siswa).where(Siswa.id == id))).scalar_one_or_none()
+
+        if findSiswa :
+            findSiswa.password = password
+            await session.commit()  
+            
+            return {
+                "msg" : "update password success"
+            }
+        
+    elif role == RoleEnum.GURU_PEMBIMBING :
+        findGuruPembimbing = (await session.execute(select(GuruPembimbing).where(GuruPembimbing.id == id))).scalar_one_or_none()
+
+        if findGuruPembimbing :
+            findGuruPembimbing.password = password
+            await session.commit()
+            
+            return {
+                "msg" : "update password success"
+            }
+
+    elif role == RoleEnum.PEMBIMBING_DUDI :
+        findPembimbngDudi = (await session.execute(select(PembimbingDudi).where(PembimbingDudi.id == id))).scalar_one_or_none()
+
+        if findPembimbngDudi :
+            findPembimbngDudi.password = password
+            await session.commit()
+            
+            return {
+                "msg" : "update password success"
+            }
+        
+    raise HttpException(status=400,message="akun tidak ditemukan")
+
+
+

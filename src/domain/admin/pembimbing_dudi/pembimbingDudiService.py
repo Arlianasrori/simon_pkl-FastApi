@@ -44,8 +44,13 @@ async def addPembimbingDudi(id_sekolah : int,pembimbingDudi : AddPembimbingDudiB
     if not findTahun :
         raise HttpException(404,f"Tahun Sekolah dengan id {pembimbingDudi.id_tahun} tidak ditemukan")
     
+    findPembimbingDudiByEmail = (await session.execute(select(PembimbingDudi).where(PembimbingDudi.email == pembimbingDudi.email))).scalar_one_or_none()
+    if findPembimbingDudiByEmail :
+        raise HttpException(400,f"Pembimbing Dudi dengan email {pembimbingDudi.email} sudah digunakan")
+
     findDudi = (await session.execute(select(Dudi).where(Dudi.id == pembimbingDudi.id_dudi))).scalar_one_or_none()
     if not findDudi :
+
         raise HttpException(404,f"Dudi dengan id {pembimbingDudi.id_dudi} tidak ditemukan")
     
     findPembibingDudiByUsername = (await session.execute(select(PembimbingDudi).where(PembimbingDudi.username == pembimbingDudi.username))).scalar_one_or_none()
@@ -206,8 +211,14 @@ async def updatePembimbingDudi(id_sekolah : int,id_pembimbing_dudi : int,pembimb
     if not findPembimbingDudi :
         raise HttpException(404,f"Pembimbing Dudi dengan id {id_pembimbing_dudi} tidak ditemukan")
 
+    if pembimbingDudi.email :
+        findPembimbingDudiByEmail = (await session.execute(select(PembimbingDudi).where(and_(PembimbingDudi.email == pembimbingDudi.email,PembimbingDudi.id != id_pembimbing_dudi)))).scalar_one_or_none()
+        if findPembimbingDudiByEmail :
+            raise HttpException(400,f"Pembimbing Dudi dengan email {pembimbingDudi.email} sudah ada")
+
     if pembimbingDudi.id_dudi :
         findDudi = (await session.execute(select(Dudi).where(Dudi.id == pembimbingDudi.id_dudi))).scalar_one_or_none()
+
         if not findDudi :
             raise HttpException(404,f"Dudi dengan id {pembimbingDudi.id_dudi} tidak ditemukan")
     if pembimbingDudi.username :

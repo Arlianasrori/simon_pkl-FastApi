@@ -72,6 +72,8 @@ class Admin(Base):
     username = Column(String(255), unique=True, nullable=False)
     password = Column(String(255), nullable=False)
     no_telepon = Column(String(255),unique=True,nullable=False)
+    email = Column(String(255),unique=True,nullable=False)
+    OTP_code = Column(Integer, nullable=True)
 
     sekolah = relationship("Sekolah", back_populates="admin")
 

@@ -17,6 +17,7 @@ class Siswa(Base):
     nama = Column(String(255), nullable=False)
     jenis_kelamin = Column(Enum(JenisKelaminEnum), nullable=False)
     no_telepon = Column(String(12), unique=True, nullable=False)
+    email = Column(String(255), unique=True, nullable=False)
     id_guru_pembimbing = Column(Integer, ForeignKey('guru_pembimbing.id'), nullable=True)
     id_dudi = Column(Integer, ForeignKey('dudi.id'), nullable=True)
     id_pembimbing_dudi = Column(Integer, ForeignKey('pembimbing_dudi.id'), nullable=True)
@@ -28,6 +29,7 @@ class Siswa(Base):
     id_kelas = Column(Integer, ForeignKey('kelas.id'), nullable=False)
     id_sekolah = Column(Integer, ForeignKey('sekolah.id'), nullable=False)
     id_tahun = Column(Integer, ForeignKey('tahun_sekolah.id'), nullable=False)
+    OTP_code = Column(Integer, nullable=True)
 
     jurusan = relationship("Jurusan", back_populates="siswa")
     kelas = relationship("Kelas", back_populates="siswa")
