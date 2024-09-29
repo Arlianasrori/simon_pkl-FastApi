@@ -8,3 +8,5 @@ from . import laporanPklModel
 from . import pengajuanPklModel
 from . import notificationModel
 from . import absenModel
+from . import chatModel
+from . import userBaseModel

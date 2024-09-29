@@ -6,7 +6,7 @@ authors = ["arlianasrori <arlianasrori@gmail.com>"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = "3.12.3"
+python = "3.12.6"
 fastapi = "^0.111.1"
 python-dotenv = "^1.0.1"
 sqlalchemy = "^2.0.31"
@@ -15,7 +15,7 @@ python-jose = {extras = ["cryptography"], version = "^3.3.0"}
 pydantic = "^2.8.2"
 python-random-strings = "^0.3"
 asyncpg = "^0.29.0"
-psycopg2 = "^2.9.8"
+# psycopg2 = "^2.9.8"
 bcrypt = "^4.2.0"
 alembic = "^1.13.2"
 pytz = "^2024.2"
@@ -23,6 +23,8 @@ aiofiles = "^24.1.0"
 schedule = "^1.2.2"
 apscheduler = "^3.10.4"
 firebase-admin = "^6.5.0"
+python-socketio = "^5.11.4"
+psycopg2-binary = "^2.9.9"
 
 
 [build-system]

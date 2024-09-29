@@ -1,12 +1,14 @@
-from sqlalchemy import Column, Integer, String, ForeignKey, Enum, DateTime
+from sqlalchemy import Column, Integer, String, ForeignKey, Enum, DateTime, Boolean
 from sqlalchemy.orm import relationship
 from ..db.db import Base
 from .types import JenisKelaminEnum
+from .types import UserTypeEnum
+from .userBaseModel import User
 
-class GuruPembimbing(Base):
+class GuruPembimbing(User):
     __tablename__ = 'guru_pembimbing'
 
-    id = Column(Integer, primary_key=True)
+    id = Column(Integer, ForeignKey('user.id') ,primary_key=True)
     nip = Column(String, unique=True, nullable=False)
     nama = Column(String(255), nullable=False)
     no_telepon = Column(String(12), unique=True, nullable=False)
@@ -21,16 +23,21 @@ class GuruPembimbing(Base):
     id_sekolah = Column(Integer, ForeignKey('sekolah.id'), nullable=False)
     id_tahun = Column(Integer, ForeignKey('tahun_sekolah.id'), nullable=False)
     OTP_code = Column(Integer, nullable=True)
+    is_online = Column(Boolean, default=False, nullable=False)
 
-    siswa = relationship("Siswa", back_populates="guru_pembimbing")
-    alamat = relationship("AlamatGuruPembimbing", uselist=False, back_populates="guru_pembimbing",cascade="all")
+    # Relasi yang sudah ada
+    siswa = relationship("Siswa",foreign_keys="[Siswa.id_guru_pembimbing]", back_populates="guru_pembimbing")
+    alamat = relationship("AlamatGuruPembimbing", uselist=False, back_populates="guru_pembimbing", cascade="all")
     kunjungan_guru_pembimbing = relationship("KunjunganGuruPembimbingPKL", back_populates="guru_pembimbing")
     notifications = relationship("Notification", back_populates="guru_pembimbing")
     notification_reads = relationship("NotificationRead", back_populates="guru_pembimbing")
-
     sekolah = relationship("Sekolah", back_populates="guru_pembimbing")
     tahun = relationship("TahunSekolah", back_populates="guru_pembimbing")
 
+    __mapper_args__ = {
+        'polymorphic_identity': UserTypeEnum.GURU,
+    }
+    
     def __repr__(self):
         return f"<GuruPembimbing(id={self.id}, nip='{self.nip}', nama='{self.nama}')>"
 
@@ -49,7 +56,7 @@ class AlamatGuruPembimbing(Base):
     guru_pembimbing = relationship("GuruPembimbing", back_populates="alamat")
 
     def __repr__(self):
-        return f"<AlamatGuruPembimbing(id={self.id}')>"
+        return f"<AlamatGuruPembimbing(id={self.id_guru_pembimbing})>"
     
 class KunjunganGuruPembimbingPKL(Base):
     __tablename__ = 'kunjungan_guru_pembimbing_pkl'
