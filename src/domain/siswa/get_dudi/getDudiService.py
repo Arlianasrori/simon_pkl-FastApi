@@ -5,7 +5,7 @@ from sqlalchemy.orm import joinedload
 
 # models
 from .getDudiModel import FilterGetDudiQuery,ResponseGetDudiPag
-from ....models.dudiModel import Dudi,KoutaSiswa,KoutaSiswaByJurusan
+from ....models.dudiModel import Dudi,KuotaSiswa,KuotaSiswaByJurusan
 from ...models_domain.dudi_model import DudiWithAlamat
 from ....models.siswaModel import Siswa
 from ....models.types import JenisKelaminEnum
@@ -31,90 +31,121 @@ async def getDudi(id_siswa : int,id_sekolah : int,page : int,filter : FilterGetD
         .subquery()
     )
     
-    findDudi = (await session.execute(select(Dudi,siswa_count.c.jumlah_siswa_pria,siswa_count.c.jumlah_siswa_wanita).outerjoin(siswa_count, Dudi.id == siswa_count.c.id_dudi).options(joinedload(Dudi.alamat),joinedload(Dudi.kouta).subqueryload(KoutaSiswa.kouta_jurusan).joinedload(KoutaSiswaByJurusan.jurusan)).where(and_(Dudi.nama_instansi_perusahaan.ilike(f"%{filter.nama_instansi_perusahaan}%") if filter.nama_instansi_perusahaan else True,Dudi.id_sekolah == id_sekolah)).limit(10).offset(10 * (page - 1)))).all()
+    # findDudi dan jumlah siswa yang ada pada dudi tersebut
+    findDudi = (await session.execute(select(Dudi,siswa_count.c.jumlah_siswa_pria,siswa_count.c.jumlah_siswa_wanita).outerjoin(siswa_count, Dudi.id == siswa_count.c.id_dudi).options(joinedload(Dudi.alamat),joinedload(Dudi.kuota).subqueryload(KuotaSiswa.kuota_jurusan).joinedload(KuotaSiswaByJurusan.jurusan)).where(and_(Dudi.nama_instansi_perusahaan.ilike(f"%{filter.nama_instansi_perusahaan}%") if filter.nama_instansi_perusahaan else True,Dudi.id_sekolah == id_sekolah)).limit(10).offset(10 * (page - 1)))).all()
 
-    countData = (await session.execute(select(func.count()).where(and_(Dudi.nama_instansi_perusahaan.ilike(f"%{filter.nama_instansi_perusahaan}%") if filter.nama_instansi_perusahaan else True,Dudi.id_sekolah == id_sekolah)))).scalar_one()
+    # get total dudi yang ada
+    countData = (await session.execute(select(func.count(Dudi.id)).where(and_(Dudi.nama_instansi_perusahaan.ilike(f"%{filter.nama_instansi_perusahaan}%") if filter.nama_instansi_perusahaan else True,Dudi.id_sekolah == id_sekolah)))).scalar_one()
+    # get total page yang ada 
     countPage = math.ceil(countData / 10)
 
-    responseDudiList = []
+    responseDudiList = [] # digunakan untuk response ke user tanpa merefresh database setelah commit 
     for dudi in findDudi :
-        dudiDecode = dudi._asdict()
-        dudiDictDecode = dudiDecode["Dudi"].__dict__
+        dudiDecode = dudi._asdict() # decode dudi dengan jumlah_pria dan jumlah_wanita beserta kuotanya
+        dudiDictDecode = dudiDecode["Dudi"].__dict__ # decode dudi tanpa jumlah_pria dan jumlah_wanita
+        
+        if dudiDecode["Dudi"].kuota :
 
-        dudiDict = {
-            **dudiDictDecode,
-            "jumlah_siswa_pria" : dudiDecode["jumlah_siswa_pria"] if dudiDecode["jumlah_siswa_pria"] else 0,
-            "jumlah_siswa_wanita" : dudiDecode["jumlah_siswa_wanita"] if dudiDecode["jumlah_siswa_wanita"] else 0,
-            "jumlah_kouta_pria" : dudiDecode["Dudi"].kouta.jumlah_pria,
-            "jumlah_kouta_wanita" : dudiDecode["Dudi"].kouta.jumlah_wanita,
-            "tersedia" : True
-        }
-
-        # cek apakah dudi sudah penuh
-        if dudiDict["jumlah_siswa_pria"] +  dudiDict["jumlah_siswa_wanita"]>= dudiDictDecode["kouta"].jumlah_pria + dudiDictDecode["kouta"].jumlah_wanita :
-            print(1)
-            dudiDict["tersedia"] = False
-        elif findSiswa.jenis_kelamin == JenisKelaminEnum.laki and  dudiDictDecode["kouta"].jumlah_pria != 0:
-            if dudiDict["jumlah_siswa_pria"] + 1 > dudiDictDecode["kouta"].jumlah_pria :
-                dudiDict["tersedia"] = False
-        elif findSiswa.jenis_kelamin == JenisKelaminEnum.perempuan and  dudi["kouta"].jumlah_wanita != 0:
-            if dudiDict["jumlah_siswa_wanita"] + 1 > dudi["kouta"].jumlah_wanita :
-                dudiDict["tersedia"] = False
-
-        koutaJurusanList = []
-        totalKebutuhanLaki = 0
-        totalKebutuhanWanita = 0
-        totalSiswaLakiAlljurusan = 0
-        totalSiswaWanitaAlljurusan = 0
-        for kouta_jurusan in dudiDictDecode["kouta"].kouta_jurusan :     
-            countDudiBykouta = (await session.execute(select(
-                func.count(Siswa.id).filter(Siswa.jenis_kelamin == JenisKelaminEnum.laki).label("jumlah_siswa_pria"),
-                func.count(Siswa.id).filter(Siswa.jenis_kelamin == JenisKelaminEnum.perempuan).label("jumlah_siswa_wanita"),
-            ).where(
-                and_(
-                    Siswa.id_jurusan == kouta_jurusan.id_jurusan,
-                    Siswa.id_dudi == dudiDict["id"]
-                )
-            ))).one()._asdict()
-
-            totalKebutuhanLaki += kouta_jurusan.jumlah_pria
-            totalKebutuhanWanita += kouta_jurusan.jumlah_wanita
-            totalSiswaLakiAlljurusan += countDudiBykouta["jumlah_siswa_pria"]
-            totalSiswaWanitaAlljurusan += countDudiBykouta["jumlah_siswa_wanita"]
-
-            if kouta_jurusan.id_jurusan == findSiswa.jurusan.id :  
-                if findSiswa.jenis_kelamin == JenisKelaminEnum.laki and kouta_jurusan.jumlah_pria != 0:
-                    if countDudiBykouta["jumlah_siswa_pria"] + 1 > kouta_jurusan.jumlah_pria :
-                        dudiDict["tersedia"] = False
-                elif findSiswa.jenis_kelamin == JenisKelaminEnum.perempuan and kouta_jurusan.jumlah_wanita != 0:
-                    if countDudiBykouta["jumlah_siswa_wanita"] + 1 > kouta_jurusan.jumlah_wanita :
-                        dudiDict["tersedia"] = False
-            
-            koutaJurusanMapping = {
-                "jurusan" : kouta_jurusan.jurusan.nama,
-                "kouta_pria" : kouta_jurusan.jumlah_pria,
-                "kouta_wanita" : kouta_jurusan.jumlah_wanita,
-                "jumlah_siswa_pria" : countDudiBykouta["jumlah_siswa_pria"] if countDudiBykouta["jumlah_siswa_pria"] else 0,
-                "jumlah_siswa_wanita" : countDudiBykouta["jumlah_siswa_wanita"] if countDudiBykouta["jumlah_siswa_wanita"] else 0
+            # dudi dictionary yang sesuai dengan format response untuk dikirim ke user
+            dudiDict = {
+                **dudiDictDecode,
+                "jumlah_siswa_pria" : dudiDecode["jumlah_siswa_pria"] if dudiDecode["jumlah_siswa_pria"] else 0,
+                "jumlah_siswa_wanita" : dudiDecode["jumlah_siswa_wanita"] if dudiDecode["jumlah_siswa_wanita"] else 0,
+                "jumlah_kuota_pria" : dudiDecode["Dudi"].kuota.jumlah_pria if dudiDecode["Dudi"].kuota else 0,
+                "jumlah_kuota_wanita" : dudiDecode["Dudi"].kuota.jumlah_wanita if dudiDecode["Dudi"].kuota else 0,
+                "tersedia" : True
             }
 
-            koutaJurusanList.append(koutaJurusanMapping)
-
-        kebutuhanJurusanLaki = totalKebutuhanLaki - totalSiswaLakiAlljurusan
-        kebutuhanJurusanWanita = totalKebutuhanWanita - totalSiswaWanitaAlljurusan
-
-        sisaKoutaDudiPria = dudiDecode["Dudi"].kouta.jumlah_pria - dudiDecode["jumlah_siswa_pria"]
-        sisaKoutaDudiWanita = dudiDecode["Dudi"].kouta.jumlah_wanita - dudiDecode["jumlah_siswa_wanita"]
-
-        if findSiswa.jenis_kelamin == JenisKelaminEnum.laki :
-            if sisaKoutaDudiPria <= kebutuhanJurusanLaki :
+            # cek apakah dudi sudah penuh
+            # apakah jumlah siswa sudah melebihi atau sama dengan total yang ada
+            if dudiDict["jumlah_siswa_pria"] + dudiDict["jumlah_siswa_wanita"] >= dudiDictDecode["kuota"].jumlah_pria + dudiDictDecode["kuota"].jumlah_wanita :
                 dudiDict["tersedia"] = False
-        elif findSiswa.jenis_kelamin == JenisKelaminEnum.perempuan :
-            if sisaKoutaDudiWanita <= kebutuhanJurusanWanita :
-                dudiDict["tersedia"] = False
+            # cek apakah jumlah siswa pria sudah melebihi atau sama dengan jumlah kuota pria
+            elif findSiswa.jenis_kelamin == JenisKelaminEnum.laki and  dudiDictDecode["kuota"].jumlah_pria != 0:
+                if dudiDict["jumlah_siswa_pria"] + 1 > dudiDictDecode["kuota"].jumlah_pria :
+                    dudiDict["tersedia"] = False
+            # cek apakah jumlah siswa wanita sudah melebihi atau sama dengan jumlah kuota wanita
+            elif findSiswa.jenis_kelamin == JenisKelaminEnum.perempuan and  dudi["kuota"].jumlah_wanita != 0:
+                if dudiDict["jumlah_siswa_wanita"] + 1 > dudi["kuota"].jumlah_wanita :
+                    dudiDict["tersedia"] = False
 
-        dudiDict["kouta_jurusan"] = koutaJurusanList
-        responseDudiList.append(dudiDict)
+            kuotaJurusanList = [] # untuk kuotanjurusan response untuk dikirim ke user
+            totalKebutuhanLaki = 0 # untuk total kebutuhan laki
+            totalKebutuhanWanita = 0 # untuk total kebutuhan wanita
+            totalSiswaLakiAlljurusan = 0 # untuk total siswa laki semua jurusan
+            totalSiswaWanitaAlljurusan = 0 # untuk total siswa wanita semua jurusan
+
+            for kuota_jurusan in dudiDictDecode["kuota"].kuota_jurusan :     
+                # get total siswa laki dan wanita pada dudi berdasarkan kuota jurusan
+                countDudiBykuota = (await session.execute(select(
+                    func.count(Siswa.id).filter(Siswa.jenis_kelamin == JenisKelaminEnum.laki).label("jumlah_siswa_pria"),
+                    func.count(Siswa.id).filter(Siswa.jenis_kelamin == JenisKelaminEnum.perempuan).label("jumlah_siswa_wanita"),
+                ).where(
+                    and_(
+                        Siswa.id_jurusan == kuota_jurusan.id_jurusan,
+                        Siswa.id_dudi == dudiDict["id"]
+                    )
+                ))).one()._asdict()
+
+                # menambahkan total kebutuhan laki dan wanita
+                totalKebutuhanLaki += kuota_jurusan.jumlah_pria
+                totalKebutuhanWanita += kuota_jurusan.jumlah_wanita
+                totalSiswaLakiAlljurusan += countDudiBykuota["jumlah_siswa_pria"]
+                totalSiswaWanitaAlljurusan += countDudiBykuota["jumlah_siswa_wanita"]
+                
+                # jika siswa memiliki jurusan yang sama dengan kuota jurusan
+                if kuota_jurusan.id_jurusan == findSiswa.jurusan.id :  
+                    if findSiswa.jenis_kelamin == JenisKelaminEnum.laki and kuota_jurusan.jumlah_pria != 0:
+                        # cek apakah jumlah siswa pria akan melebihi kuota jurusan jika ditambah dengan user
+                        if countDudiBykuota["jumlah_siswa_pria"] + 1 > kuota_jurusan.jumlah_pria :
+                            dudiDict["tersedia"] = False
+                    elif findSiswa.jenis_kelamin == JenisKelaminEnum.perempuan and kuota_jurusan.jumlah_wanita != 0:
+                        # cek apakah jumlah siswa wanita akan melebihi kuota jurusan jika ditambah dengan user
+                        if countDudiBykuota["jumlah_siswa_wanita"] + 1 > kuota_jurusan.jumlah_wanita :
+                            dudiDict["tersedia"] = False
+                
+                # maping kuota jurusan for response later
+                kuotaJurusanMapping = {
+                    "jurusan" : kuota_jurusan.jurusan.nama,
+                    "kuota_pria" : kuota_jurusan.jumlah_pria,
+                    "kuota_wanita" : kuota_jurusan.jumlah_wanita,
+                    "jumlah_siswa_pria" : countDudiBykuota["jumlah_siswa_pria"] if countDudiBykuota["jumlah_siswa_pria"] else 0,
+                    "jumlah_siswa_wanita" : countDudiBykuota["jumlah_siswa_wanita"] if countDudiBykuota["jumlah_siswa_wanita"] else 0
+                }
+
+                # append kuota jurusan ke list
+                kuotaJurusanList.append(kuotaJurusanMapping)
+
+            # hitung kebutuhan kuota disemua jurusan : semua kuota jurusan,kuotanya ditambahkan dan dikurangi dengan totalSiswa disemua jurusan.Didapatkan sisa berapa kuota dijurusan yang belum terpenuhi
+            kebutuhanJurusanLaki = totalKebutuhanLaki - totalSiswaLakiAlljurusan
+            kebutuhanJurusanWanita = totalKebutuhanWanita - totalSiswaWanitaAlljurusan
+
+            # hitung tinggal berapa kuota yang tersisah didudi saat ini : kuota yang ada dikurangi dengan jumlah siswa didudi.Didapatkan tinggal berapa siswa kuota untuk dudi yang ada
+            print(dudiDecode["jumlah_siswa_pria"])
+            print(dudiDecode["Dudi"].kuota.jumlah_pria)
+            sisakuotaDudiPria = dudiDecode["Dudi"].kuota.jumlah_pria - dudiDecode["jumlah_siswa_pria"]
+            sisakuotaDudiWanita = dudiDecode["Dudi"].kuota.jumlah_wanita - dudiDecode["jumlah_siswa_wanita"]
+
+            if findSiswa.jenis_kelamin == JenisKelaminEnum.laki :
+                # cek apakah sisa kuota pada dudi lebih kecil atau sama dengan jumlah kuota yang belum terpenuhi disemua jurusan.Maksudnya apakah sisa kuota pada dudi masih bisa menampung total kuota yang ada pada jurusan.jika tidak bisa maka user dengan jurusan selain itu tidak diizinkan
+                if sisakuotaDudiPria <= kebutuhanJurusanLaki :
+                    dudiDict["tersedia"] = False
+            elif findSiswa.jenis_kelamin == JenisKelaminEnum.perempuan :
+                # cek apakah sisa kuota pada dudi lebih kecil atau sama dengan jumlah kuota yang belum terpenuhi disemua jurusan.Maksudnya apakah sisa kuota pada dudi masih bisa menampung total kuota yang ada pada jurusan.jika tidak bisa maka user dengan jurusan selain itu tidak diizinkan
+                if sisakuotaDudiWanita <= kebutuhanJurusanWanita :
+                    dudiDict["tersedia"] = False
+
+            dudiDict["kuota_jurusan"] = kuotaJurusanList
+            responseDudiList.append(dudiDict)
+        else :
+            responseDudiList.append({
+                **dudiDictDecode,
+                "jumlah_siswa_pria" : dudiDecode["jumlah_siswa_pria"] if dudiDecode["jumlah_siswa_pria"] else 0,
+                "jumlah_siswa_wanita" : dudiDecode["jumlah_siswa_wanita"] if dudiDecode["jumlah_siswa_wanita"] else 0,
+                "jumlah_kuota_pria" : 0,
+                "jumlah_kuota_wanita" : 0,
+                "tersedia" : False
+            })
 
     return {
         "msg" : "success",

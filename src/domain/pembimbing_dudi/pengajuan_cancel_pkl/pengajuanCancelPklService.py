@@ -1,6 +1,6 @@
 from copy import deepcopy
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select,func,and_
+from sqlalchemy import case, desc, select,func,and_
 from sqlalchemy.orm import joinedload
 
 # models
@@ -20,9 +20,9 @@ from ..notification.notificationUtils import runningProccessSync
 
 async def getAllPengajuancancelPkl(id_dudi : int,page : int | None,session : AsyncSession) -> list[PengajuanCancelPklWithSiswa] | ResponsePengajuanCancelPklPag :
     statementSelectPengajuanPkl = select(PengajuanCancelPKL).options(joinedload(PengajuanCancelPKL.siswa)).where(PengajuanCancelPKL.id_dudi == id_dudi)
-
+    
     if page :
-        findPengajuanPkl = (await session.execute(statementSelectPengajuanPkl.limit(10).offset(10 * (page - 1)))).scalars().all()
+        findPengajuanPkl = (await session.execute(statementSelectPengajuanPkl.limit(10).offset(10 * (page - 1)).order_by(case((PengajuanCancelPKL.status == StatusCancelPKLENUM.proses, 1)),desc(PengajuanCancelPKL.waktu_pengajuan)))).scalars().all()
         countData = (await session.execute(func.count(PengajuanCancelPKL.id))).scalar_one()
         countPage = math.ceil(countData / 10)
         return {
@@ -32,7 +32,7 @@ async def getAllPengajuancancelPkl(id_dudi : int,page : int | None,session : Asy
             "count_page" : countPage
         }
     else :
-        findPengajuanPkl = (await session.execute(statementSelectPengajuanPkl)).scalars().all()
+        findPengajuanPkl = (await session.execute(statementSelectPengajuanPkl.order_by(case((PengajuanCancelPKL.status == StatusCancelPKLENUM.proses, 1)),desc(PengajuanCancelPKL.waktu_pengajuan)))).scalars().all()
         return {
             "msg" : "success",
             "data" : findPengajuanPkl

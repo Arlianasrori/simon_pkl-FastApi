@@ -15,20 +15,20 @@ class DudiBase(BaseModel):
 class DudiWithAlamat(DudiBase):
     alamat : AlamatBase
 
-class KoutaJurusanBase(BaseModel) :
+class KuotaJurusanBase(BaseModel) :
     id : int
     jumlah_pria : int
     jumlah_wanita : int
     jurusan : JurusanBase
 
-class KoutaBase(BaseModel) :
+class KuotaBase(BaseModel) :
     id : int
     jumlah_pria: int
     jumlah_wanita: int
-    kouta_jurusan : list[KoutaJurusanBase] | None = None
+    kuota_jurusan : list[KuotaJurusanBase] | None = None
 
-class DudiWithAlamatKouta(DudiWithAlamat) :
-    kouta : KoutaBase | None = None
+class DudiWithAlamatKuota(DudiWithAlamat) :
+    kuota : KuotaBase | None = None
 
-class DudiWithKouta(DudiBase) :
-    kouta : KoutaBase | None = None
+class DudiWithKuota(DudiBase) :
+    kuota : KuotaBase | None = None

@@ -1,3 +1,4 @@
+from fastapi.background import P
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import desc, select,and_,extract
 from sqlalchemy.orm import joinedload
@@ -13,6 +14,7 @@ from datetime import datetime,timedelta
 
 async def getAllAbsen(id_siswa : int,filter : FilterAbsen,isSevenDay : bool,isGrouping : bool,session : AsyncSession) -> list[MoreAbsen] | AbsenResponse:
     seven_days_ago = datetime.now() - timedelta(days=7)
+    print(id_siswa)
 
     findAbsen = (await session.execute(select(Absen).options(joinedload(Absen.siswa),joinedload(Absen.keterangan_absen_masuk),joinedload(Absen.keterangan_absen_pulang))
         .where(and_(
@@ -25,19 +27,27 @@ async def getAllAbsen(id_siswa : int,filter : FilterAbsen,isSevenDay : bool,isGr
     
     if isGrouping :
         absenDict : dict[str,list[Absen]] = {}
-        daysOnWeek = 7
-        countStart = 1
+        daysOnWeek = 7 # jumlah hari dalam seminggu
+        countStart = 1 # mulai dari minggu 1
         for absen in findAbsen :
+            # satu bulan ada 4 minggu,jika lenih dari 4 dihentikan
+            if countStart > 4 :
+                break
+            # jika minggu tidak ada di dict
             if str(countStart) not in absenDict :
                 absenDict[str(countStart)] = []
-            startDate = datetime.now() - timedelta(days=countStart * daysOnWeek)
-            endDate = datetime.now() - timedelta(days=(countStart - 1) * daysOnWeek)
-            if absen.tanggal >= startDate and absen.tanggal <= endDate :
-                absenDict[str(countStart)].append(absen)
-            else :
-                countStart += 1
-                if str(countStart) in absenDict :
-                    absenDict[str(countStart)] = [absen]
+
+            # hitung tanggal mulai dan tanggal akhir
+            startDate = datetime.now().date() - timedelta(days=countStart * daysOnWeek)
+            endDate = datetime.now().date() - timedelta(days=(countStart - 1) * daysOnWeek)
+            if not absen.tanggal > endDate :
+                if absen.tanggal >= startDate and absen.tanggal <= endDate :
+                    absenDict[str(countStart)].append(absen)
+                else :
+                    countStart += 1
+                    if str(countStart) in absenDict :
+                        absenDict[str(countStart)] = [absen]
+
         return {
             "msg" : "success",
             "data" : absenDict

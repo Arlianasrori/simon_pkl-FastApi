@@ -13,9 +13,10 @@ class Dudi(Base):
     id_sekolah = Column(Integer, ForeignKey('sekolah.id'), nullable=False)
     id_tahun = Column(Integer, ForeignKey('tahun_sekolah.id'), nullable=False)
     tersedia = Column(Boolean, default=False, nullable=False)
+    email = Column(String(255), unique=True, nullable=False)
 
     alamat = relationship("AlamatDudi", uselist=False, back_populates="dudi",cascade="all")
-    kouta = relationship("KoutaSiswa", uselist=False, back_populates="dudi",cascade="all")
+    kuota = relationship("KuotaSiswa", uselist=False, back_populates="dudi",cascade="all")
     siswa = relationship("Siswa", back_populates="dudi")
     pembimbing_dudi = relationship("PembimbingDudi", back_populates="dudi",cascade="all")
     kunjungan_guru_pembimbing = relationship("KunjunganGuruPembimbingPKL", back_populates="dudi")
@@ -50,27 +51,27 @@ class AlamatDudi(Base):
         return f"<AlamatDudi(id={self.id_dudi}')>"
 
 
-class KoutaSiswa(Base):
-    __tablename__ = 'kouta_siswa'
+class KuotaSiswa(Base):
+    __tablename__ = 'kuota_siswa'
 
     id = Column(Integer,primary_key=True, nullable=False)
     id_dudi = Column(Integer, ForeignKey('dudi.id'), unique=True, nullable=False)
     jumlah_pria = Column(Integer, nullable=False)
     jumlah_wanita = Column(Integer, nullable=False)
 
-    dudi = relationship("Dudi", back_populates="kouta")
-    kouta_jurusan = relationship("KoutaSiswaByJurusan",backref="kouta_siswa",cascade="all")
+    dudi = relationship("Dudi", back_populates="kuota")
+    kuota_jurusan = relationship("KuotaSiswaByJurusan",backref="kuota_siswa",cascade="all")
 
     def __repr__(self):
-        return f"<KoutaSiswa(id={self.id_dudi}, id_dudi={self.id_dudi})>"
+        return f"<KuotaSiswa(id={self.id_dudi}, id_dudi={self.id_dudi})>"
     
-class KoutaSiswaByJurusan(Base):
-    __tablename__ = 'kouta_siswa_jurusan'
+class KuotaSiswaByJurusan(Base):
+    __tablename__ = 'kuota_siswa_jurusan'
 
     id = Column(Integer,primary_key=True, nullable=False)
-    id_kouta = Column(Integer, ForeignKey('kouta_siswa.id',ondelete="CASCADE"), nullable=False)
+    id_kuota = Column(Integer, ForeignKey('kuota_siswa.id',ondelete="CASCADE"), nullable=False)
     id_jurusan = Column(Integer, ForeignKey('jurusan.id',ondelete="CASCADE"), nullable=False)
     jumlah_pria = Column(Integer, nullable=False)
     jumlah_wanita = Column(Integer, nullable=False)
     
-    jurusan = relationship("Jurusan", back_populates="kouta_jurusan")
+    jurusan = relationship("Jurusan", back_populates="kuota_jurusan")

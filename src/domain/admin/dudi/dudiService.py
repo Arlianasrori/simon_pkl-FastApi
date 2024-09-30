@@ -5,9 +5,9 @@ from sqlalchemy.orm import joinedload
 
 # models
 from .dudiModel import AddDudiBody,UpdateDudiBody,ResponseDudiPag
-from ...models_domain.dudi_model import DudiBase, DudiWithAlamat, DudiWithAlamatKouta
+from ...models_domain.dudi_model import DudiBase, DudiWithAlamat, DudiWithAlamatKuota
 from ...models_domain.alamat_model import AlamatBase,UpdateAlamatBody
-from ....models.dudiModel import Dudi,AlamatDudi,KoutaSiswa
+from ....models.dudiModel import Dudi,AlamatDudi
 from ....models.sekolahModel import TahunSekolah
 
 # common
@@ -37,7 +37,9 @@ async def addDudi(id_sekolah : int,dudi : AddDudiBody,alamat : AlamatBase,sessio
     findTahun = (await session.execute(select(TahunSekolah).where(TahunSekolah.id == dudi.id_tahun))).scalar_one_or_none()
     if not findTahun :
         raise HttpException(404,f"Tahun Sekolah dengan id {dudi.id_tahun} tidak ditemukan")
-    
+    findDudiByEmail = (await session.execute(select(Dudi).where(Dudi.email == dudi.email))).scalar_one_or_none()
+    if findDudiByEmail :
+        raise HttpException(400,f"Dudi dengan email {dudi.email} sudah terdaftar")
     dudiMapping = dudi.model_dump()
     dudiMapping.update({"id" : random_strings.random_digits(6),"id_sekolah" : id_sekolah})
     alamatMapping = alamat.model_dump()
@@ -87,7 +89,7 @@ async def getAllDudi(page : int,id_sekolah : int,id_tahun : int,session : AsyncS
         "data" : findDudi
     }
 
-async def getDudiById(id_dudi : int,id_sekolah : int,session : AsyncSession) -> DudiWithAlamatKouta :
+async def getDudiById(id_dudi : int,id_sekolah : int,session : AsyncSession) -> DudiWithAlamatKuota :
     """
     Retrieve a specific DUDI entry by its ID.
 
@@ -97,12 +99,12 @@ async def getDudiById(id_dudi : int,id_sekolah : int,session : AsyncSession) -> 
         session (AsyncSession): The database session.
 
     Returns:
-        DudiWithAlamatKouta: The DUDI entry with its address and quota.
+        DudiWithAlamatKuota: The DUDI entry with its address and quota.
 
     Raises:
         HttpException: If the DUDI entry is not found.
     """
-    findDudi = (await session.execute(select(Dudi).where(and_(Dudi.id == id_dudi,Dudi.id_sekolah == id_sekolah)).options(joinedload(Dudi.alamat),joinedload(Dudi.kouta)))).scalar_one_or_none()
+    findDudi = (await session.execute(select(Dudi).where(and_(Dudi.id == id_dudi,Dudi.id_sekolah == id_sekolah)).options(joinedload(Dudi.alamat),joinedload(Dudi.kuota)))).scalar_one_or_none()
     if not findDudi :
         raise HttpException(404,f"Dudi dengan id {id_dudi} tidak ditemukan")
     

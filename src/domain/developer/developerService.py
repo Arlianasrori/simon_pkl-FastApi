@@ -236,6 +236,17 @@ async def add_admin_sekolah(admin : AddAdminBody,session : AsyncSession) -> Admi
     if findAdminByUsername :
         raise HttpException(400,f"admin dengan username {admin.username} telah digunakan")
     
+    findAdminByNoTelepon = (await session.execute(select(Admin).where(Admin.no_telepon == admin.no_telepon))).scalar_one_or_none()
+
+    if findAdminByNoTelepon :
+        raise HttpException(400,f"admin dengan username {admin.no_telepon} telah digunakan")
+    
+    findAdminByEmail = (await session.execute(select(Admin).where(Admin.email
+     == admin.email))).scalar_one_or_none()
+
+    if findAdminByEmail :
+        raise HttpException(400,f"admin dengan email {admin.email} telah digunakan")
+    
     adminMApping = admin.model_dump()
     adminMApping.update({"id" : random_strings.random_digits(6),"password" : bcrypt.create_hash_password(admin.password)})
 
@@ -308,6 +319,21 @@ async def update_admin_sekolah(id_admin : int,admin : UpdateAdminBody,session : 
     findAdmin = (await session.execute(select(Admin).options(joinedload(Admin.sekolah)).where(Admin.id == id_admin))).scalar_one_or_none()
     if not findAdmin :
         raise HttpException(404,f"admin tidak ditemukan")
+
+    if admin.no_telepon :
+        findAdminByNoTelepon = (await session.execute(select(Admin).where(Admin.no_telepon == admin.no_telepon))).scalar_one_or_none()
+        if findAdminByNoTelepon :
+            raise HttpException(400,f"admin dengan no telepon {admin.no_telepon} telah digunakan")
+
+    if admin.username :
+        findAdminByUsername = (await session.execute(select(Admin).where(Admin.username == admin.username))).scalar_one_or_none()
+        if findAdminByUsername :
+            raise HttpException(400,f"admin dengan username {admin.username} telah digunakan")
+
+    if admin.email :
+        findAdminByEmail = (await session.execute(select(Admin).where(Admin.email == admin.email))).scalar_one_or_none()
+        if findAdminByEmail :
+            raise HttpException(400,f"admin dengan email {admin.email} telah digunakan")
 
     if admin :
         updateTable(admin,findAdmin)

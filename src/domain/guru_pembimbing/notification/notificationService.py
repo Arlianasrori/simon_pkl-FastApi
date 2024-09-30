@@ -1,6 +1,6 @@
 from copy import deepcopy
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select,and_
+from sqlalchemy import desc, select,and_
 from sqlalchemy.orm import subqueryload
 
 # models
@@ -12,7 +12,7 @@ from ....error.errorHandling import HttpException
 from python_random_strings import random_strings
 
 async def getAllNotification(id_guru_pembimbing : int,session : AsyncSession) -> list[NotificationModelBase]:
-    findNotification = (await session.execute(select(Notification).options(subqueryload(Notification.reads.and_(NotificationRead.id_guru_pembimbing == id_guru_pembimbing))).where(Notification.id_guru_pembimbing == id_guru_pembimbing))).scalars().all()
+    findNotification = (await session.execute(select(Notification).options(subqueryload(Notification.reads.and_(NotificationRead.id_guru_pembimbing == id_guru_pembimbing))).where(Notification.id_guru_pembimbing == id_guru_pembimbing).order_by(desc(Notification.created_at)))).scalars().all()
 
     return {
         "msg" : "success",

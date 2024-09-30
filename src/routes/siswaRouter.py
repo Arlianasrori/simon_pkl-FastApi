@@ -44,7 +44,7 @@ from ..domain.models_domain.absen_model import koordinatAbsenBase
 
 # absen-jadwal
 from ..domain.siswa.absen.absen_jadwal import absenJadwalService
-from ..domain.siswa.absen.absen_jadwal.absenJadwalModel import RadiusBody,ResponseCekAbsen
+from ..domain.siswa.absen.absen_jadwal.absenJadwalModel import RadiusBody,ResponseCekAbsen,ResponseJadwalAbsenToday
 from ..domain.models_domain.absen_model import JadwalAbsenWithHari
 
 # absen-event
@@ -63,6 +63,11 @@ from ..domain.models_domain.notification_model import NotificationModelBase,Resp
 
 from ..db.sessionDepedency import sessionDepedency
 from ..models.responseModel import ResponseModel
+
+# laporan kendala
+from ..domain.siswa.laporankendala import laporanKendalaService
+from ..domain.siswa.laporankendala.laporanKendalaModel import AddLaporanKendalaBody,UpdateLaporanKendalaBody
+from ..domain.models_domain.laporan_kendala_model import LaporankendalaBase,LaporanKendalaWithSiswa
 
 siswaRouter = APIRouter(prefix="/siswa",dependencies=[Depends(siswaDependAuth)])
 
@@ -171,11 +176,11 @@ async def getLaporanPklDudiById(id_laporan_pkl_dudi : int,siswa : dict = Depends
     return await laporanPklDudiService.getLaporanPklDudiById(id_laporan_pkl_dudi,siswa["id"],session)
 
 # radius-absen
-@siswaRouter.get("/koordinat-absen",response_model=ResponseModel[list[koordinatAbsenBase]],tags=["SISWA/RADIUS-ABSEN"])
+@siswaRouter.get("/koordinat-absen",response_model=ResponseModel[list[koordinatAbsenBase]],description="used to view the list of coordinates permitted by dudi",tags=["SISWA/RADIUS-ABSEN"])
 async def getKoordinatAbsen(siswa : dict = Depends(getSiswaAuth),session : sessionDepedency = None):
     return await radiusAbsenService.getAllkoordinatAbsen(siswa["id_dudi"],session)
 
-@siswaRouter.post("/koordinat-absen/cek",response_model=ResponseModel[ResponseCekRadius],tags=["SISWA/RADIUS-ABSEN"])
+@siswaRouter.post("/koordinat-absen/cek",response_model=ResponseModel[ResponseCekRadius],description="if the user is outside the radius and clicks the absent button outside the radius: call checkabsenschedule first, if the type of absence is home absence then it is permissible to be absent outside the radius and if other than that it is not permitted",tags=["SISWA/RADIUS-ABSEN"])
 async def cekRadiusAbsen(koordinat : CekRadiusAbsenBody,siswa : dict = Depends(getSiswaAuth),session : sessionDepedency = None):
     return await radiusAbsenService.cekRadiusAbsen(siswa["id_dudi"],koordinat,session)
 
@@ -188,9 +193,20 @@ async def getAllAbsenJadwal(siswa : dict = Depends(getSiswaAuth),session : sessi
 async def getAbsenJadwalById(id_jadwal : int,siswa : dict = Depends(getSiswaAuth),session : sessionDepedency = None):
     return await absenJadwalService.getJadwalAbsenById(siswa["id_dudi"],id_jadwal,session)
 
-@siswaRouter.post("/absen-jadwal/cek",response_model=ResponseModel[ResponseCekAbsen],tags=["SISWA/ABSEN-JADWAL"])
+@siswaRouter.post("/absen-jadwal/cek",response_model=ResponseModel[ResponseCekAbsen],description="""used to check what the user can do today.
+
+flow : 
+- check the type of absence first
+- if absence_type == "pulang" continue to look at home_absence_type to determine the button
+and vice versa.
+                  
+canAbsent: used to check whether students can be absent today or not""",tags=["SISWA/ABSEN-JADWAL"])
 async def cekAbsenJadwal(koordinat : RadiusBody,siswa : dict = Depends(getSiswaAuth),session : sessionDepedency = None):
     return await absenJadwalService.cekAbsen(siswa["id"],siswa["id_dudi"],koordinat,session)
+
+@siswaRouter.get("/absen-jadwal/cek/today",response_model=ResponseModel[list[JadwalAbsenWithHari]],tags=["SISWA/ABSEN-JADWAL"])
+async def cekAbsenJadwalToday(koordinat : RadiusBody,siswa : dict = Depends(getSiswaAuth),session : sessionDepedency = None):
+    return await absenJadwalService.getJadwalAbsenToday(siswa["id"],siswa["id_dudi"],koordinat,session)
 
 # absen
 @siswaRouter.post("/absen/absen-masuk",response_model=ResponseModel[AbsenBase],tags=["SISWA/ABSEN"])
@@ -218,9 +234,8 @@ async def absenSakit(latitude: float = Form(...),longitude: float = Form(...),si
     radius = RadiusBody(latitude=latitude, longitude=longitude)
     return await absenEventService.absenSakit(siswa["id"],radius,session)
 
-
 # get-absen
-@siswaRouter.get("/absen",response_model=ResponseModel[list[MoreAbsen] | AbsenResponse],tags=["SISWA/GETABSEN"])
+@siswaRouter.get("/absen",response_model=ResponseModel[list[MoreAbsen]] | AbsenResponse,tags=["SISWA/GETABSEN"])
 async def getAllAbsen(isSevenDayAgo : bool | None = None,isGrouping : bool | None = None,siswa : dict = Depends(getSiswaAuth),filter : FilterAbsen = Depends(),session : sessionDepedency = None):
     return await getAbsenService.getAllAbsen(siswa["id"],filter,isSevenDayAgo,isGrouping,session)
 
@@ -244,3 +259,29 @@ async def readNotification(id_notification : int,siswa : dict = Depends(getSiswa
 @siswaRouter.get("/notification/unread/count",response_model=ResponseModel[ResponseGetUnreadNotification],tags=["SISWA/NOTIFICATION"])
 async def getCountNotification(siswa : dict = Depends(getSiswaAuth),session : sessionDepedency = None):
     return await notificationService.getCountNotification(siswa["id"],siswa["id_dudi"],session)
+
+# laporan kendala
+@siswaRouter.post("/laporan-kendala",response_model=ResponseModel[LaporankendalaBase],tags=["SISWA/LAPORAN-KENDALA"])
+async def addLaporanKendala(laporan : AddLaporanKendalaBody,siswa : dict = Depends(getSiswaAuth),session : sessionDepedency = None):
+    return await laporanKendalaService.addLaporanPKLKendalaSiswa(siswa["id"],laporan,session)
+
+@siswaRouter.get("/laporan-kendala",response_model=ResponseModel[list[LaporankendalaBase]],tags=["SISWA/LAPORAN-KENDALA"])
+async def getAllLaporanKendala(siswa : dict = Depends(getSiswaAuth),session : sessionDepedency = None):
+    return await laporanKendalaService.getAllLaporanKendala(siswa["id"],session)
+
+@siswaRouter.get("/laporan-kendala/{id_laporan_kendala}",response_model=ResponseModel[LaporanKendalaWithSiswa],tags=["SISWA/LAPORAN-KENDALA"])
+async def getLaporanKendalaById(id_laporan_kendala : int,siswa : dict = Depends(getSiswaAuth),session : sessionDepedency = None):
+    return await laporanKendalaService.getLaporanKendalaById(siswa["id"],id_laporan_kendala,session)
+
+@siswaRouter.put("/laporan-kendala/{id_laporan_kendala}",response_model=ResponseModel[LaporankendalaBase],tags=["SISWA/LAPORAN-KENDALA"])
+async def updateLaporanKendala(id_laporan_kendala : int,laporan : UpdateLaporanKendalaBody = UpdateLaporanKendalaBody(),siswa : dict = Depends(getSiswaAuth),session : sessionDepedency = None):
+    return await laporanKendalaService.updateLaporanKendala(siswa["id"],id_laporan_kendala,laporan,session)
+
+@siswaRouter.put("/laporan-kendala/file_laporan/{id_laporan_kendala}",response_model=ResponseModel[LaporankendalaBase],tags=["SISWA/LAPORAN-KENDALA"])
+async def uploadUpdateFileLaporanKendala(id_laporan_kendala : int,file_laporan : UploadFile,siswa : dict = Depends(getSiswaAuth),session : sessionDepedency = None):
+    return await laporanKendalaService.addUpdateFileLaporanKendala(siswa["id"],id_laporan_kendala,file_laporan,session)
+
+@siswaRouter.delete("/laporan-kendala/{id_laporan_kendala}",response_model=ResponseModel[LaporankendalaBase],tags=["SISWA/LAPORAN-KENDALA"])
+async def deleteLaporanKendala(id_laporan_kendala : int,siswa : dict = Depends(getSiswaAuth),session : sessionDepedency = None):
+    return await laporanKendalaService.deleteLaporanPklKendala(siswa["id"],id_laporan_kendala,session)
+

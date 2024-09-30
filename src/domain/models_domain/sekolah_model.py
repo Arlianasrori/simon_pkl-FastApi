@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel,EmailStr
 
 from .alamat_model import AlamatBase
 
@@ -17,6 +17,9 @@ class SekolahWithAlamat(SekolahBase) :
 class AdminBase(BaseModel) :
     id : int
     username : str
+    no_telepon : str
+    email : EmailStr
+    id_sekolah : int
 
 class kepalaSekolahBase(BaseModel) :
     nama : str
@@ -27,10 +30,7 @@ class MoreSekolahBase(SekolahBase) :
     alamat : AlamatSekolah | None = None
     kepala_sekolah : kepalaSekolahBase | None = None
 
-class AdminWithSekolah(BaseModel) :
-    id : int
-    id_sekolah : int
-    username : str
+class AdminWithSekolah(AdminBase) :
     sekolah : SekolahBase
 
 class TahunSekolahBase(BaseModel) :

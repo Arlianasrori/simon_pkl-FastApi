@@ -1,4 +1,3 @@
-import aiofiles
 from fastapi import UploadFile
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import func, select,and_
@@ -13,6 +12,7 @@ from ....models.guruPembimbingModel import GuruPembimbing
 from ....models.sekolahModel import TahunSekolah
 
 # common
+import aiofiles
 from copy import deepcopy
 import math
 import os
@@ -20,6 +20,8 @@ from python_random_strings import random_strings
 from ....error.errorHandling import HttpException
 from ....utils.updateTable import updateTable
 from ....auth.bcrypt import bcrypt
+from multiprocessing import Process
+from ....utils.removeFile import removeFile
 
 async def addSiswa(id_sekolah : int,siswa : AddSiswaBody,alamat : AlamatBase,session : AsyncSession) -> MoreSiswa :
     """
@@ -53,7 +55,13 @@ async def addSiswa(id_sekolah : int,siswa : AddSiswaBody,alamat : AlamatBase,ses
     if not findKelas :
         raise HttpException(400,f"Kelas dengan id {siswa.id_kelas} tidak ditemukan")
     
+    findSiswaByEmail = (await session.execute(select(Siswa).where(Siswa.email == siswa.email))).scalar_one_or_none()
+
+    if findSiswaByEmail :
+        raise HttpException(400,f"Siswa dengan email {siswa.email} sudah ada")
+    
     if siswa.id_guru_pembimbing :
+
         findGuruPembimbing = (await session.execute(select(GuruPembimbing).where(GuruPembimbing.id == siswa.id_guru_pembimbing))).scalar_one_or_none()
         if not findGuruPembimbing :
             raise HttpException(400,f"Guru Pembimbing dengan id {siswa.id_guru_pembimbing} tidak ditemukan")
@@ -202,8 +210,14 @@ async def updateSiswa(id_siswa : int,id_sekolah : int,siswa : UpdateSiswaBody,al
     if not findSiswa :
         raise HttpException(400,f"Siswa dengan id {id_siswa} tidak ditemukan")
     
+    if siswa.email :
+        findSiswaByEmail = (await session.execute(select(Siswa).where(and_(Siswa.email == siswa.email,Siswa.id != id_siswa)))).scalar_one_or_none()
+        if findSiswaByEmail :
+            raise HttpException(400,f"Siswa dengan email {siswa.email} sudah ada")
+
     if siswa.nis :
         findSiswaByNis = (await session.execute(select(Siswa).where(and_(Siswa.nis == siswa.nis,Siswa.id != id_siswa)))).scalar_one_or_none()
+
         if findSiswaByNis :
             raise HttpException(400,f"Siswa dengan NIS {siswa.nis} sudah ada")
     if siswa.id_jurusan :
@@ -253,9 +267,18 @@ async def deleteSiswa(id_siswa : int,id_sekolah : int,session : AsyncSession) ->
     findSiswa = (await session.execute(select(Siswa).where(and_(Siswa.id == id_siswa,Siswa.id_sekolah == id_sekolah)))).scalar_one_or_none()
     if not findSiswa :
         raise HttpException(400,f"Siswa dengan id {id_siswa} tidak ditemukan")
+    
+    fotoProfileBefore = deepcopy(findSiswa.foto_profile)
     siswaDictCopy = deepcopy(findSiswa.__dict__)
     await session.delete(findSiswa)
     await session.commit()
+
+    if fotoProfileBefore :
+        file_nama_db_split = fotoProfileBefore.split("/")
+        file_name_db = file_nama_db_split[-1]
+
+        proccess = Process(target=removeFile,args=(f"{PROFILE_STORE}/{file_name_db}",))
+        proccess.start()
     return {
         "msg" : "success",
         "data" : siswaDictCopy

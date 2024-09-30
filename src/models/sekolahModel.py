@@ -1,6 +1,8 @@
-from sqlalchemy import Column, Integer, String, ForeignKey
+from sqlalchemy import Column, Integer, String, ForeignKey,Boolean
 from sqlalchemy.orm import relationship
 from ..db.db import Base
+from .types import UserTypeEnum
+from .userBaseModel import User
 
 
 class Sekolah(Base):
@@ -64,15 +66,24 @@ class TahunSekolah(Base):
     def __repr__(self):
         return f"<Tahun(id={self.id}, tahun='{self.tahun}'')>"
 
-class Admin(Base):
+class Admin(User):
     __tablename__ = 'admin'
 
-    id = Column(Integer, primary_key=True)
+    id = Column(Integer, ForeignKey('user.id') ,primary_key=True)
     id_sekolah = Column(Integer, ForeignKey('sekolah.id'))
     username = Column(String(255), unique=True, nullable=False)
     password = Column(String(255), nullable=False)
+    no_telepon = Column(String(255),unique=True,nullable=False)
+    email = Column(String(255),unique=True,nullable=False)
+    OTP_code = Column(Integer, nullable=True)
+    is_online = Column(Boolean, default=False, nullable=False)
 
+    # Relasi yang sudah ada
     sekolah = relationship("Sekolah", back_populates="admin")
+
+    __mapper_args__ = {
+        'polymorphic_identity': UserTypeEnum.ADMIN,
+    }
 
     def __repr__(self):
         return f"<Admin(id={self.id}, username='{self.username}', id_sekolah={self.id_sekolah})>"

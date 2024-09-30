@@ -38,7 +38,7 @@ async def developerAuth(access_token : str | None = Cookie(None), req : Request 
             raise HttpException(status=401, message="invalid token(unauthorized)")
         
         # Create a select query to find the developer in the database
-        selectQuery = select(Developer.id, Developer.username).where(Developer.id == developer["id"])
+        selectQuery = select(Developer.id, Developer.username,Developer.no_telepon).where(Developer.id == developer["id"])
         exec = await Session.execute(selectQuery)
         findeDeveloper = exec.first()
 

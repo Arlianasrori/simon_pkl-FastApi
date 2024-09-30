@@ -1,5 +1,6 @@
 from pydantic import BaseModel
 from enum import Enum
+from ....models_domain.absen_model import JadwalAbsenBase,HariAbsenBase
 
 class JenisAbsenEnum(Enum) :
     MASUK = "masuk"
@@ -25,3 +26,6 @@ class ResponseCekAbsen(BaseModel) :
     jenis_absen : JenisAbsenEnum | None = None
     jenis_absen_masuk : StatusAbsenMasukEnum | None = None
     jenis_absen_pulang : StatusAbsenPulangEnum | None = None
+
+class ResponseJadwalAbsenToday(JadwalAbsenBase) :
+    hari : HariAbsenBase

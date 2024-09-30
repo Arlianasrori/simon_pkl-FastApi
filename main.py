@@ -25,7 +25,20 @@ from src.routes.adminRouter import adminRouter
 from src.routes.pembimbingDudiRouter import pembimbingDudiRouter
 from src.routes.guruPembimbingRouter import guruPembimbingRouter
 from src.routes.siswaRouter import siswaRouter
+from src.routes.chatRouter import chatRouter
 from src.cron_job.addAbsenSiswaCron import addAbsenSiswaCron
+
+# socket
+from src.socket.socket import socket_app
+from src.socket.connectDisconnectSocket import connetDisconnectSocket,cleanup
+
+from contextlib import asynccontextmanager
+
+# clean socket on event
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Kode pembersihan
+    await cleanup()
 
 # Initialize FastAPI application with configuration
 App = FastAPI(
@@ -36,13 +49,13 @@ App = FastAPI(
 )
 
 # Add routers to the application
-routes = [authRouter, developerRouter, adminRouter,pembimbingDudiRouter,guruPembimbingRouter,siswaRouter]
+routes = [authRouter, developerRouter, adminRouter,pembimbingDudiRouter,guruPembimbingRouter,siswaRouter,chatRouter]
 for router in routes:
     App.include_router(router)
 
-# add middleware
+# Configure CORS middleware
 origins = [
-    "http://localhost:2008",
+    "http://localhost:3000",
 ]
 
 App.add_middleware(
@@ -55,19 +68,8 @@ App.add_middleware(
 
 # Mount static directory for public files
 App.mount("/public", StaticFiles(directory="src/public"), name="public")
-
-# Configure CORS middleware
-origins = [
-    "http://localhost:2008",
-]
-
-App.add_middleware(
-    CORSMiddleware,
-    allow_origins=origins,
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+# mount socket app
+App.mount("/",app=socket_app)
 
 # Add error handling to the application
 add_exception_server(App)
@@ -75,6 +77,7 @@ add_exception_server(App)
 # Inisialisasi scheduler
 scheduler = AsyncIOScheduler()
 scheduler.add_job(addAbsenSiswaCron, CronTrigger(hour=0, minute=0))
+connetDisconnectSocket()
 
 # Function to run the server
 async def runServer():
@@ -82,6 +85,10 @@ async def runServer():
     # config = uvicorn.Config("main:App", port=2008, reload=True)
     # server = uvicorn.Server(config)
     # await server.serve()
+    
 # Run the server if the script is executed directly
 if __name__ == "__main__":
+    # run handle connect and disconect event socket
+    # asyncio.run(connetDisconnectSocket())
+    # run server
     asyncio.run(runServer())
