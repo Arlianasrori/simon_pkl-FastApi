@@ -17,6 +17,12 @@ class AddPembimbingDudiBody(BaseModel) :
         if " " in v:
             raise ValueError("password tidak bisa mengandung spasi")
         return v
+    
+    @field_validator("username")
+    def validate_username(cls, v):
+        if " " in v:
+            raise ValueError("username tidak bisa mengandung spasi")
+        return v
 
 class UpdatePembimbingDudiBody(BaseModel) :
     nama : str | None = None
