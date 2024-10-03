@@ -27,6 +27,12 @@ class AddAdminBody(BaseModel) :
         if " " in v:
             raise ValueError("password tidak bisa mengandung spasi")
         return v
+    
+    @field_validator("username")
+    def validate_username(cls, v):
+        if " " in v:
+            raise ValueError("username tidak bisa mengandung spasi")
+        return v
 
 class UpdateAdminBody(BaseModel) :
     username : str | None = None
@@ -38,4 +44,10 @@ class UpdateAdminBody(BaseModel) :
     def validate_password(cls, v):
         if " " in v:
             raise ValueError("password tidak bisa mengandung spasi")
+        return v
+
+    @field_validator("username")
+    def validate_username(cls, v):
+        if " " in v:
+            raise ValueError("username tidak bisa mengandung spasi")
         return v
