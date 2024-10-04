@@ -13,7 +13,7 @@ from ..models_domain.auth_model import ResponseAuthToken, ResponseRefreshToken,R
 
 # common
 from ...error.errorHandling import HttpException
-from ...auth.bcrypt.bcrypt import verify_hash_password,create_hash_password
+from ...auth.bcrypt.bcrypt import verify_hash_password
 from ...auth.token.create_token import create_token,CreateTokenEnum
 from ...utils.sendOtp import sendOtp
 
@@ -75,7 +75,7 @@ async def adminDeveloperLogin(auth : LoginBody,Res : Response,session : AsyncSes
                 }
             }
             
-    raise HttpException(status=401,message="username or password wrong")
+    raise HttpException(status=400,message="username or password wrong")
 
 
 async def allUserAuth(auth : LoginBody,Res : Response,session : AsyncSession) -> ResponseAuthToken :
@@ -102,8 +102,9 @@ async def allUserAuth(auth : LoginBody,Res : Response,session : AsyncSession) ->
 
     # find admin and check admin
     findAdmin = (await session.execute(select(Admin).where(Admin.username == auth.textBody))).scalar_one_or_none()
-
+    
     if findAdmin :
+        # isPassword = verify_hash_password(auth.password,findAdmin.password)
         isPassword = verify_hash_password(auth.password,findAdmin.password)
 
         if isPassword :
@@ -183,7 +184,7 @@ async def allUserAuth(auth : LoginBody,Res : Response,session : AsyncSession) ->
                     "role" : RoleEnum.PEMBIMBING_DUDI
                 }
             }
-    raise HttpException(status=401,message="username or password wrong")
+    raise HttpException(status=400,message="username or password wrong")
 
 
 async def refresh_token_admin(data,Res : Response) -> ResponseRefreshToken :
@@ -313,7 +314,7 @@ async def publicLogin(auth : LoginBody,Res : Response,session : AsyncSession) ->
                 }
             } 
             
-    raise HttpException(status=401,message="nis/username/password or password wrong")
+    raise HttpException(status=400,message="nis/username/password or password wrong")
 
 
 # siswa
@@ -596,26 +597,18 @@ async def send_otp_again(id : int,role : RoleEnum,session : AsyncSession) :
         
     raise HttpException(status=400,message="akun tidak ditemukan")
 
-async def update_password(id : int,role : RoleEnum,password : str,otp : str,session : AsyncSession) :
+async def update_password(id : int,role : RoleEnum,password : str,session : AsyncSession) :
     if role == RoleEnum.DEVELOPER :
         findDeveloper = (await session.execute(select(Developer).where(Developer.id == id))).scalar_one_or_none()
-        
 
         if findDeveloper :
-            if findDeveloper.OTP_code != otp :
-                raise HttpException(status=400,message="otp is not valid")
-            
-            findDeveloper.OTP_code = password
+            findDeveloper.password = password
             await session.commit()
             
     elif role == RoleEnum.ADMIN :
         findAdmin = (await session.execute(select(Admin).where(Admin.id == id))).scalar_one_or_none()
 
         if findAdmin :
-            if findAdmin.OTP_code != otp :
-                raise HttpException(status=400,message="otp is not valid")
-            
-            password = create_hash_password(password)
             findAdmin.password = password
             await session.commit()
             
@@ -627,10 +620,6 @@ async def update_password(id : int,role : RoleEnum,password : str,otp : str,sess
         findSiswa = (await session.execute(select(Siswa).where(Siswa.id == id))).scalar_one_or_none()
 
         if findSiswa :
-            if findSiswa.OTP_code != otp :
-                raise HttpException(status=400,message="otp is not valid")
-            
-            password = create_hash_password(password)
             findSiswa.password = password
             await session.commit()  
             
@@ -642,10 +631,6 @@ async def update_password(id : int,role : RoleEnum,password : str,otp : str,sess
         findGuruPembimbing = (await session.execute(select(GuruPembimbing).where(GuruPembimbing.id == id))).scalar_one_or_none()
 
         if findGuruPembimbing :
-            if findGuruPembimbing.OTP_code != otp :
-                raise HttpException(status=400,message="otp is not valid")
-            
-            password = create_hash_password(password)
             findGuruPembimbing.password = password
             await session.commit()
             
@@ -657,10 +642,6 @@ async def update_password(id : int,role : RoleEnum,password : str,otp : str,sess
         findPembimbngDudi = (await session.execute(select(PembimbingDudi).where(PembimbingDudi.id == id))).scalar_one_or_none()
 
         if findPembimbngDudi :
-            if findPembimbngDudi.OTP_code != otp :
-                raise HttpException(status=400,message="otp is not valid")
-            
-            password = create_hash_password(password)
             findPembimbngDudi.password = password
             await session.commit()
             
@@ -669,6 +650,3 @@ async def update_password(id : int,role : RoleEnum,password : str,otp : str,sess
             }
         
     raise HttpException(status=400,message="akun tidak ditemukan")
-
-
-
