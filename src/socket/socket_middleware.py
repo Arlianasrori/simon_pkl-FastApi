@@ -40,7 +40,6 @@ async def auth_middleware(token: str | None,type,session : AsyncSession):
     if user:
         try:
             # Check if a token is present
-            print(token)
             if not token:
                 raise HttpException(status=401, message="invalid token(unauthorized)")
             

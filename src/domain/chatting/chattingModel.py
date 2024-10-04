@@ -27,7 +27,7 @@ class GetRoomListResponse(BaseModel) :
 class HandleChunkFileBody(BaseModel) :
     message_id : int
     file_name : str
-    chunk : list
+    chunk : bytes
     offset : int
     total_chunk : int
     current_chunk : int

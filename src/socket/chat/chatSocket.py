@@ -3,7 +3,6 @@ from ...domain.chatting.chattingModel import SendMessagebody,HandleChunkFileBody
 from ...domain.models_domain.chat_model import RoomWithRoomUser,RoomWithRoomUserWithoutUser,MessageBase,MessageWithMedia
 
 from ...db.db import SessionLocal
-from ..socketUtils import forType
 from ...error.errorHandling import HttpException
 from pydantic import ValidationError
 
@@ -11,7 +10,7 @@ from pydantic import ValidationError
 from ..socket import sio
 from ..connectDisconnectSocket import online_users
 from ..socker_error import socketError
-from ..socketUtils import validation_middleware,delete_message
+from ..socketUtils import validation_middleware,delete_message as deleteMessageUtils
 
 @sio.on("send_message")
 async def send_message(sid,data):
@@ -249,11 +248,15 @@ async def read_message(sid,data):
 # upload file
 @sio.on("start_upload_file")
 async def start_upload_file(sid,data):
+    print("start")
+    session = SessionLocal()
+    dataValid = None
     try :
         """
         body : 
         {
             access_token : str,
+            type_user : str,
             data : {
                 message_id : int,
                 file_name : str,
@@ -265,10 +268,10 @@ async def start_upload_file(sid,data):
         }
         """
         
-        session = SessionLocal()
         auth = await validation_middleware(data,session)
+
         if not auth :
-            return await socketError(401,"Unauthorized","Unauthorized",sid)
+            return await socketError(401,"tokennya bro","Unauthorized",sid)
         dataFile = data.get("data")
         
         if not dataFile :
@@ -276,32 +279,39 @@ async def start_upload_file(sid,data):
         
         dataValid = HandleChunkFileBody(**dataFile)
         
-        startUpload = await chattingService.handle_chunk_file(dataValid,session)
+        startUpload = await chattingService.start_upload_chunk(dataValid,session)
         
+        print("emit")
         await sio.emit("start_upload_file",startUpload)
         
     except HttpException as e:
             # print(e)
-            await delete_message(dataValid.message_id,session)
+            if dataValid and dataValid.message_id:
+                await deleteMessageUtils(dataValid.message_id,session)
             await socketError(e.status,e.messsage,"start_upload_file",sid)
     except ValidationError as e:
         # print(e)
-        await delete_message(dataValid.message_id,session)
-        await socketError(500,str(e),"start_upload_file",sid)
+        if dataValid and dataValid.message_id:
+            await deleteMessageUtils(dataValid.message_id,session)
+        await socketError(500,str(e),"upload_file",sid)
     except Exception as e:
         # print(e)
-        await delete_message(dataValid.message_id,session)
+        if dataValid and dataValid.message_id:
+            await deleteMessageUtils(dataValid.message_id,session)
         await socketError(500,str(e),"start_upload_file",sid)
     finally :
         await session.close()
         
 @sio.on("progress_upload_file")
 async def progress_upload_file(sid,data):
+    session = SessionLocal()
+    dataValid = None
     try :
         """
         body : 
         {
             access_token : str,
+            type_user : str,
             data : {
                 message_id : int,
                 file_name : str,
@@ -312,11 +322,11 @@ async def progress_upload_file(sid,data):
             }
         }
         """
-        session = SessionLocal()
-        auth = await validation_middleware(data,session)
-        if not auth :
-            return await socketError(401,"Unauthorized","Unauthorized",sid)
         
+        auth = await validation_middleware(data,session)
+    
+        if not auth :
+            return await socketError(401,"tokennya bro","Unauthorized",sid)
         dataFile = data.get("data")
         
         if not dataFile :
@@ -329,22 +339,28 @@ async def progress_upload_file(sid,data):
         await sio.emit("handle_chunk",uploadChunk)
         
     except HttpException as e:
-            # print(e)
-            await delete_message(dataValid.message_id,session)
-            await socketError(e.status,e.messsage,"upload_file",sid)
+        # print(e)
+        if dataValid and dataValid.message_id:
+            await deleteMessageUtils(dataValid.message_id,session)
+        await socketError(e.status,e.messsage,"upload_file",sid)
     except ValidationError as e:
         # print(e)
-        await delete_message(dataValid.message_id,session)
+        if dataValid and dataValid.message_id:
+            await deleteMessageUtils(dataValid.message_id,session)
         await socketError(500,str(e),"upload_file",sid)
     except Exception as e:
         # print(e)
-        await delete_message(dataValid.message_id,session)
+        if dataValid and dataValid.message_id:
+            await deleteMessageUtils(dataValid.message_id,session)
         await socketError(500,str(e),"upload_file",sid)
     finally :
         await session.close()   
 
 @sio.on("complete_upload_file")
 async def complete_upload_file(sid,data):
+    print("complete")
+    session = SessionLocal()    
+    dataValid = None
     try :
         """
         body : 
@@ -356,7 +372,6 @@ async def complete_upload_file(sid,data):
             }
         }
         """
-        session = SessionLocal()
         auth = await validation_middleware(data,session)
         if not auth :
             return await socketError(401,"Unauthorized","Unauthorized",sid)
@@ -373,16 +388,19 @@ async def complete_upload_file(sid,data):
         await sio.emit("complete_upload_file",completeUploadChunk)
             
     except HttpException as e:
-            # print(e)
-            await delete_message(dataValid.message_id,session)
+            print(e)
+            # if dataValid and dataValid.message_id:
+            #     await deleteMessageUtils(dataValid.message_id,session)
             await socketError(e.status,e.messsage,"upload_file",sid)
     except ValidationError as e:
-        # print(e)
-        await delete_message(dataValid.message_id,session)
+        print(e)
+        # if dataValid and dataValid.message_id:
+        #     await deleteMessageUtils(dataValid.message_id,session)
         await socketError(500,str(e),"upload_file",sid)
     except Exception as e:
-        # print(e)
-        await delete_message(dataValid.message_id,session)
+        print(e)
+        # if dataValid and dataValid.message_id:
+        #     await deleteMessageUtils(dataValid.message_id,session)
         await socketError(500,str(e),"upload_file",sid)
     finally :
         await session.close()  

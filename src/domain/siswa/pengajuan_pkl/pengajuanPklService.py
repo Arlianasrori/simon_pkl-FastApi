@@ -131,6 +131,7 @@ async def addPengajuanPkl(id_siswa : int,id_sekolah : int,pengajuan : AddPengaju
     dudiDictCopy = deepcopy(findDudi.__dict__)
     siswaDictCopy = deepcopy(findSiswa.__dict__)
     session.add(PengajuanPKL(**pengjuanPklMapping))
+    findSiswa.status = StatusPKLEnum.menunggu.value
     await session.commit()
 
     # Menjalankan addNotif dalam proses terpisah
@@ -154,6 +155,7 @@ async def cancelPengajuanPkl(id_siswa : int,id_pengajuan : int,session : AsyncSe
         raise HttpException(400,"hanya pengajuan yang sedang diproses yang boleh dibatalkan")
     
     findPengjuanPkl.status = StatusPengajuanENUM.dibatalkan.value
+    findPengjuanPkl.siswa.status = StatusPKLEnum.belum_pkl.value
     pengjuanDictCopy = deepcopy(findPengjuanPkl.__dict__)
     await session.commit()
 
