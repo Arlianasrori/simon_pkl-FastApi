@@ -42,17 +42,19 @@ async def getDudi(id_siswa : int,id_sekolah : int,page : int,filter : FilterGetD
     responseDudiList = [] # digunakan untuk response ke user tanpa merefresh database setelah commit 
     for dudi in findDudi :
         dudiDecode = dudi._asdict() # decode dudi dengan jumlah_pria dan jumlah_wanita beserta kuotanya
-        dudiDictDecode = dudiDecode["Dudi"].__dict__ # decode dudi tanpa jumlah_pria dan jumlah_wanita
         
         if dudiDecode["Dudi"].kuota :
+            dudiDecode['jumlah_siswa_pria'] = dudiDecode['jumlah_siswa_pria'] if dudiDecode['jumlah_siswa_pria'] else 0
+            dudiDecode['jumlah_siswa_wanita'] = dudiDecode['jumlah_siswa_wanita'] if dudiDecode['jumlah_siswa_wanita'] else 0
+            dudiDictDecode = dudiDecode["Dudi"].__dict__ # decode dudi tanpa jumlah_pria dan jumlah_wanita
 
             # dudi dictionary yang sesuai dengan format response untuk dikirim ke user
             dudiDict = {
                 **dudiDictDecode,
                 "jumlah_siswa_pria" : dudiDecode["jumlah_siswa_pria"] if dudiDecode["jumlah_siswa_pria"] else 0,
                 "jumlah_siswa_wanita" : dudiDecode["jumlah_siswa_wanita"] if dudiDecode["jumlah_siswa_wanita"] else 0,
-                "jumlah_kuota_pria" : dudiDecode["Dudi"].kuota.jumlah_pria if dudiDecode["Dudi"].kuota else 0,
-                "jumlah_kuota_wanita" : dudiDecode["Dudi"].kuota.jumlah_wanita if dudiDecode["Dudi"].kuota else 0,
+                "jumlah_kuota_pria" : dudiDecode["Dudi"].kuota.jumlah_pria,
+                "jumlah_kuota_wanita" : dudiDecode["Dudi"].kuota.jumlah_wanita,
                 "tersedia" : True
             }
 
@@ -87,6 +89,8 @@ async def getDudi(id_siswa : int,id_sekolah : int,page : int,filter : FilterGetD
                     )
                 ))).one()._asdict()
 
+                countDudiBykuota["jumlah_siswa_pria"] = countDudiBykuota["jumlah_siswa_pria"] if countDudiBykuota["jumlah_siswa_pria"] else 0
+                countDudiBykuota["jumlah_siswa_wanita"] = countDudiBykuota["jumlah_siswa_wanita"] if countDudiBykuota["jumlah_siswa_wanita"] else 0
                 # menambahkan total kebutuhan laki dan wanita
                 totalKebutuhanLaki += kuota_jurusan.jumlah_pria
                 totalKebutuhanWanita += kuota_jurusan.jumlah_wanita
@@ -121,10 +125,8 @@ async def getDudi(id_siswa : int,id_sekolah : int,page : int,filter : FilterGetD
             kebutuhanJurusanWanita = totalKebutuhanWanita - totalSiswaWanitaAlljurusan
 
             # hitung tinggal berapa kuota yang tersisah didudi saat ini : kuota yang ada dikurangi dengan jumlah siswa didudi.Didapatkan tinggal berapa siswa kuota untuk dudi yang ada
-            print(dudiDecode["jumlah_siswa_pria"])
-            print(dudiDecode["Dudi"].kuota.jumlah_pria)
-            sisakuotaDudiPria = dudiDecode["Dudi"].kuota.jumlah_pria - dudiDecode["jumlah_siswa_pria"]
-            sisakuotaDudiWanita = dudiDecode["Dudi"].kuota.jumlah_wanita - dudiDecode["jumlah_siswa_wanita"]
+            sisakuotaDudiPria = dudiDecode["Dudi"].kuota.jumlah_pria - dudiDict["jumlah_siswa_pria"]
+            sisakuotaDudiWanita = dudiDecode["Dudi"].kuota.jumlah_wanita - dudiDict["jumlah_siswa_wanita"]
 
             if findSiswa.jenis_kelamin == JenisKelaminEnum.laki :
                 # cek apakah sisa kuota pada dudi lebih kecil atau sama dengan jumlah kuota yang belum terpenuhi disemua jurusan.Maksudnya apakah sisa kuota pada dudi masih bisa menampung total kuota yang ada pada jurusan.jika tidak bisa maka user dengan jurusan selain itu tidak diizinkan
@@ -146,6 +148,7 @@ async def getDudi(id_siswa : int,id_sekolah : int,page : int,filter : FilterGetD
                 "jumlah_kuota_wanita" : 0,
                 "tersedia" : False
             })
+            
 
     return {
         "msg" : "success",
