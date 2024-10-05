@@ -4,7 +4,7 @@ from sqlalchemy import case, select,and_,func
 from sqlalchemy.orm import joinedload
 
 # models
-from ...models_domain.pengajuan_pkl_model import PengajuanPklWithDudi
+from ...models_domain.pengajuan_pkl_model import PengajuanPklWithDudi,PengajuanPklWithDudiAlamat
 from ....models.pengajuanPklModel import PengajuanPKL,StatusPengajuanENUM
 from ....models.siswaModel import Siswa,StatusPKLEnum
 from .pengajuanPklModel import AddPengajuanPklBody
@@ -128,6 +128,7 @@ async def addPengajuanPkl(id_siswa : int,id_sekolah : int,pengajuan : AddPengaju
     pengjuanPklMapping = pengajuan.model_dump()
     pengjuanPklMapping.update({"id" : random_strings.random_digits(6),"id_siswa":id_siswa,"status" : StatusPengajuanENUM.proses.value,"waktu_pengajuan" : datetime.utcnow()})
 
+    findSiswa.status = StatusPKLEnum.menunggu.value
     dudiDictCopy = deepcopy(findDudi.__dict__)
     siswaDictCopy = deepcopy(findSiswa.__dict__)
     session.add(PengajuanPKL(**pengjuanPklMapping))
@@ -146,7 +147,7 @@ async def addPengajuanPkl(id_siswa : int,id_sekolah : int,pengajuan : AddPengaju
     }
 
 async def cancelPengajuanPkl(id_siswa : int,id_pengajuan : int,session : AsyncSession) -> PengajuanPklWithDudi :
-    findPengjuanPkl = (await session.execute(select(PengajuanPKL).options(joinedload(PengajuanPKL.dudi),joinedload(PengajuanPKL.siswa)).filter(and_(PengajuanPKL.id == id_pengajuan,PengajuanPKL.id_siswa == id_siswa)))).scalar_one_or_none()
+    findPengjuanPkl = (await session.execute(select(PengajuanPKL).options(joinedload(PengajuanPKL.dudi).joinedload(Dudi.alamat),joinedload(PengajuanPKL.siswa)).filter(and_(PengajuanPKL.id == id_pengajuan,PengajuanPKL.id_siswa == id_siswa)))).scalar_one_or_none()
     print(findPengjuanPkl.__dict__)
     if not findPengjuanPkl :
         raise HttpException(404,"pengajuan tidak ditemukan")
@@ -154,6 +155,7 @@ async def cancelPengajuanPkl(id_siswa : int,id_pengajuan : int,session : AsyncSe
         raise HttpException(400,"hanya pengajuan yang sedang diproses yang boleh dibatalkan")
     
     findPengjuanPkl.status = StatusPengajuanENUM.dibatalkan.value
+    findPengjuanPkl.siswa.status = StatusPKLEnum.belum_pkl.value
     pengjuanDictCopy = deepcopy(findPengjuanPkl.__dict__)
     await session.commit()
 
@@ -165,7 +167,7 @@ async def cancelPengajuanPkl(id_siswa : int,id_pengajuan : int,session : AsyncSe
     
 
 async def getAllPengajuanPkl(id_siswa : int,status : StatusPengajuanENUM | None,session : AsyncSession) -> list[PengajuanPklWithDudi] :
-    findPengjuanPkl = (await session.execute(select(PengajuanPKL).options(joinedload(PengajuanPKL.dudi)).filter(and_(PengajuanPKL.id_siswa == id_siswa,PengajuanPKL.status == status if status else True)).order_by(PengajuanPKL.waktu_pengajuan.desc()))).scalars().all()
+    findPengjuanPkl = (await session.execute(select(PengajuanPKL).options(joinedload(PengajuanPKL.dudi).joinedload(Dudi.alamat)).filter(and_(PengajuanPKL.id_siswa == id_siswa,PengajuanPKL.status == status if status else True)).order_by(PengajuanPKL.waktu_pengajuan.desc()))).scalars().all()
 
     return {
         "msg" : "success",
@@ -173,7 +175,8 @@ async def getAllPengajuanPkl(id_siswa : int,status : StatusPengajuanENUM | None,
     }
 
 async def getPengajuanPklById(id_siswa : int,id_pengajuan : int,session : AsyncSession) -> PengajuanPklWithDudi :
-    findPengjuanPkl = (await session.execute(select(PengajuanPKL).options(joinedload(PengajuanPKL.dudi)).filter(and_(PengajuanPKL.id == id_pengajuan,PengajuanPKL.id_siswa == id_siswa)))).scalar_one_or_none()
+    print(id_pengajuan,id_siswa)
+    findPengjuanPkl = (await session.execute(select(PengajuanPKL).options(joinedload(PengajuanPKL.dudi).joinedload(Dudi.alamat)).filter(and_(PengajuanPKL.id == id_pengajuan,PengajuanPKL.id_siswa == id_siswa)))).scalar_one_or_none()
 
     if not findPengjuanPkl :
         raise HttpException(404,"pengajuan tidak ditemukan")
@@ -183,8 +186,8 @@ async def getPengajuanPklById(id_siswa : int,id_pengajuan : int,session : AsyncS
         "data" : findPengjuanPkl
     }
 
-async def getLastPengajuanPkl(id_siswa : int,session : AsyncSession) -> PengajuanPklWithDudi :
-    findPengjuanPkl = (await session.execute(select(PengajuanPKL).options(joinedload(PengajuanPKL.dudi)).filter(PengajuanPKL.id_siswa == id_siswa).order_by(PengajuanPKL.waktu_pengajuan.desc()).limit(1))).scalar_one_or_none()
+async def getLastPengajuanPkl(id_siswa : int,session : AsyncSession) -> PengajuanPklWithDudiAlamat :
+    findPengjuanPkl = (await session.execute(select(PengajuanPKL).options(joinedload(PengajuanPKL.dudi).joinedload(Dudi.alamat)).filter(PengajuanPKL.id_siswa == id_siswa).order_by(PengajuanPKL.waktu_pengajuan.desc()).limit(1))).scalar_one_or_none()
     print(findPengjuanPkl)
 
     if not findPengjuanPkl :
