@@ -14,3 +14,7 @@ class NotificationModelBase(BaseModel):
     
 class ResponseGetUnreadNotification(BaseModel):
     count : int
+
+class ResponseGetAllNotification(BaseModel):
+    msg : str
+    data : dict[str,list[NotificationModelBase]]

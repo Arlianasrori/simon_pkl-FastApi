@@ -18,7 +18,7 @@ class SiswaBase(BaseModel) :
     foto_profile : str | None = None
 
 class SiswaWithAlamat(SiswaBase) :
-    alamat : AlamatBase
+    alamat : AlamatBase | None = None
 
 class SiswaWithJurusanKelas(SiswaWithAlamat) :
     jurusan : JurusanBase

@@ -7,7 +7,7 @@ from sqlalchemy.orm import joinedload
 from ...models_domain.pengajuan_pkl_model import PengajuanPklWithDudi
 from ....models.pengajuanPklModel import PengajuanPKL,StatusPengajuanENUM
 from ....models.siswaModel import Siswa,StatusPKLEnum
-from .pengajuanPklModel import AddPengajuanPklBody
+from .pengajuanPklModel import AddPengajuanPklBody,CancelPengajuanBody
 from ....models.dudiModel import Dudi,KuotaSiswa, KuotaSiswaByJurusan
 from ....models.siswaModel import JenisKelaminEnum
 
@@ -37,7 +37,7 @@ async def addPengajuanPkl(id_siswa : int,id_sekolah : int,pengajuan : AddPengaju
     # validasi apakah siswa apakah pengajuan sebelumnya sedang diproses
     if lastPengajuanSiswa :
         if lastPengajuanSiswa.status == StatusPengajuanENUM.proses :
-            raise HttpException(400,"siswa tidak dapat melakukan pengjuan,karena siswa sedang menunggu konfirmasi pengjuan sebelumnya,silahkan batalkan pengajuan sebelumnya untuk melakukan pengajuan baru")
+            raise HttpException(400,"siswa tidak dapat melakukan pengajuan,karena siswa sedang menunggu konfirmasi pengjuan sebelumnya,silahkan batalkan pengajuan sebelumnya untuk melakukan pengajuan baru")
 
     # validasi apakah dudi yang ingin diajukan ada
     findDudi = (await session.execute(select(Dudi).options(joinedload(Dudi.kuota).subqueryload(KuotaSiswa.kuota_jurusan).joinedload(KuotaSiswaByJurusan.jurusan)).where(and_(Dudi.id == pengajuan.id_dudi,Dudi.id_sekolah == id_sekolah)))).scalar_one_or_none()
@@ -146,7 +146,7 @@ async def addPengajuanPkl(id_siswa : int,id_sekolah : int,pengajuan : AddPengaju
         }
     }
 
-async def cancelPengajuanPkl(id_siswa : int,id_pengajuan : int,session : AsyncSession) -> PengajuanPklWithDudi :
+async def cancelPengajuanPkl(id_siswa : int,id_pengajuan : int,body : CancelPengajuanBody,session : AsyncSession) -> PengajuanPklWithDudi :
     findPengjuanPkl = (await session.execute(select(PengajuanPKL).options(joinedload(PengajuanPKL.dudi),joinedload(PengajuanPKL.siswa)).filter(and_(PengajuanPKL.id == id_pengajuan,PengajuanPKL.id_siswa == id_siswa)))).scalar_one_or_none()
     print(findPengjuanPkl.__dict__)
     if not findPengjuanPkl :
@@ -155,6 +155,7 @@ async def cancelPengajuanPkl(id_siswa : int,id_pengajuan : int,session : AsyncSe
         raise HttpException(400,"hanya pengajuan yang sedang diproses yang boleh dibatalkan")
     
     findPengjuanPkl.status = StatusPengajuanENUM.dibatalkan.value
+    findPengjuanPkl.alasan_pembatalan = body.alasan
     findPengjuanPkl.siswa.status = StatusPKLEnum.belum_pkl.value
     pengjuanDictCopy = deepcopy(findPengjuanPkl.__dict__)
     await session.commit()

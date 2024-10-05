@@ -26,6 +26,7 @@ class PengajuanPKL(Base):
     id_dudi = Column(Integer, ForeignKey('dudi.id'))
     status = Column(Enum(StatusPengajuanENUM), default=StatusPengajuanENUM.proses.value)
     waktu_pengajuan = Column(DateTime, default=datetime.utcnow())
+    alasan_pembatalan = Column(String,nullable=True)
 
     siswa = relationship("Siswa", back_populates="pengajuan_pkl")
     dudi = relationship("Dudi", back_populates="pengajuan_pkl")
@@ -37,6 +38,7 @@ class PengajuanCancelPKL(Base):
     id_siswa = Column(Integer, ForeignKey('siswa.id'))
     id_dudi = Column(Integer, ForeignKey('dudi.id'))
     status = Column(Enum(StatusCancelPKLENUM), default=StatusCancelPKLENUM.proses.value)
+    alasan = Column(String,nullable=False)
     waktu_pengajuan = Column(DateTime, default=datetime.utcnow())
 
     siswa = relationship("Siswa", back_populates="pengajuan_cancel_pkl")

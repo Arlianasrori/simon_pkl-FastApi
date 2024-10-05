@@ -29,7 +29,7 @@ from ..domain.models_domain.laporan_pkl_dudi_model import LaporanPklDudiBase,Lap
 
 # pengajuan pkl
 from ..domain.pembimbing_dudi.pengajuan_pkl import pengajuanPklService
-from ..domain.pembimbing_dudi.pengajuan_pkl.pengajuanPklModel import AccDccPengajuanPkl as ACCPengajuan
+from ..domain.pembimbing_dudi.pengajuan_pkl.pengajuanPklModel import AccDccPengajuanPkl as ACCPengajuan,ResponseGroupingPengajuanPag,ResponsePengajuanPklPag,ResponseGroupingPengajuan
 from ..domain.models_domain.pengajuan_pkl_model import PengajuanPklWithSiswa
 
 # pengajuan cancel pkl
@@ -54,7 +54,7 @@ from ..domain.models_domain.absen_model import MoreAbsen
 
 # notification
 from ..domain.pembimbing_dudi.notification import notificationService
-from ..domain.models_domain.notification_model import NotificationModelBase,ResponseGetUnreadNotification
+from ..domain.models_domain.notification_model import NotificationModelBase,ResponseGetUnreadNotification,ResponseGetAllNotification
 
 
 # common
@@ -143,9 +143,9 @@ async def deleteLaporanPkl(id_laporan : int,pembimbing : dict = Depends(getPembi
     return await laporanPklService.deleteLaporanPkl(id_laporan,pembimbing["id"],session)
 
 # pengajuan pkl
-@pembimbingDudiRouter.get("/pengajuan-pkl",response_model=ResponseModel[list[PengajuanPklWithSiswa]],tags=["PEMBIMBING-DUDI/PENGJUAN-PKL"])
-async def getAllPengajuanPkl(page : int | None = None,pembimbing : dict = Depends(getPembimbingDudiAuth),session : sessionDepedency = None) :
-    return await pengajuanPklService.getAllPengajuanPkl(pembimbing["id_dudi"],page,session)
+@pembimbingDudiRouter.get("/pengajuan-pkl",response_model=ResponseModel[list[PengajuanPklWithSiswa] | ResponsePengajuanPklPag ] | ResponseGroupingPengajuan | ResponseGroupingPengajuanPag,tags=["PEMBIMBING-DUDI/PENGJUAN-PKL"])
+async def getAllPengajuanPkl(usingGrouping : bool = False,page : int | None = None,pembimbing : dict = Depends(getPembimbingDudiAuth),session : sessionDepedency = None) :
+    return await pengajuanPklService.getAllPengajuanPkl(pembimbing["id_dudi"],page,usingGrouping,session)
 
 @pembimbingDudiRouter.get("/pengajuan-pkl/{id_pengajuan_pkl}",response_model=ResponseModel[PengajuanPklWithSiswa],tags=["PEMBIMBING-DUDI/PENGJUAN-PKL"])
 async def getPengajuanPklById(id_pengajuan_pkl : int,pembimbing : dict = Depends(getPembimbingDudiAuth),session : sessionDepedency = None) :
@@ -221,7 +221,7 @@ async def getAbsenById(id_absen : int,pembimbing : dict = Depends(getPembimbingD
     return await getAbsenservice.getAbsenById(id_absen,pembimbing["id_dudi"],session)
 
 # notification
-@pembimbingDudiRouter.get("/notification",response_model=ResponseModel[list[NotificationModelBase]],tags=["PEMBIMBING-DUDI/NOTIFICATION"])
+@pembimbingDudiRouter.get("/notification",response_model=ResponseGetAllNotification,tags=["PEMBIMBING-DUDI/NOTIFICATION"])
 async def getAllNotification(pembimbing : dict = Depends(getPembimbingDudiAuth),session : sessionDepedency = None) :
     return await notificationService.getAllNotification(pembimbing["id"],session)
 

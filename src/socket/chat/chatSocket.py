@@ -28,7 +28,7 @@ async def send_message(sid,data):
             }
         }
         """
-        print(f"send messahe from : {data}")
+        print(f"send message from : {data}")
         session = SessionLocal()
         auth = await validation_middleware(data,session)
         print(f"auth : {auth}")
