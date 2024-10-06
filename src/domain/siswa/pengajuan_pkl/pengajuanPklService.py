@@ -4,7 +4,7 @@ from sqlalchemy import case, select,and_,func
 from sqlalchemy.orm import joinedload
 
 # models
-from ...models_domain.pengajuan_pkl_model import PengajuanPklWithDudi
+from ...models_domain.pengajuan_pkl_model import PengajuanPklWithDudi,PengajuanPklWithDudiAlamat
 from ....models.pengajuanPklModel import PengajuanPKL,StatusPengajuanENUM
 from ....models.siswaModel import Siswa,StatusPKLEnum
 from .pengajuanPklModel import AddPengajuanPklBody,CancelPengajuanBody
@@ -167,16 +167,16 @@ async def cancelPengajuanPkl(id_siswa : int,id_pengajuan : int,body : CancelPeng
     
     
 
-async def getAllPengajuanPkl(id_siswa : int,status : StatusPengajuanENUM | None,session : AsyncSession) -> list[PengajuanPklWithDudi] :
-    findPengjuanPkl = (await session.execute(select(PengajuanPKL).options(joinedload(PengajuanPKL.dudi)).filter(and_(PengajuanPKL.id_siswa == id_siswa,PengajuanPKL.status == status if status else True)).order_by(PengajuanPKL.waktu_pengajuan.desc()))).scalars().all()
+async def getAllPengajuanPkl(id_siswa : int,status : StatusPengajuanENUM | None,session : AsyncSession) -> list[PengajuanPklWithDudiAlamat] :
+    findPengjuanPkl = (await session.execute(select(PengajuanPKL).options(joinedload(PengajuanPKL.dudi).joinedload(Dudi.alamat)).filter(and_(PengajuanPKL.id_siswa == id_siswa,PengajuanPKL.status == status if status else True)).order_by(PengajuanPKL.waktu_pengajuan.desc()))).scalars().all()
 
     return {
         "msg" : "success",
         "data" : findPengjuanPkl
     }
 
-async def getPengajuanPklById(id_siswa : int,id_pengajuan : int,session : AsyncSession) -> PengajuanPklWithDudi :
-    findPengjuanPkl = (await session.execute(select(PengajuanPKL).options(joinedload(PengajuanPKL.dudi)).filter(and_(PengajuanPKL.id == id_pengajuan,PengajuanPKL.id_siswa == id_siswa)))).scalar_one_or_none()
+async def getPengajuanPklById(id_siswa : int,id_pengajuan : int,session : AsyncSession) -> PengajuanPklWithDudiAlamat :
+    findPengjuanPkl = (await session.execute(select(PengajuanPKL).options(joinedload(PengajuanPKL.dudi).joinedload(Dudi.alamat)).filter(and_(PengajuanPKL.id == id_pengajuan,PengajuanPKL.id_siswa == id_siswa)))).scalar_one_or_none()
 
     if not findPengjuanPkl :
         raise HttpException(404,"pengajuan tidak ditemukan")
@@ -186,8 +186,8 @@ async def getPengajuanPklById(id_siswa : int,id_pengajuan : int,session : AsyncS
         "data" : findPengjuanPkl
     }
 
-async def getLastPengajuanPkl(id_siswa : int,session : AsyncSession) -> PengajuanPklWithDudi :
-    findPengjuanPkl = (await session.execute(select(PengajuanPKL).options(joinedload(PengajuanPKL.dudi)).filter(PengajuanPKL.id_siswa == id_siswa).order_by(PengajuanPKL.waktu_pengajuan.desc()).limit(1))).scalar_one_or_none()
+async def getLastPengajuanPkl(id_siswa : int,session : AsyncSession) -> PengajuanPklWithDudiAlamat :
+    findPengjuanPkl = (await session.execute(select(PengajuanPKL).options(joinedload(PengajuanPKL.dudi).joinedload(Dudi.alamat)).filter(PengajuanPKL.id_siswa == id_siswa).order_by(PengajuanPKL.waktu_pengajuan.desc()).limit(1))).scalar_one_or_none()
     print(findPengjuanPkl)
 
     if not findPengjuanPkl :
