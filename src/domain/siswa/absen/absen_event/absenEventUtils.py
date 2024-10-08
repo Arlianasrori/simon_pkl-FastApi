@@ -14,7 +14,7 @@ async def validateRadius(id_dudi : int,radius,session : AsyncSession) :
     radius = await cekRadiusAbsen(id_dudi,radius,session)
     print(radius)
     if not radius["data"]["inside_radius"] :
-        raise HttpException(400,"anda tidak berada di luar radius")
+        raise HttpException(400,"anda berada di luar radius")
     
 async def validateAbsen(id_siswa : int,dateNow : date,session : AsyncSession) -> Absen :
     # find absen siswa today
@@ -40,4 +40,20 @@ async def save_image(file : UploadFile) -> str :
     async with aiofiles.open(file_name_save, "wb") as f:
         await f.write(file.file.read())
         fileURl = f"{IMAGE_BASE_URL}/{file_name}"
+        return fileURl
+    
+DOKUMEN_STORE = os.getenv("DEV_DOKUMEN_ABSEN_STORE")
+DOKUMEN_BASE_URL = os.getenv("DEV_DOKUMEN_ABSEN_BASE_URL")
+async def save_dokumen(file : UploadFile) -> str :
+    ext_file = file.filename.split(".")
+
+    if ext_file[-1] not in ["jpg","png","jpeg","pdf","docx","doc"] :
+        raise HttpException(400,f"file harus berupa gambar")
+
+    file_name = f"{random_strings.random_digits(12)}-{file.filename.split(' ')[0]}.{ext_file[-1]}"
+    file_name_save = f"{DOKUMEN_STORE}{file_name}"
+
+    async with aiofiles.open(file_name_save, "wb") as f:
+        await f.write(file.file.read())
+        fileURl = f"{DOKUMEN_BASE_URL}/{file_name}"
         return fileURl

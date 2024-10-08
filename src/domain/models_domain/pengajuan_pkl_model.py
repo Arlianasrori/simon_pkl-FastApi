@@ -1,7 +1,7 @@
 from pydantic import BaseModel
 from datetime import datetime as Datetime
 from .siswa_model import SiswaBase
-from .dudi_model import DudiBase
+from .dudi_model import DudiBase,DudiWithAlamat
 from ...models.pengajuanPklModel import StatusPengajuanENUM
 class PengajuanPklBase(BaseModel) :
     id : int
@@ -14,3 +14,6 @@ class PengajuanPklWithSiswa(PengajuanPklBase) :
 
 class PengajuanPklWithDudi(PengajuanPklBase) :
     dudi : DudiBase
+
+class PengajuanPklWithDudiAlamat(PengajuanPklBase) :
+    dudi : DudiWithAlamat

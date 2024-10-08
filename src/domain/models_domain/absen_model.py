@@ -31,6 +31,15 @@ class AbsenBase(BaseModel):
     foto_absen_pulang : str | None = None
     status : StatusAbsenEnum
 
+class DokumenAbsenSakitBase(BaseModel) :
+    id : int
+    id_absen : int
+    dokumen : str
+    note : str
+
+class AbsenWithDokumenSakit(AbsenBase) :
+    dokumenSakit : DokumenAbsenSakitBase | None = None
+
 class AbsenWithSiswa(AbsenBase) :
     siswa : SiswaBase
 

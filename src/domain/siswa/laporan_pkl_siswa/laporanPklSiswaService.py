@@ -109,14 +109,11 @@ async def deleteLaporanPklSiswa(id_siswa : int,id_laporan_pkl : int,session : As
         "msg" : "success",
         "data" : laporanPklDictCopy
     }
-    
-
 
 async def getAllLaporanPklSiswa(id_siswa : int,page : int,filter : FilterLaporan,session : AsyncSession) -> ResponseGetLaporanPklSiswaPag :
     findLaporan = (await session.execute(select(LaporanSiswaPKL).where(and_(LaporanSiswaPKL.id_siswa == id_siswa,extract('month', LaporanSiswaPKL.tanggal) == filter.month,extract('year', LaporanSiswaPKL.tanggal) == filter.year)).limit(10).offset(10 * (page - 1)))).scalars().all()
     countData = (await session.execute(select(func.count(LaporanSiswaPKL.id).filter(and_(LaporanSiswaPKL.id_siswa == id_siswa,extract('month', LaporanSiswaPKL.tanggal) == filter.month,extract('year', LaporanSiswaPKL.tanggal) == filter.year))))).scalar_one()
     countPage = math.ceil(countData / 10)
-    print(findLaporan[0].__dict__)
 
     return {
         "msg" : "success",
