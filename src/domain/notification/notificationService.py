@@ -70,7 +70,6 @@ async def addNotification(data : AddNotificationModel,session : AsyncSession) ->
 
             if not findDudi :
                 raise HttpException(400,"dudi tidak ditemukan")
-
         session.add(Notification(**data.model_dump()))
         await session.commit()
         if token_FCM and id :

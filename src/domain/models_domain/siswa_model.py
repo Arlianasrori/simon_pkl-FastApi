@@ -3,7 +3,7 @@ from .alamat_model import AlamatBase
 from .kelas_jurusan_model import JurusanBase,KelasBase
 from .guru_pembimbing_model import GuruPembimbingBase
 from ...models.siswaModel import StatusPKLEnum
-from .dudi_model import DudiBase
+from .dudi_model import DudiBase,DudiWithAlamat
 from .pembimbing_dudi_model import PembimbingDudiBase
 
 class SiswaBase(BaseModel) :
@@ -31,6 +31,10 @@ class DetailSiswa(MoreSiswa) :
     dudi : DudiBase | None = None
     pembimbing_dudi : PembimbingDudiBase | None = None
 
+class DetailSiswaDudiAlamat(MoreSiswa) :
+    dudi : DudiWithAlamat | None = None
+    pembimbing_dudi : PembimbingDudiBase | None = None
+    
 class SiswaWithDudi(SiswaWithJurusanKelas) :
     dudi : DudiBase
     

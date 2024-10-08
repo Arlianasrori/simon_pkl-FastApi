@@ -9,7 +9,7 @@ from ..auth.dependsAuthMiddleware.siswa.get_siswa_auth import getSiswaAuth
 # profile-auth
 from ..domain.siswa.profile_auth import profileAuthService
 from ..domain.siswa.profile_auth.profileAuthModel import UpdateProfileBody
-from ..domain.models_domain.siswa_model import SiswaBase,DetailSiswa,SiswaWithJurusanKelas
+from ..domain.models_domain.siswa_model import SiswaBase,DetailSiswa,SiswaWithJurusanKelas,DetailSiswaDudiAlamat
 
 # get_dudi
 from ..domain.siswa.get_dudi import getDudiService
@@ -78,7 +78,7 @@ siswaRouter = APIRouter(prefix="/siswa",dependencies=[Depends(siswaDependAuth)])
 async def getSiswa(siswa : dict = Depends(getSiswaAuth),session : sessionDepedency = None):
     return await profileAuthService.getSiswa(siswa["id"],session)
 
-@siswaRouter.get("/profile",response_model=ResponseModel[DetailSiswa],tags=["SISWA/PROFILE-AUTH"])
+@siswaRouter.get("/profile",response_model=ResponseModel[DetailSiswaDudiAlamat],tags=["SISWA/PROFILE-AUTH"])
 async def getProfile(siswa : dict = Depends(getSiswaAuth),session : sessionDepedency = None):
     return await profileAuthService.getProfileAuth(siswa["id"],session)
 
