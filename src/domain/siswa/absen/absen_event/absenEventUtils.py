@@ -14,7 +14,7 @@ async def validateRadius(id_dudi : int,radius,session : AsyncSession) :
     radius = await cekRadiusAbsen(id_dudi,radius,session)
     print(radius)
     if not radius["data"]["inside_radius"] :
-        raise HttpException(400,"anda tidak berada di luar radius")
+        raise HttpException(400,"anda berada diluar radius")
     
 async def validateAbsen(id_siswa : int,dateNow : date,session : AsyncSession) -> Absen :
     # find absen siswa today

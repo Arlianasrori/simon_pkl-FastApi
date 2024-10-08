@@ -4,6 +4,7 @@ from sqlalchemy import select,and_,func
 from sqlalchemy.orm import joinedload
 
 # models
+from .pengajuanCancelPklModel import AddPengajuanCancelPklBody
 from ...models_domain.pengajuan_cancel_pkl_model import PengajuanCancelPklWithDudi,PengajuanCancelPklBase
 from ....models.pengajuanPklModel import PengajuanCancelPKL,StatusCancelPKLENUM
 from ....models.siswaModel import Siswa,StatusPKLEnum
@@ -19,7 +20,7 @@ from multiprocessing import Process
 # notification
 from ..notification.notifUtils import runningProccessSync
 
-async def addPengajuanCancelPkl(id_siswa : int,session : AsyncSession) -> PengajuanCancelPklBase :
+async def addPengajuanCancelPkl(id_siswa : int,pengajuan : AddPengajuanCancelPklBody,session : AsyncSession) -> PengajuanCancelPklBase :
     findSiswa = (await session.execute(select(Siswa).filter(Siswa.id == id_siswa))).scalar_one_or_none()
     if not findSiswa :
         raise HttpException(404,"siswa tidak ditemukan")
@@ -32,6 +33,7 @@ async def addPengajuanCancelPkl(id_siswa : int,session : AsyncSession) -> Pengaj
         "id_siswa" : id_siswa,
         "id_dudi" : findSiswa.id_dudi,
         "status" : StatusCancelPKLENUM.proses.value,
+        "alasan" : pengajuan.alasan,
         "waktu_pengajuan" : datetime.utcnow()
     }
 

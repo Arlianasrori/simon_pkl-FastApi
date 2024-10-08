@@ -4,7 +4,7 @@ from sqlalchemy import case, desc, select,func,and_
 from sqlalchemy.orm import joinedload
 
 # models
-from .pengajuanPklModel import ResponsePengajuanPklPag,AccDccPengajuanPkl,AccPengajuanEnum
+from .pengajuanPklModel import ResponsePengajuanPklPag,AccDccPengajuanPkl,AccPengajuanEnum,EnumForAllPengjuan,ResponseGroupingPengajuanPag,ResponseGroupingPengajuan
 from ...models_domain.pengajuan_pkl_model import PengajuanPklWithSiswa
 from ....models.pengajuanPklModel import PengajuanPKL,StatusPengajuanENUM
 from ....models.siswaModel import StatusPKLEnum
@@ -18,24 +18,60 @@ from multiprocessing import Process
 # notification
 from ..notification.notificationUtils import runningProccessSync
 
-async def getAllPengajuanPkl(id_dudi : int,page : int | None,session : AsyncSession) -> list[PengajuanPklWithSiswa] | ResponsePengajuanPklPag :
+async def getAllPengajuanPkl(id_dudi : int,page : int | None,usingGrouping : bool,session : AsyncSession) -> list[PengajuanPklWithSiswa] | ResponsePengajuanPklPag | ResponseGroupingPengajuanPag | ResponseGroupingPengajuan:
     statementSelectPengajuanPkl = select(PengajuanPKL).options(joinedload(PengajuanPKL.siswa)).where(PengajuanPKL.id_dudi == id_dudi)
 
     if page :
         findPengajuanPkl = (await session.execute(statementSelectPengajuanPkl.limit(10).offset(10 * (page - 1)).order_by(case((PengajuanPKL.status == StatusPengajuanENUM.proses, 1)),desc(PengajuanPKL.waktu_pengajuan)))).scalars().all()
         countData = (await session.execute(func.count(PengajuanPKL.id))).scalar_one()
         countPage = math.ceil(countData / 10)
+
+        if usingGrouping :
+            responsePengajuan = {
+                EnumForAllPengjuan.MENUNGGU_VERIFIKASI.value : [],
+                EnumForAllPengjuan.DIBATALKAN.value : [],
+                EnumForAllPengjuan.VERIFIKASI_SELESAI.value : []
+            }
+            for pengajuan in findPengajuanPkl :
+                if pengajuan.status == StatusPengajuanENUM.proses :
+                    responsePengajuan[EnumForAllPengjuan.MENUNGGU_VERIFIKASI.value].append(pengajuan)
+                elif pengajuan.status == StatusPengajuanENUM.dibatalkan :
+                    responsePengajuan[EnumForAllPengjuan.DIBATALKAN.value].append(pengajuan)
+                else :
+                    responsePengajuan[EnumForAllPengjuan.VERIFIKASI_SELESAI.value].append(pengajuan)
+        else :
+            responsePengajuan = findPengajuanPkl
+        
+        print(responsePengajuan)
         return {
             "msg" : "success",
-            "data" : findPengajuanPkl,
+            "data" : responsePengajuan,
             "count_data" : countData,
             "count_page" : countPage
         }
     else :
         findPengajuanPkl = (await session.execute(statementSelectPengajuanPkl.order_by(case((PengajuanPKL.status == StatusPengajuanENUM.proses, 1)),desc(PengajuanPKL.waktu_pengajuan)))).scalars().all()
+
+        if usingGrouping :
+            print("hay")
+            responsePengajuan = {
+                EnumForAllPengjuan.MENUNGGU_VERIFIKASI.value : [],
+                EnumForAllPengjuan.DIBATALKAN.value : [],
+                EnumForAllPengjuan.VERIFIKASI_SELESAI.value : []
+            }
+            for pengajuan in findPengajuanPkl :
+                if pengajuan.status == StatusPengajuanENUM.proses :
+                    responsePengajuan[EnumForAllPengjuan.MENUNGGU_VERIFIKASI.value].append(pengajuan)
+                elif pengajuan.status == StatusPengajuanENUM.dibatalkan :
+                    responsePengajuan[EnumForAllPengjuan.DIBATALKAN.value].append(pengajuan)
+                else :
+                    responsePengajuan[EnumForAllPengjuan.VERIFIKASI_SELESAI.value].append(pengajuan)
+        else :
+            responsePengajuan = findPengajuanPkl
+
         return {
             "msg" : "success",
-            "data" : findPengajuanPkl
+            "data" : responsePengajuan
         }
 
 async def getPengajuanPklById(id_pengajuan_pkl : int,id_dudi : int,session : AsyncSession) -> PengajuanPklWithSiswa :

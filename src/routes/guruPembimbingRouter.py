@@ -41,7 +41,7 @@ from ..domain.models_domain.absen_model import MoreAbsen
 
 # notification
 from ..domain.guru_pembimbing.notification import notificationService
-from ..domain.models_domain.notification_model import NotificationModelBase,ResponseGetUnreadNotification
+from ..domain.models_domain.notification_model import NotificationModelBase,ResponseGetUnreadNotification,ResponseGetAllNotification
 
 # common
 from ..db.sessionDepedency import sessionDepedency
@@ -137,7 +137,7 @@ async def getAbsenById(id_absen : int, guru : dict = Depends(getGuruPembimbingAu
     return await absenService.getAbsenById(id_absen,guru["id"],session)
 
 # notification
-@guruPembimbingRouter.get("/notification",response_model=ResponseModel[list[NotificationModelBase]],tags=["GURU-PEMBIMBING/NOTIFICATION"])
+@guruPembimbingRouter.get("/notification",response_model=ResponseGetAllNotification,tags=["GURU-PEMBIMBING/NOTIFICATION"])
 async def getAllNotification(guru : dict = Depends(getGuruPembimbingAuth),session : sessionDepedency = None):
     return await notificationService.getAllNotification(guru["id"],session)
 

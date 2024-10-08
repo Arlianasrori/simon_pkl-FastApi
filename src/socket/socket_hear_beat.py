@@ -33,20 +33,16 @@ class HeartbeatManager:
                 current_time = asyncio.get_event_loop().time()
                 # List untuk menyimpan pengguna yang akan dianggap offline
                 offline_users = []
-                print(f"user online{self.online_users}")
                 
                 # Memeriksa setiap pengguna dalam dictionary online_users
                 for userItem in self.online_users.items():
                     sid, user = userItem
                     # Jika waktu sejak heartbeat terakhir melebihi batas, anggap pengguna offline
                     if current_time - user['last_beat'] > self.HEARTBEAT_INTERVAL + self.HEARTBEAT_TIMEOUT:
-                        print("user offline")
                         offline_users.append({"sid": sid, "user_id": user["user_id"],"type_user" : user["type_user"]})
 
                 # Memproses pengguna yang dianggap offline
-                print(f"offline user {offline_users}")
                 for user in offline_users:
-                    print("masuk offline")
                     # Menghapus pengguna dari dictionary online_users
                     del self.online_users[user["sid"]]
                     # Memperbarui status pengguna menjadi offline di database

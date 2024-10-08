@@ -82,7 +82,7 @@ async def createRoom(user_list : list[UserListBase],session : AsyncSession) -> R
         
         # store to database
         session.add(RoomUsers(**roomUserMapping))
-        
+    print("kontol") 
     await session.commit()
         
     return {
@@ -319,11 +319,11 @@ async def start_upload_chunk(file : HandleChunkFileBody,session : AsyncSession) 
     
     # mengisi tampungan yang telah dibuat.offset adlaah posisi dari pecahan chunk saat ini.misalnya file 10 mb di split menjadi per 1 mb maka offset akan berubah setiap 1 mb.jadi ofset akan bertambah persatu mb dan chunk pada array akan ditulis untuk melanjutkan offset saat ini.misalnya offset 0 maka akan ditulis dari 0 sampai 1024 byte dan seteleah itu akan ditulsi dari 1024 byte sampai 2048 byte dan seterusnya
     FILE_BUFFERS[fileName][file.offset:file.offset+len(file.chunk)] = file.chunk
-    print(FILE_BUFFERS[fileName])
     # menghitung progress berdasarkan chunk yang sudah dikirim.misal jika saat ini pecahan chunk 5 dan total pecahan 10 maka progresnya dalah 4 + 1 dibagi dengan totalnya dikali 100.jadi 6/10 * 100 = 60%
     progress = (file.current_chunk + 1) / file.total_chunk * 100
     
     # mengembalikan progress
+    print(FILE_BUFFERS.keys())
     return {
         "fileName" : fileName,
         "progress" : progress,
@@ -367,6 +367,7 @@ async def complete_upload_chunk(file : CompleteUploadFileBody,session : AsyncSes
         raise HttpException(404,"message tidak ditemukan")
     
     if file.file_name not in FILE_BUFFERS :
+        print(file.file_name)
         raise HttpException(404,"file tidak ditemukan")
     
     fileType = await get_file_type(file.file_name.split(".")[-1])

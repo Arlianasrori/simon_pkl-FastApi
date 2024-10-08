@@ -19,16 +19,15 @@ async def validation_middleware(data,session : AsyncSession):
 
     # get auth token
     auth_header = data.get('access_token')
-    
     if not auth_header :
         return False
     
     # get type user
     type_user_from_data = data.get("type_user")
     type_user = forType.get(type_user_from_data)
-    
     if not type_user :
         return False
+
     # Melakukan autentikasi pengguna
     auth = await auth_middleware(auth_header,type_user,session)
     if not auth:
@@ -40,6 +39,7 @@ async def validation_middleware(data,session : AsyncSession):
 async def delete_message(message_id,session : AsyncSession):
     findMessage = (await session.execute(select(Message).where(Message.id == message_id))).scalar_one_or_none()
     if not findMessage :
+        print("message not found")
         return False
     await session.delete(findMessage)
     await session.commit()

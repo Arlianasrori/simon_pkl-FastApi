@@ -45,6 +45,10 @@ async def cekAbsen(id_siswa : int,id_dudi : int | None,koordinat : RadiusBody,se
 
     # get time zone and datetime based on timezona
     zonaWaktu = await get_timezone_from_coordinates(koordinat.latitude,koordinat.longitude)
+    
+    # if not zonaWaktu :
+    #     raise HttpException(400,"anda berada diluar wilaya indonesia.Aplikasi saat ini hanya menukung penggunaan aplikasi diwilaya indonesia")
+    
     now = await get_local_time(zonaWaktu)
     dateNow = now.date()
     timeNow = now.time()

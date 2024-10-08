@@ -1,11 +1,12 @@
-<<<<<<< HEAD
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
 [tool.poetry]
 name = "simon-fastapi"
 version = "0.1.0"
 description = ""
 authors = ["arlianasrori <arlianasrori@gmail.com>"]
 readme = "README.md"
-
 
 [tool.poetry.dependencies]
 python = "3.12.1"
@@ -27,8 +28,4 @@ apscheduler = "^3.10.4"
 firebase-admin = "^6.5.0"
 python-socketio = "^5.11.4"
 psycopg2-binary = "^2.9.9"
-
-
-[build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
+babel = "^2.16.0"

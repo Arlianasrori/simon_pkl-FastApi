@@ -5,18 +5,31 @@ from sqlalchemy.orm import subqueryload
 
 # models
 from ....models.notificationModel import Notification,NotificationRead
-from ...models_domain.notification_model import NotificationModelBase,ResponseGetUnreadNotification
+from ...models_domain.notification_model import NotificationModelBase,ResponseGetUnreadNotification,ResponseGetAllNotification
 
 # common
 from ....error.errorHandling import HttpException
 from python_random_strings import random_strings
+from collections import defaultdict
+from babel.dates import format_date
+from babel import Locale
 
-async def getAllNotification(id_guru_pembimbing : int,session : AsyncSession) -> list[NotificationModelBase]:
+async def getAllNotification(id_guru_pembimbing : int,session : AsyncSession) -> ResponseGetAllNotification:
     findNotification = (await session.execute(select(Notification).options(subqueryload(Notification.reads.and_(NotificationRead.id_guru_pembimbing == id_guru_pembimbing))).where(Notification.id_guru_pembimbing == id_guru_pembimbing).order_by(desc(Notification.created_at)))).scalars().all()
+
+    grouped_notifications = defaultdict(list)
+     # Membuat locale Indonesia
+    locale_id = Locale('id', 'ID')
+    for notification in findNotification:
+        date_key = format_date(notification.created_at, format="EEEE, d MMMM yyyy", locale=locale_id)
+        grouped_notifications[date_key].append(notification)
+
+    # Mengubah defaultdict menjadi dict biasa untuk respons JSON
+    grouped_data = dict(grouped_notifications)
 
     return {
         "msg" : "success",
-        "data" : findNotification
+        "data" : grouped_data
     }
 
 async def readNotification(id_notification : int,id_guru_pembimbing : int,session : AsyncSession) -> NotificationModelBase:

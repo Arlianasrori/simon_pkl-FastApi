@@ -19,26 +19,33 @@ heartbeat_task = None
 def connetDisconnectSocket() :
     # handle when client connect to socket
     @sio.on("connect")
-    async def connect(sid, environ):
-
+    async def connect(sid, environ,auth = {}):
         session = SessionLocal()
         try :
-            # Membuat sesi database baru
-            headers = environ.get('asgi.scope', {}).get('headers', [])
+            access_token_from_auth = auth.get("access_token")
             auth_header = None
-            for name, value in headers:
-                if name.decode('utf-8').lower() == 'access_token':
-                    auth_header = value.decode('utf-8')
-                    break
-            
+            if access_token_from_auth :
+                auth_header = access_token_from_auth
+            else :
+                headers = environ.get('asgi.scope', {}).get('headers', [])
+                for name, value in headers:
+                    if name.decode('utf-8').lower() == 'access_token':
+                        auth_header = value.decode('utf-8')
+                        break
+
             if not auth_header :
                 return await socketError(401,"Unauthorized","Unauthorized",sid)
 
             # get type user from query params
             query_string = environ.get('QUERY_STRING')
             query_params = parse_qs(query_string)
-            type_user_from_data = query_params.get("type_user")[0]
-            type_user = forType.get(type_user_from_data)
+            
+            type_user_from_data = query_params.get("type_user")
+
+            if not type_user_from_data :
+                return await socketError(400,"Type User Is Required","Validation",sid)
+            
+            type_user = forType.get(type_user_from_data[0])
            
             if not type_user :
                 return await socketError(401,"Unauthorized","Unauthorized",sid)
@@ -48,7 +55,7 @@ def connetDisconnectSocket() :
             if not auth:
                 # Mengembalikan error jika autentikasi gagal
                 return await socketError(401,"Unauthorized","Unauthorized",sid)
-            user_id = auth["id_user"]
+            user_id = auth["user_id"]
             # Menyimpan informasi pengguna yang baru terhubung
             online_users[sid] = {
                 "user_id" : user_id,
@@ -102,7 +109,7 @@ def connetDisconnectSocket() :
     @sio.on("heartbeat")
     async def handle_heartbeat(sid):
         try :
-            print(f"hearbeat {sid}")
+            # print(f"hearbeat {sid}")
             # Membuat sesi database baru
             session = SessionLocal()
             if sid in online_users:

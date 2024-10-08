@@ -25,6 +25,9 @@ async def absenMasuk(id_siswa : int,id_dudi : int,radius : RadiusBody,image : Up
 
     # get time zone and datetime based on timezona
     zonaWaktu = await get_timezone_from_coordinates(radius.latitude,radius.longitude)
+
+    # if not zonaWaktu :
+    #     raise HttpException(400,"anda berada diluar wilaya indonesia.Aplikasi saat ini hanya menukung penggunaan aplikasi diwilaya indonesia")
     now = await get_local_time(zonaWaktu)
     dateNow = now.date()
     timeNow = now.time()
@@ -53,7 +56,7 @@ async def absenMasuk(id_siswa : int,id_dudi : int,radius : RadiusBody,image : Up
 
     # jika telah melewati batas absen pulang
     if timeNow > findHariAbsenToday.batas_absen_pulang :
-        raise HttpException(400,"anda telah melewati batas absen hari ini,anda dinaytakan tidak hadir")
+        raise HttpException(400,"anda telah melewati batas absen hari ini,anda dinyatakan tidak hadir")
 
     # jika telah melewati batas absen masuk,maka dinyatakn telat
     if timeNow > findHariAbsenToday.batas_absen_masuk :
@@ -82,6 +85,10 @@ async def absenPulang(id_siswa : int,id_dudi : int,radius : RadiusBody,image : U
         raise HttpException(400,"anda sedang berada diluar radius,silahkan melakukan absen diluar radius")
     # get time zone and datetime based on timezona
     zonaWaktu = await get_timezone_from_coordinates(radius.latitude,radius.longitude)
+
+    # if not zonaWaktu :
+    #     raise HttpException(400,"anda berada diluar wilaya indonesia.Aplikasi saat ini hanya menukung penggunaan aplikasi diwilaya indonesia")
+    
     now = await get_local_time(zonaWaktu)
     dateNow = now.date()
     timeNow = now.time()
@@ -139,6 +146,9 @@ async def absenPulang(id_siswa : int,id_dudi : int,radius : RadiusBody,image : U
 
 async def absenDiluarRadius(id_siswa : int,id_dudi : int,note : str,radius : RadiusBody,image : UploadFile,session : AsyncSession) -> AbsenWithKeteranganPulang:
     zonaWaktu = await get_timezone_from_coordinates(radius.latitude,radius.longitude)
+
+    # if not zonaWaktu :
+    #     raise HttpException(400,"anda berada diluar wilaya indonesia.Aplikasi saat ini hanya menukung penggunaan aplikasi diwilaya indonesia")
     now = await get_local_time(zonaWaktu)
     dateNow = now.date()
     timeNow = now.time()
@@ -206,6 +216,9 @@ async def absenIzinTelat(id_siswa : int,id_dudi : int,note : str,statusIzin : Iz
 
     # get time zone and datetime based on timezona
     zonaWaktu = await get_timezone_from_coordinates(radius.latitude,radius.longitude)
+
+    # if not zonaWaktu :
+    #     raise HttpException(400,"anda berada diluar wilaya indonesia.Aplikasi saat ini hanya menukung penggunaan aplikasi diwilaya indonesia")
     now = await get_local_time(zonaWaktu)
     dateNow = now.date()
     timeNow = now.time()
@@ -286,6 +299,9 @@ async def absenIzinTelat(id_siswa : int,id_dudi : int,note : str,statusIzin : Iz
 async def absenSakit(id_siswa : int,radius : RadiusBody,session : AsyncSession) -> AbsenBase :
     # get time zone and datetime based on timezona
     zonaWaktu = await get_timezone_from_coordinates(radius.latitude,radius.longitude)
+
+    # if not zonaWaktu :
+    #     raise HttpException(400,"anda berada diluar wilaya indonesia.Aplikasi saat ini hanya menukung penggunaan aplikasi diwilaya indonesia")
     now = await get_local_time(zonaWaktu)
     dateNow = now.date()
 
