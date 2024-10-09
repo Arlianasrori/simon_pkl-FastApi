@@ -28,6 +28,7 @@ async def absenMasuk(id_siswa : int,id_dudi : int,radius : RadiusBody,image : Up
 
     if not zonaWaktu :
         raise HttpException(400,"anda berada diluar indonesia")
+    
     now = await get_local_time(zonaWaktu)
     dateNow = now.date()
     timeNow = now.time()
@@ -134,6 +135,9 @@ async def absenPulang(id_siswa : int,id_dudi : int,radius : RadiusBody,image : U
     findAbsenToday.status_absen_pulang = StatusAbsenMasukKeluarEnum.hadir.value
     findAbsenToday.foto_absen_pulang = imagePulangUrl
 
+    if findAbsenToday.status == StatusAbsenEnum.izin.value :
+        findAbsenToday.status = StatusAbsenEnum.hadir.value
+
     absenTodayDictCopy = deepcopy(findAbsenToday.__dict__)
     await session.commit()
 
@@ -187,7 +191,7 @@ async def absenDiluarRadius(id_siswa : int,id_dudi : int,note : str,radius : Rad
     imagePulangUrl = await save_image(image)
     
     findAbsenToday.absen_pulang = timeNow
-    findAbsenToday.status_absen_pulang = StatusAbsenMasukKeluarEnum.diluar_radius
+    findAbsenToday.status_absen_pulang = StatusAbsenMasukKeluarEnum.diluar_radius.value
     findAbsenToday.foto_absen_pulang = imagePulangUrl
 
     keteranganAbsenPulangMapping = {
@@ -250,7 +254,7 @@ async def absenIzinTelat(id_siswa : int,id_dudi : int,note : str,statusIzin : Iz
         findAbsenToday.absen_masuk = timeNow
         findAbsenToday.status_absen_masuk = statusIzin.value
         findAbsenToday.foto_absen_masuk = imageMasukUrl
-        findAbsenToday.status = StatusAbsenEnum.hadir.value
+        findAbsenToday.status = StatusAbsenEnum.izin.value if statusIzin == IzinTelatAbsenEnum.IZIN else StatusAbsenEnum.hadir.value
 
         keteranganAbsenMasukMapping = {
             "id" : random_strings.random_digits(6),
@@ -281,6 +285,9 @@ async def absenIzinTelat(id_siswa : int,id_dudi : int,note : str,statusIzin : Iz
         findAbsenToday.absen_pulang = timeNow
         findAbsenToday.status_absen_pulang = statusIzin.value
         findAbsenToday.foto_absen_pulang = imagePulangUrl
+
+        if statusIzin == IzinTelatAbsenEnum.TELAT :
+            findAbsenToday.status = StatusAbsenEnum.hadir.value
 
         keteranganAbsenPulangMapping = {
             "id" : random_strings.random_digits(6),

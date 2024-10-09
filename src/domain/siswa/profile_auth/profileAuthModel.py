@@ -9,10 +9,3 @@ class UpdateProfileBody(BaseModel) :
     no_telepon : str | None = None
     id_kelas : int | None = None
     id_jurusan : int | None = None
-    password : str | None = None
-
-    @field_validator("password")
-    def validate_password(cls, v):
-        if " " in v:
-            raise ValueError("password tidak bisa mengandung spasi")
-        return v

@@ -169,6 +169,14 @@ async def cekAbsen(id_siswa : int,id_dudi : int | None,koordinat : RadiusBody,se
 
         # handle jika siswa sudah melakukan absen masuk atau handle siswa untuk absen pulang
         else :
+            # cek apakah siswa sudah melakukan absen pulang atau belum
+            if findAbsenSiswaToday.absen_pulang :
+                return {
+                    "msg" : "anda sudah melakukan absen pulang",
+                    "data" : {
+                        "canAbsen" : False
+                    }
+                }
             # validasi jika user diluar radius
             if cekRadius["data"]["inside_radius"] is False :
                 return {

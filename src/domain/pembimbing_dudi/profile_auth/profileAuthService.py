@@ -5,7 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select,and_
 from sqlalchemy.orm import joinedload
 
-# models]
+# models
 from ...models_domain.pembimbing_dudi_model import PembimbingDudiBase,PembimbingDudiWithAlamatDudi
 from ....models.pembimbingDudiModel import PembimbingDudi
 from .profileAuthModel import UpdateProfileBody
@@ -15,6 +15,7 @@ from copy import deepcopy
 from ....error.errorHandling import HttpException
 from ....utils.updateTable import updateTable
 from python_random_strings import random_strings
+from ....utils.sendOtp import sendOtp
 
 async def getPembimbingDudi(id_pembimbing_dudi : int,session : AsyncSession) -> PembimbingDudiBase :
     print(id_pembimbing_dudi)
@@ -96,3 +97,18 @@ async def updateFotoProfile(id_pembimbing_dudi : int,foto_profile : UploadFile,s
         "msg" : "success",
         "data" : pembimbingDudiDictCopy
     }
+
+async def sendOtpForVerifyPembimbingDudi(id_pembimbing_dudi : int,session : AsyncSession) -> PembimbingDudiBase :
+    findPembimbingDudi = (await session.execute(select(PembimbingDudi).where(PembimbingDudi.id == id_pembimbing_dudi))).scalar_one_or_none()
+    if not findPembimbingDudi :
+        raise HttpException(404,f"pembimbing dudi tidak ditemukan")
+    
+    otp = await sendOtp(findPembimbingDudi.email)
+    findPembimbingDudi.OTP_code = otp
+    await session.commit()
+
+    return {
+        "msg" : "success",
+        "data" : findPembimbingDudi
+    }
+    

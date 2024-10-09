@@ -80,6 +80,10 @@ async def updateProfile(pembimbing : dict = Depends(getPembimbingDudiAuth),body 
 async def updateFotoProfile(foto_profile : UploadFile,pembimbing : dict = Depends(getPembimbingDudiAuth),session : sessionDepedency = None) :
     return await profileAuthService.updateFotoProfile(pembimbing["id"],foto_profile,session)
 
+@pembimbingDudiRouter.post("/profile/send-otp-verify",response_model=ResponseModel[PembimbingDudiBase],tags=["PEMBIMBING-DUDI/PROFILE"])
+async def sendOtpForVerifyPembimbingDudi(pembimbing : dict = Depends(getPembimbingDudiAuth),session : sessionDepedency = None) :
+    return await profileAuthService.sendOtpForVerifyPembimbingDudi(pembimbing["id"],session)
+
 # siswa
 @pembimbingDudiRouter.get("/siswa",response_model=ResponseModel[list[MoreSiswa] | ResponseSiswaPag],tags=["PEMBIMBING-DUDI/SISWA"])
 async def getAllSiswa(page : int | None = None,pembimbingDudi : dict = Depends(getPembimbingDudiAuth), session : sessionDepedency = None) :

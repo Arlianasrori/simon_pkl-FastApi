@@ -57,6 +57,8 @@ class MoreAbsen(AbsenBase) :
     keterangan_absen_masuk : KeteranganAbsenMasuk | None = None
     keterangan_absen_pulang : KeteranganAbsenKeluar | None = None
 
+class MoreAbsenWithDokumenSakit(MoreAbsen) :
+    dokumenSakit : DokumenAbsenSakitBase | None = None
 
 # jadwal absen
 class JadwalAbsenBase(BaseModel) :
