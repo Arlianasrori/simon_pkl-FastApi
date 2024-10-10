@@ -14,6 +14,6 @@ class PengajuanPklWithSiswa(PengajuanPklBase) :
 
 class PengajuanPklWithDudi(PengajuanPklBase) :
     dudi : DudiBase
-    
+
 class PengajuanPklWithDudiAlamat(PengajuanPklBase) :
     dudi : DudiWithAlamat

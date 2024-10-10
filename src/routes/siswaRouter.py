@@ -45,8 +45,8 @@ from ..domain.models_domain.absen_model import koordinatAbsenBase
 
 # absen-jadwal
 from ..domain.siswa.absen.absen_jadwal import absenJadwalService
-from ..domain.siswa.absen.absen_jadwal.absenJadwalModel import RadiusBody,ResponseCekAbsen,ResponseJadwalAbsenToday
-from ..domain.models_domain.absen_model import JadwalAbsenWithHari
+from ..domain.siswa.absen.absen_jadwal.absenJadwalModel import RadiusBody,ResponseCekAbsen
+from ..domain.models_domain.absen_model import JadwalAbsenWithHari,AbsenWithDokumenSakit
 
 # absen-event
 from ..domain.siswa.absen.absen_event import absenEventService
@@ -149,7 +149,7 @@ async def addLaporanPklSiswa(body : AddLaporanPklSiswaBody,siswa : dict = Depend
 
 @siswaRouter.get("/laporan_pkl_siswa",response_model=ResponseModel[ResponseGetLaporanPklSiswaPag],tags=["SISWA/LAPORAN-PKL-SISWA"])
 async def getAllLaporanPklSiswa(page : int,filter : FilterLaporan = Depends(),siswa : dict = Depends(getSiswaAuth),session : sessionDepedency = None):
-    return await laporanPklSiswaService.getAllLaporanPklSiswa(siswa["id"],filter,page,session)
+    return await laporanPklSiswaService.getAllLaporanPklSiswa(siswa["id"],page,filter,session)
 
 @siswaRouter.get("/laporan_pkl_siswa/{id_laporan_pkl_siswa}",response_model=ResponseModel[LaporanPklSiswaBase],tags=["SISWA/LAPORAN-PKL-SISWA"])
 async def getLaporanPklSiswaById(id_laporan_pkl_siswa : int,siswa : dict = Depends(getSiswaAuth),session : sessionDepedency = None):
@@ -230,15 +230,15 @@ async def absenizinTelat(latitude: float = Form(...),longitude: float = Form(...
     radius = RadiusBody(latitude=latitude, longitude=longitude)
     return await absenEventService.absenIzinTelat(siswa["id"],siswa["id_dudi"],note,statusizinTelat,radius,foto,session)
 
-@siswaRouter.post("/absen/absen-sakit",response_model=ResponseModel[AbsenBase],tags=["SISWA/ABSEN"])
-async def absenSakit(latitude: float = Form(...),longitude: float = Form(...),siswa : dict = Depends(getSiswaAuth),session : sessionDepedency = None):
+@siswaRouter.post("/absen/absen-sakit",response_model=ResponseModel[AbsenWithDokumenSakit],tags=["SISWA/ABSEN"])
+async def absenSakit(latitude: float = Form(...),longitude: float = Form(...),dokumen : UploadFile = File(...),note : str = Form(...),siswa : dict = Depends(getSiswaAuth),session : sessionDepedency = None):
     radius = RadiusBody(latitude=latitude, longitude=longitude)
-    return await absenEventService.absenSakit(siswa["id"],radius,session)
+    return await absenEventService.absenSakit(siswa["id"],radius,dokumen,note,session)
 
 # get-absen
 @siswaRouter.get("/absen",response_model=ResponseModel[list[MoreAbsen]] | AbsenResponse,tags=["SISWA/GETABSEN"])
-async def getAllAbsen(isSevenDayAgo : bool | None = None,isGrouping : bool | None = None,siswa : dict = Depends(getSiswaAuth),filter : FilterAbsen = Depends(),session : sessionDepedency = None):
-    return await getAbsenService.getAllAbsen(siswa["id"],filter,isSevenDayAgo,isGrouping,session)
+async def getAllAbsen(isThreeDayAgo : bool | None = None,isGrouping : bool | None = None,siswa : dict = Depends(getSiswaAuth),filter : FilterAbsen = Depends(),session : sessionDepedency = None):
+    return await getAbsenService.getAllAbsen(siswa["id"],filter,isThreeDayAgo,isGrouping,session)
 
 @siswaRouter.get("/absen/{id_absen}",response_model=ResponseModel[AbsenBase],tags=["SISWA/GETABSEN"])
 async def getAbsenById(id_absen : int,siswa : dict = Depends(getSiswaAuth),session : sessionDepedency = None):

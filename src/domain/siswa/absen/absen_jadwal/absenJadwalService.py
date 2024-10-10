@@ -5,7 +5,7 @@ from sqlalchemy.orm import subqueryload
 
 
 # models
-from .absenJadwalModel import RadiusBody,ResponseCekAbsen,JenisAbsenEnum,StatusAbsenMasukEnum,StatusAbsenPulangEnum,ResponseJadwalAbsenToday
+from .absenJadwalModel import RadiusBody,ResponseCekAbsen,JenisAbsenEnum
 from ....models_domain.absen_model import JadwalAbsenWithHari
 from  .....models.absenModel import Absen,AbsenJadwal,HariAbsen,HariEnum
 from ..radius_absen.radiusAbsenService import cekRadiusAbsen
@@ -118,8 +118,7 @@ async def cekAbsen(id_siswa : int,id_dudi : int | None,koordinat : RadiusBody,se
                 "msg" : "anda sudah melewati batas absen masuk yang ditentukan,silahkan anda melakukan melakukan absen masuk dengan status telat untuk absen masuk",
                 "data" : {
                     "canAbsen" : True,
-                    "jenis_absen" : JenisAbsenEnum.MASUK,
-                    "jenis_absen_masuk" : StatusAbsenMasukEnum.TELAT
+                    "jenis_absen" : JenisAbsenEnum.TELAT
                 }
             }
         # jika siswa belum melewati batas absen masuk
@@ -128,8 +127,7 @@ async def cekAbsen(id_siswa : int,id_dudi : int | None,koordinat : RadiusBody,se
                 "msg" : "silahkan melakukan absen masuk",
                 "data" : {
                     "canAbsen" : True,
-                    "jenis_absen" : JenisAbsenEnum.MASUK,
-                    "jenis_absen_masuk" : StatusAbsenMasukEnum.HADIR
+                    "jenis_absen" : JenisAbsenEnum.MASUK
                 }
             }
     # validasi absen ketika absen siswa sudah dibuat pada cron job
@@ -160,8 +158,7 @@ async def cekAbsen(id_siswa : int,id_dudi : int | None,koordinat : RadiusBody,se
                     "msg" : "anda sudah melewati batas absen masuk yang ditentukan,silahkan anda melakukan melakukan absen masuk dengan status telat untuk absen masuk",
                     "data" : {
                         "canAbsen" : True,
-                        "jenis_absen" : JenisAbsenEnum.MASUK,
-                        "jenis_absen_masuk" : StatusAbsenMasukEnum.TELAT
+                        "jenis_absen" : JenisAbsenEnum.TELAT
                     }
                 }
             # jika tidak telat
@@ -170,21 +167,26 @@ async def cekAbsen(id_siswa : int,id_dudi : int | None,koordinat : RadiusBody,se
                 "msg" : "silahkan melakukan absen masuk",
                 "data" : {
                     "canAbsen" : True,
-                    "jenis_absen" : JenisAbsenEnum.MASUK,
-                    "jenis_absen_masuk" : StatusAbsenMasukEnum.HADIR
+                    "jenis_absen" : JenisAbsenEnum.MASUK
                 }
             }
 
         # handle jika siswa sudah melakukan absen masuk atau handle siswa untuk absen pulang
         else :
+            if findAbsenSiswaToday.absen_pulang :
+                return {
+                    "msg": "anda telah melakukan absen pulang",
+                    "data": {
+                        "canAbsen" : False
+                    }
+                }
             # validasi jika user diluar radius
             if cekRadius["data"]["inside_radius"] is False :
                 return {
                         "msg" : "anda belum melakukan absen pulang dan berada diluar radius,silahkan melakukan absen diluar radius untuk absen pulang",
                         "data" : {
                             "canAbsen" : True,
-                            "jenis_absen" : JenisAbsenEnum.PULANG,
-                            "jenis_absen_pulang" : StatusAbsenPulangEnum.DILUAR_RADIUS
+                            "jenis_absen" : JenisAbsenEnum.DILUAR_RADIUS
                         }
                     }
             # validasi jika user belum memenuhi batas minimum kerja
@@ -195,18 +197,16 @@ async def cekAbsen(id_siswa : int,id_dudi : int | None,koordinat : RadiusBody,se
                         "msg" : "anda belum memenuhi minimum waktu untuk melakukan absen pulang,silahkan melakukan izin absen jika ingin melakukan absen pulang",
                         "data" : {
                             "canAbsen" : False,
-                            "jenis_absen" : JenisAbsenEnum.PULANG,
-                            "jenis_absen_pulang" : StatusAbsenPulangEnum.IZIN
+                            "jenis_absen" : JenisAbsenEnum.IZIN
                         }
                     }
             # validasi jika waktu sekarang sudah melebihi batas absen pulang
             elif timeNow > findHariAbsenNow.batas_absen_pulang :
                 return {
-                    "msg" : "anda sudah melewati batas absen pulang yang ditentukan,silahkan anda melakukan melakukan absen pulang dengan status telat untuk absen pulang",
+                    "msg" : "anda sudah melewati batas absen pulang yang ditentukan, silahkan melakukan absen pulang dengan status telat",
                     "data" : {
                         "canAbsen" : True,
-                        "jenis_absen" : JenisAbsenEnum.MASUK,
-                        "jenis_absen_masuk" : StatusAbsenMasukEnum.TELAT
+                        "jenis_absen" : JenisAbsenEnum.TELAT
                     }
                 }
             # jika tidak telat
@@ -215,8 +215,7 @@ async def cekAbsen(id_siswa : int,id_dudi : int | None,koordinat : RadiusBody,se
                         "msg" : "silahkan melakukan absen pulang",
                         "data" : {
                             "canAbsen" : True,
-                            "jenis_absen" : JenisAbsenEnum.PULANG,
-                            "jenis_absen_pulang" : StatusAbsenPulangEnum.HADIR
+                            "jenis_absen" : JenisAbsenEnum.PULANG
                         }
                     }
             
