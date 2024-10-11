@@ -61,8 +61,8 @@ async def getDudi(id_siswa : int,id_sekolah : int,page : int,filter : FilterGetD
                 if dudiDict["jumlah_siswa_pria"] + 1 > dudiDictDecode["kuota"].jumlah_pria :
                     dudiDict["tersedia"] = False
             # cek apakah jumlah siswa wanita sudah melebihi atau sama dengan jumlah kuota wanita
-            elif findSiswa.jenis_kelamin == JenisKelaminEnum.perempuan and  dudi["kuota"].jumlah_wanita != 0:
-                if dudiDict["jumlah_siswa_wanita"] + 1 > dudi["kuota"].jumlah_wanita :
+            elif findSiswa.jenis_kelamin == JenisKelaminEnum.perempuan and  dudiDictDecode["kuota"].jumlah_wanita != 0:
+                if dudiDict["jumlah_siswa_wanita"] + 1 > dudiDictDecode["kuota"].jumlah_wanita :
                     dudiDict["tersedia"] = False
 
             kuotaJurusanList = [] # untuk kuotanjurusan response untuk dikirim ke user

@@ -36,7 +36,7 @@ class DetailSiswaDudiAlamat(MoreSiswa) :
     pembimbing_dudi : PembimbingDudiBase | None = None
     
 class SiswaWithDudi(SiswaWithJurusanKelas) :
-    dudi : DudiBase
+    dudi : DudiBase | None = None
     
 class SiswaWithDudiWithOutKelasJurusan(SiswaBase) :
     dudi : DudiBase

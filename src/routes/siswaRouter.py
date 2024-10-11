@@ -31,7 +31,7 @@ from ..domain.models_domain.pengajuan_cancel_pkl_model import PengajuanCancelPkl
 # laporan-siswa-pkl
 from ..domain.siswa.laporan_pkl_siswa import laporanPklSiswaService
 from ..domain.models_domain.laporan_pkl_siswa_model import LaporanPklSiswaBase,LaporanPklWithoutDudiAndSiswa
-from ..domain.siswa.laporan_pkl_siswa.laporanPklSiswaModel import AddLaporanPklSiswaBody,UpdateLaporanPklSiswaBody,ResponseGetLaporanPklSiswaPag,FilterLaporan
+from ..domain.siswa.laporan_pkl_siswa.laporanPklSiswaModel import AddLaporanPklSiswaBody,UpdateLaporanPklSiswaBody,ResponseGetLaporanPklSiswaPag,FilterLaporan,ResponseGetLaporanPklSiswaAndKendala
 
 # laporan-dudi-pkl
 from ..domain.siswa.laporan_pkl_dudi import laporanPklDudiService
@@ -171,6 +171,10 @@ async def uploadUpdateFileLaporanPklSiswa(id_laporan_siswa : int,file_laporan : 
 async def deleteLaporanPklSiswa(id_laporan_siswa : int,siswa : dict = Depends(getSiswaAuth),session : sessionDepedency = None):
     return await laporanPklSiswaService.deleteLaporanPklSiswa(siswa["id"],id_laporan_siswa,session)
 
+@siswaRouter.get("/laporan_pkl_siswa/get/laporanSiswaKendala",response_model=ResponseModel[list[ResponseGetLaporanPklSiswaAndKendala]],tags=["SISWA/LAPORAN-PKL-SISWA"])
+async def getLaporanPklSiswaById(siswa : dict = Depends(getSiswaAuth),session : sessionDepedency = None):
+    return await laporanPklSiswaService.getAllLaporanPklSiswaAndKendala(siswa["id"],session)
+
 # laporan pkl dudi
 @siswaRouter.get("/laporan_pkl_dudi",response_model=ResponseModel[ResponseGetLaporanPklDudiPag],tags=["SISWA/LAPORAN-PKL-DUDI"])
 async def getAllLaporanPklDudi(page : int,siswa : dict = Depends(getSiswaAuth),session : sessionDepedency = None):
@@ -241,8 +245,8 @@ async def absenSakit(latitude: float = Form(...),longitude: float = Form(...),do
 
 # get-absen
 @siswaRouter.get("/absen",response_model=ResponseModel[list[MoreAbsen]] | AbsenResponse,tags=["SISWA/GETABSEN"])
-async def getAllAbsen(isSevenDayAgo : bool | None = None,isGrouping : bool | None = None,siswa : dict = Depends(getSiswaAuth),filter : FilterAbsen = Depends(),session : sessionDepedency = None):
-    return await getAbsenService.getAllAbsen(siswa["id"],filter,isSevenDayAgo,isGrouping,session)
+async def getAllAbsen(isSevenDayAgo : bool | None = None,siswa : dict = Depends(getSiswaAuth),filter : FilterAbsen = Depends(),session : sessionDepedency = None):
+    return await getAbsenService.getAllAbsen(siswa["id"],filter,isSevenDayAgo,session)
 
 @siswaRouter.get("/absen/{id_absen}",response_model=ResponseModel[MoreAbsenWithDokumenSakit],tags=["SISWA/GETABSEN"])
 async def getAbsenById(id_absen : int,siswa : dict = Depends(getSiswaAuth),session : sessionDepedency = None):

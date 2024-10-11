@@ -198,6 +198,7 @@ async def absenDiluarRadius(id_siswa : int,id_dudi : int,note : str,radius : Rad
         "id" : random_strings.random_digits(6),
         "id_absen" : findAbsenToday.id,
         "note" : note,
+        "inside_radius" : False,
         "status_izin" : StatusOtherAbsenEnum.diluar_radius.value
     } 
 
