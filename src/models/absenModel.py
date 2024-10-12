@@ -10,7 +10,6 @@ class StatusAbsenMasukKeluarEnum(enum.Enum):
     telat = "telat"
     tidak_hadir = "tidak_hadir"
     izin = "izin"
-    diluar_radius = "diluar_radius"
     sakit = "sakit"
 
 class StatusAbsenEnum(enum.Enum):

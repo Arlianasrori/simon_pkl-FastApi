@@ -1,6 +1,6 @@
 from pydantic import BaseModel
 from .siswa_model import SiswaBase
-from .dudi_model import DudiBase
+from .dudi_model import DudiBase,DudiWithAlamat
 from ...models.pengajuanPklModel import StatusCancelPKLENUM
 from datetime import datetime
 
@@ -15,3 +15,6 @@ class PengajuanCancelPklWithSiswa(PengajuanCancelPklBase) :
 
 class PengajuanCancelPklWithDudi(PengajuanCancelPklBase) :
     dudi : DudiBase
+
+class PengajuanCancelPklWithDudiAlamat(PengajuanCancelPklBase) :
+    dudi : DudiWithAlamat

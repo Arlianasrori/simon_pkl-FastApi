@@ -26,7 +26,7 @@ from ..models.pengajuanPklModel import StatusPengajuanENUM,StatusCancelPKLENUM
 # pengjuan_cancel pkl
 from ..domain.siswa.pengajuan_cancel_pkl.pengajuanCancelPklModel import AddPengajuanCancelPklBody
 from ..domain.siswa.pengajuan_cancel_pkl import pengajuanCancelPklService
-from ..domain.models_domain.pengajuan_cancel_pkl_model import PengajuanCancelPklWithDudi,PengajuanCancelPklBase
+from ..domain.models_domain.pengajuan_cancel_pkl_model import PengajuanCancelPklWithDudi,PengajuanCancelPklWithDudiAlamat,PengajuanCancelPklBase
 
 # laporan-siswa-pkl
 from ..domain.siswa.laporan_pkl_siswa import laporanPklSiswaService
@@ -137,7 +137,7 @@ async def getAllPengajuanCancelPkl(status : StatusCancelPKLENUM | None = None,si
 async def cancelPengajuan(id_pengajuan : int,siswa : dict = Depends(getSiswaAuth),session : sessionDepedency = None):
     return await pengajuanCancelPklService.cancelPengjuan(siswa["id"],id_pengajuan,session)
 
-@siswaRouter.get("/pengajuan_cancel_pkl/{id_pengajuan_cancel_pkl}",response_model=ResponseModel[PengajuanCancelPklWithDudi],tags=["SISWA/PENGAJUAN-CANCEL-PKL"])
+@siswaRouter.get("/pengajuan_cancel_pkl/{id_pengajuan_cancel_pkl}",response_model=ResponseModel[PengajuanCancelPklWithDudiAlamat],tags=["SISWA/PENGAJUAN-CANCEL-PKL"])
 async def getPengajuanCancelPklById(id_pengajuan_cancel_pkl : int,siswa : dict = Depends(getSiswaAuth),session : sessionDepedency = None):
     return await pengajuanCancelPklService.getPengajuanCancelPklById(siswa["id"],id_pengajuan_cancel_pkl,session)
 
@@ -172,7 +172,7 @@ async def deleteLaporanPklSiswa(id_laporan_siswa : int,siswa : dict = Depends(ge
     return await laporanPklSiswaService.deleteLaporanPklSiswa(siswa["id"],id_laporan_siswa,session)
 
 @siswaRouter.get("/laporan_pkl_siswa/get/laporanSiswaKendala",response_model=ResponseModel[list[ResponseGetLaporanPklSiswaAndKendala]],tags=["SISWA/LAPORAN-PKL-SISWA"])
-async def getLaporanPklSiswaById(siswa : dict = Depends(getSiswaAuth),session : sessionDepedency = None):
+async def getAllLaporanHarianAndKendala(siswa : dict = Depends(getSiswaAuth),session : sessionDepedency = None):
     return await laporanPklSiswaService.getAllLaporanPklSiswaAndKendala(siswa["id"],session)
 
 # laporan pkl dudi
