@@ -216,7 +216,7 @@ async def absenDiluarRadius(id_siswa : int,id_dudi : int,note : str,radius : Rad
     }
 
 async def absenIzinTelat(id_siswa : int,id_dudi : int,note : str,statusIzin : IzinTelatAbsenEnum,radius : RadiusBody,image : UploadFile,session : AsyncSession) -> ResponseAbsenIzinTelat :
-    await validateRadius(id_dudi,radius,session)
+    statusRadius = await validateRadius(id_dudi,radius,session,True if statusIzin.value == IzinTelatAbsenEnum.IZIN.value else False)
 
     # get time zone and datetime based on timezona
     zonaWaktu = await get_timezone_from_coordinates(radius.latitude,radius.longitude)
@@ -261,6 +261,7 @@ async def absenIzinTelat(id_siswa : int,id_dudi : int,note : str,statusIzin : Iz
             "id" : random_strings.random_digits(6),
             "id_absen" : findAbsenToday.id,
             "note" : note,
+            "inside_radius" : statusRadius,
             "status_izin" : statusIzin.value
         } 
 
@@ -277,7 +278,6 @@ async def absenIzinTelat(id_siswa : int,id_dudi : int,note : str,statusIzin : Iz
 
         #  jika status izin telat validasi jika user belum memenuhi batas minimum kerja
         if statusIzin == IzinTelatAbsenEnum.TELAT :
-            pass
             # validasi jika user belum memenuhi batas minimum kerja
             if timeNowFloat - absenMasukFloat < findHariAbsenToday.min_jam_absen :
                 raise HttpException(400,"anda belum memenuhi minimum waktu untuk melakukan absen pulang,jika silahkan melakukan izin absen jika ingin melakukan absen pulang")
@@ -294,6 +294,7 @@ async def absenIzinTelat(id_siswa : int,id_dudi : int,note : str,statusIzin : Iz
             "id" : random_strings.random_digits(6),
             "id_absen" : findAbsenToday.id,
             "note" : note,
+            "inside_radius" : statusRadius,
             "status_izin" : StatusOtherAbsenEnum.diluar_radius.value
         }
 

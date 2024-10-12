@@ -57,6 +57,12 @@ class MoreAbsen(AbsenBase) :
     keterangan_absen_masuk : KeteranganAbsenMasuk | None = None
     keterangan_absen_pulang : KeteranganAbsenKeluar | None = None
 
+class MoreAbsenWithSiswaDudi(AbsenBase) :
+    siswa : SiswaWithDudiWithOutKelasJurusan
+    keterangan_absen_masuk : KeteranganAbsenMasuk | None = None
+    keterangan_absen_pulang : KeteranganAbsenKeluar | None = None
+    dokumenSakit : DokumenAbsenSakitBase | None = None
+
 class MoreAbsenWithDokumenSakit(MoreAbsen) :
     dokumenSakit : DokumenAbsenSakitBase | None = None
 
@@ -86,3 +92,6 @@ class koordinatAbsenBase(BaseModel) :
 
 class KoordinatAbsenWithDudi(koordinatAbsenBase) :
     dudi : DudiBase
+
+class MoreAbsenWithHariAbsen(MoreAbsenWithSiswaDudi) :
+    keterangan_hari : HariAbsenBase | None = None

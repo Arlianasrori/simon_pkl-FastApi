@@ -10,11 +10,14 @@ import os
 import aiofiles
 
 from sqlalchemy.ext.asyncio import AsyncSession
-async def validateRadius(id_dudi : int,radius,session : AsyncSession) :
+async def validateRadius(id_dudi : int,radius,session : AsyncSession,isIzin : bool) :
     radius = await cekRadiusAbsen(id_dudi,radius,session)
     print(radius)
     if not radius["data"]["inside_radius"] :
-        raise HttpException(400,"anda berada di luar radius")
+        if not isIzin :
+            raise HttpException(400,"anda berada di luar radius")
+        return False
+    return True
     
 async def validateAbsen(id_siswa : int,dateNow : date,session : AsyncSession) -> Absen :
     # find absen siswa today

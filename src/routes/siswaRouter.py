@@ -56,7 +56,7 @@ from ..domain.models_domain.absen_model import AbsenBase,AbsenWithKeteranganPula
 # get-absen
 from ..domain.siswa.absen.get_absen import getAbsenService
 from ..domain.siswa.absen.get_absen.getAbsenModel import FilterAbsen,AbsenResponse
-from ..domain.models_domain.absen_model import MoreAbsen,MoreAbsenWithDokumenSakit
+from ..domain.models_domain.absen_model import MoreAbsen,MoreAbsenWithDokumenSakit,MoreAbsenWithHariAbsen
 
 # notification
 from ..domain.siswa.notification import notificationService
@@ -245,10 +245,10 @@ async def absenSakit(latitude: float = Form(...),longitude: float = Form(...),do
 
 # get-absen
 @siswaRouter.get("/absen",response_model=ResponseModel[list[MoreAbsen]] | AbsenResponse,tags=["SISWA/GETABSEN"])
-async def getAllAbsen(isSevenDayAgo : bool | None = None,siswa : dict = Depends(getSiswaAuth),filter : FilterAbsen = Depends(),session : sessionDepedency = None):
-    return await getAbsenService.getAllAbsen(siswa["id"],filter,isSevenDayAgo,session)
+async def getAllAbsen(isThreeDayAgo : bool | None = None,siswa : dict = Depends(getSiswaAuth),filter : FilterAbsen = Depends(),session : sessionDepedency = None):
+    return await getAbsenService.getAllAbsen(siswa["id"],filter,isThreeDayAgo,session)
 
-@siswaRouter.get("/absen/{id_absen}",response_model=ResponseModel[MoreAbsenWithDokumenSakit],tags=["SISWA/GETABSEN"])
+@siswaRouter.get("/absen/{id_absen}",response_model=ResponseModel[MoreAbsenWithHariAbsen],tags=["SISWA/GETABSEN"])
 async def getAbsenById(id_absen : int,siswa : dict = Depends(getSiswaAuth),session : sessionDepedency = None):
     return await getAbsenService.getAbsenById(id_absen,siswa["id"],session)
 
