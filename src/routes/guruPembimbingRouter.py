@@ -30,6 +30,10 @@ from ..domain.guru_pembimbing.laporan_kendala import laporanKendalaService
 from ..domain.guru_pembimbing.laporan_kendala.laporanKendalaModel import Filter,LaporanKendalaResponse
 from ..domain.guru_pembimbing.laporan_kendala.laporanKendalaModel import LaporanKendalaWithSiswa
 
+# laporan-kendala-dudi
+from ..domain.guru_pembimbing.laporan_kendala_dudi import laporanKendalaDudiService
+from ..domain.guru_pembimbing.laporan_kendala_dudi.laporanKendalaDudiModel import Filter,LaporanKendalaDudiResponse,LaporanKendalaDudiWithSiswa
+
 # get-dudi
 from ..domain.guru_pembimbing.get_dudi import getDudiService
 from ..domain.models_domain.dudi_model import DudiWithAlamat
@@ -118,6 +122,15 @@ async def getAllLaporanKendalaSiswa(filter : Filter = Depends(), guru : dict = D
 @guruPembimbingRouter.get("/laporan-kendala-siswa/{id_laporan}",response_model=ResponseModel[LaporanKendalaWithSiswa],tags=["GURU-PEMBIMBING/LAPORAN-KENDALA-SISWA"])
 async def getLaporanKendalaSiswaById(id_laporan : int, guru : dict = Depends(getGuruPembimbingAuth),session : sessionDepedency = None):
     return await laporanKendalaService.getLaporanKendalaById(id_laporan,guru["id"],session)
+
+# laporan-kendala-dudi
+@guruPembimbingRouter.get("/laporan-kendala-dudi",response_model=LaporanKendalaDudiResponse,tags=["GURU-PEMBIMBING/LAPORAN-KENDALA-DUDI"])
+async def getAllLaporanKendalaDudi(filter : Filter = Depends(), guru : dict = Depends(getGuruPembimbingAuth),session : sessionDepedency = None):
+    return await laporanKendalaDudiService.getAllLaporanKendalaDudi(guru["id"],guru["id_sekolah"],filter,session)
+
+@guruPembimbingRouter.get("/laporan-kendala-sdudi/{id_laporan}",response_model=ResponseModel[LaporanKendalaDudiWithSiswa],tags=["GURU-PEMBIMBING/LAPORAN-KENDALA-DUDI"])
+async def getLaporanKendalaSiswaById(id_laporan : int, guru : dict = Depends(getGuruPembimbingAuth),session : sessionDepedency = None):
+    return await laporanKendalaDudiService.getLaporanKendalaById(id_laporan,guru["id"],session)
 
 # get-dudi
 @guruPembimbingRouter.get("/dudi",response_model=ResponseModel[list[DudiWithAlamat]],tags=["GURU-PEMBIMBING/GET-DUDI"])
