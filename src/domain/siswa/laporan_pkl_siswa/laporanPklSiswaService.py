@@ -6,7 +6,7 @@ from sqlalchemy.orm import joinedload
 # models
 from ...models_domain.laporan_pkl_siswa_model import LaporanPklSiswaBase,LaporanPklWithoutDudiAndSiswa
 from ....models.laporanPklModel import LaporanSiswaPKL,LaporanKendalaSiswa
-from .laporanPklSiswaModel import AddLaporanPklSiswaBody,UpdateLaporanPklSiswaBody,ResponseGetLaporanPklSiswaPag,FilterLaporan
+from .laporanPklSiswaModel import AddLaporanPklSiswaBody,UpdateLaporanPklSiswaBody,ResponseGetLaporanPklSiswaPag,FilterLaporan,ResponseGetLaporanPklSiswaAndKendala
 
 # common
 from copy import deepcopy
@@ -48,7 +48,7 @@ async def addUpdateFileLaporanPkl(id_siswa : int,id_laporan_pkl : int,file : Upl
     if ext_file[-1] not in ["jpg","png","jpeg","pdf","docx","doc","xls","xlsx"] :
         raise HttpException(400,f"format file tidak di dukung")
 
-    file_name = f"{random_strings.random_digits(12)}-{file.filename.split(' ')[0]}.{ext_file[-1]}"
+    file_name = f"{random_strings.random_digits(12)}-{file.filename.split(' ')[0].split(".")[0]}.{ext_file[-1]}"
     
     file_name_save = f"{FILE_LAPORAN_STORE}{file_name}"
     fotoProfileBefore = findLaporanPkl.dokumentasi
@@ -137,7 +137,7 @@ async def getLaporanPklSiswaById(id_siswa : int,id_laporan : int,session : Async
         "data" : findLaporan
     }
 
-async def getAllLaporanPklSiswaAndKendala(id_siswa : int,session : AsyncSession) -> ResponseGetLaporanPklSiswaPag :
+async def getAllLaporanPklSiswaAndKendala(id_siswa : int,session : AsyncSession) -> ResponseGetLaporanPklSiswaAndKendala :
     laporan_pkl_query = select(
         LaporanSiswaPKL.id,
         LaporanSiswaPKL.tanggal,

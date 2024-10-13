@@ -12,11 +12,13 @@ class KeteranganAbsenMasuk(BaseModel) :
     id : int
     note : str
     status_izin : StatusOtherAbsenEnum
+    inside_radius : bool
 
 class KeteranganAbsenKeluar(BaseModel) :
     id : int
     note : str
     status_izin : StatusOtherAbsenEnum
+    inside_radius : bool
 
 class AbsenBase(BaseModel):
     id : int

@@ -4,6 +4,7 @@ from ...models_domain.common_model import PaginationBase
 from ...models_domain.laporan_pkl_siswa_model import LaporanPklWithoutDudiAndSiswa
 from babel.dates import format_date
 from babel import Locale
+from enum import Enum
 
 class AddLaporanPklSiswaBody(BaseModel):
     tanggal : Date
@@ -22,10 +23,14 @@ class FilterLaporan(BaseModel) :
     month : int | None = None
     year : int | None = None
 
+class EnumJenisLaporan(Enum) :
+    laporanSiswa = "laporanSiswa"
+    kendala = "kendala"
+
 class ResponseGetLaporanPklSiswaAndKendala(BaseModel) :
     id : int
     tanggal : str
-    jenis_laporan : str
+    jenis_laporan : EnumJenisLaporan
 
     @field_validator("tanggal",mode="before")
     def validateTanggal(cls,v) :
