@@ -11,12 +11,14 @@ dayCodeSet = (HariEnum.senin,HariEnum.selasa,HariEnum.rabu,HariEnum.kamis,HariEn
 class KeteranganAbsenMasuk(BaseModel) :
     id : int
     note : str
+    inside_radius : bool
     status_izin : StatusOtherAbsenEnum
 
 class KeteranganAbsenKeluar(BaseModel) :
     id : int
     note : str
     status_izin : StatusOtherAbsenEnum
+    inside_radius : bool
 
 class AbsenBase(BaseModel):
     id : int

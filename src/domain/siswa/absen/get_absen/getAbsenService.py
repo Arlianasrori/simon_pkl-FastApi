@@ -43,7 +43,7 @@ async def getAbsenById(id_absen : int,id_siswa : int,session : AsyncSession) -> 
     locale_id = Locale('id', 'ID')
     day = format_date(findAbsen.tanggal, format="EEEE, d MMMM yyyy", locale=locale_id).split(" ")[0].split(",")[0]
 
-    findHari = (await session.execute(select(HariAbsen).where(and_(HariAbsen.id_jadwal == findAbsen.id_absen_jadwal,HariAbsen.hari == day)))).scalar_one_or_none()
+    findHari = (await session.execute(select(HariAbsen).where(and_(HariAbsen.id_jadwal == findAbsen.id_absen_jadwal,HariAbsen.hari == day.lower())))).scalar_one_or_none()
 
     findAbsenDictCopy = findAbsen.__dict__
     return {

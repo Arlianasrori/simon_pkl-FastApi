@@ -5,6 +5,7 @@ from ...models_domain.laporan_pkl_siswa_model import LaporanPklWithoutDudiAndSis
 from babel.dates import format_date
 from babel import Locale
 
+
 class AddLaporanPklSiswaBody(BaseModel):
     tanggal : Date
     topik_pekerjaan : str
