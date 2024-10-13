@@ -26,8 +26,8 @@ async def absenMasuk(id_siswa : int,id_dudi : int,radius : RadiusBody,image : Up
     # get time zone and datetime based on timezona
     zonaWaktu = await get_timezone_from_coordinates(radius.latitude,radius.longitude)
 
-    if not zonaWaktu :
-        raise HttpException(400,"anda berada diluar indonesia")
+    # if not zonaWaktu :
+    #     raise HttpException(400,"anda berada diluar indonesia")
     
     now = await get_local_time(zonaWaktu)
     dateNow = now.date()
@@ -87,8 +87,8 @@ async def absenPulang(id_siswa : int,id_dudi : int,radius : RadiusBody,image : U
     # get time zone and datetime based on timezona
     zonaWaktu = await get_timezone_from_coordinates(radius.latitude,radius.longitude)
 
-    if not zonaWaktu :
-        raise HttpException(400,"anda berada diluar indonesia")
+    # if not zonaWaktu :
+    #     raise HttpException(400,"anda berada diluar indonesia")
     now = await get_local_time(zonaWaktu)
     dateNow = now.date()
     timeNow = now.time()
@@ -150,8 +150,8 @@ async def absenPulang(id_siswa : int,id_dudi : int,radius : RadiusBody,image : U
 async def absenDiluarRadius(id_siswa : int,id_dudi : int,note : str,radius : RadiusBody,image : UploadFile,session : AsyncSession) -> AbsenWithKeteranganPulang:
     zonaWaktu = await get_timezone_from_coordinates(radius.latitude,radius.longitude)
 
-    if not zonaWaktu :
-        raise HttpException(400,"anda berada diluar indonesia")
+    # if not zonaWaktu :
+    #     raise HttpException(400,"anda berada diluar indonesia")
     now = await get_local_time(zonaWaktu)
     dateNow = now.date()
     timeNow = now.time()
@@ -251,7 +251,7 @@ async def absenIzinTelat(id_siswa : int,id_dudi : int,note : str,statusIzin : Iz
         if timeNow > findHariAbsenToday.batas_absen_pulang :
             raise HttpException(400,"anda telah melewati batas absen hari ini,anda dinyatakan tidak hadir")
         
-        imageMasukUrl = await save_image(image)
+        imageMasukUrl = await save_image(image,True)
         findAbsenToday.absen_masuk = timeNow
         findAbsenToday.status_absen_masuk = statusIzin.value
         findAbsenToday.foto_absen_masuk = imageMasukUrl
@@ -281,8 +281,8 @@ async def absenIzinTelat(id_siswa : int,id_dudi : int,note : str,statusIzin : Iz
             # validasi jika user belum memenuhi batas minimum kerja
             if timeNowFloat - absenMasukFloat < findHariAbsenToday.min_jam_absen :
                 raise HttpException(400,"anda belum memenuhi minimum waktu untuk melakukan absen pulang,jika silahkan melakukan izin absen jika ingin melakukan absen pulang")
-        
-        imagePulangUrl = await save_image(image)
+         
+        imagePulangUrl = await save_image(image,True)
         findAbsenToday.absen_pulang = timeNow
         findAbsenToday.status_absen_pulang = statusIzin.value
         findAbsenToday.foto_absen_pulang = imagePulangUrl

@@ -51,7 +51,7 @@ async def addUpdateFileLaporanPkl(id_siswa : int,id_laporan_pkl : int,file : Upl
     if ext_file[-1] not in ["jpg","png","jpeg","pdf","docx","doc","xls","xlsx"] :
         raise HttpException(400,f"format file tidak di dukung")
 
-    file_name = f"{random_strings.random_digits(12)}-{file.filename.split(' ')[0]}.{ext_file[-1]}"
+    file_name = f"{random_strings.random_digits(12)}-{file.filename.split(' ')[0].split(".")[0]}.{ext_file[-1]}"
     
     file_name_save = f"{FILE_LAPORAN_STORE}{file_name}"
     fotoProfileBefore = findLaporanPkl.dokumentasi
@@ -113,7 +113,7 @@ async def deleteLaporanPklSiswa(id_siswa : int,id_laporan_pkl : int,session : As
         "data" : laporanPklDictCopy
     }
 
-async def getAllLaporanPklSiswa(id_siswa : int,filter : FilterLaporan,session : AsyncSession) -> ResponseGetLaporanPklSiswaPag :
+async def getAllLaporanPklSiswa(id_siswa : int,filter : FilterLaporan,session : AsyncSession) -> LaporanPklWithoutDudiAndSiswa :
     findLaporan = (await session.execute(select(LaporanSiswaPKL).where(and_(LaporanSiswaPKL.id_siswa == id_siswa,extract('month', LaporanSiswaPKL.tanggal) == filter.month if filter.month else True,extract('year', LaporanSiswaPKL.tanggal) == filter.year if filter.year else True)))).scalars().all()
 
     findLaporan = (await session.execute(select(LaporanSiswaPKL).where(and_(LaporanSiswaPKL.id_siswa == id_siswa)))).scalars().all()

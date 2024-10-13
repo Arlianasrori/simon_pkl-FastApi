@@ -13,6 +13,7 @@ class KeteranganAbsenMasuk(BaseModel) :
     note : str
     inside_radius : bool
     status_izin : StatusOtherAbsenEnum
+    inside_radius : bool
 
 class KeteranganAbsenKeluar(BaseModel) :
     id : int
