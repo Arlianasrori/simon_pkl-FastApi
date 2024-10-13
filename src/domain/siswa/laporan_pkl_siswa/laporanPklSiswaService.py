@@ -113,9 +113,7 @@ async def deleteLaporanPklSiswa(id_siswa : int,id_laporan_pkl : int,session : As
         "data" : laporanPklDictCopy
     }
 
-async def getAllLaporanPklSiswa(id_siswa : int,filter : FilterLaporan,session : AsyncSession) -> LaporanPklWithoutDudiAndSiswa :
-    findLaporan = (await session.execute(select(LaporanSiswaPKL).where(and_(LaporanSiswaPKL.id_siswa == id_siswa,extract('month', LaporanSiswaPKL.tanggal) == filter.month if filter.month else True,extract('year', LaporanSiswaPKL.tanggal) == filter.year if filter.year else True)))).scalars().all()
-
+async def getAllLaporanPklSiswa(id_siswa : int,session : AsyncSession) -> LaporanPklWithoutDudiAndSiswa :
     findLaporan = (await session.execute(select(LaporanSiswaPKL).where(and_(LaporanSiswaPKL.id_siswa == id_siswa)))).scalars().all()
 
     return {
