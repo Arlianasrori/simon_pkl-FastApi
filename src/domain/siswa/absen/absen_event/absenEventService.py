@@ -25,7 +25,6 @@ async def absenMasuk(id_siswa : int,id_dudi : int,radius : RadiusBody,image : Up
 
     # get time zone and datetime based on timezona
     zonaWaktu = await get_timezone_from_coordinates(radius.latitude,radius.longitude)
-
     # if not zonaWaktu :
     #     raise HttpException(400,"anda berada diluar wilaya indonesia.Aplikasi saat ini hanya menukung penggunaan aplikasi diwilaya indonesia")
 
@@ -137,6 +136,9 @@ async def absenPulang(id_siswa : int,id_dudi : int,radius : RadiusBody,image : U
     findAbsenToday.status_absen_pulang = StatusAbsenMasukKeluarEnum.hadir.value
     findAbsenToday.foto_absen_pulang = imagePulangUrl
 
+    if findAbsenToday.status == StatusAbsenEnum.izin.value :
+        findAbsenToday.status = StatusAbsenEnum.hadir.value
+
     absenTodayDictCopy = deepcopy(findAbsenToday.__dict__)
     await session.commit()
 
@@ -191,7 +193,7 @@ async def absenDiluarRadius(id_siswa : int,id_dudi : int,note : str,radius : Rad
     imagePulangUrl = await save_image(image)
     
     findAbsenToday.absen_pulang = timeNow
-    findAbsenToday.status_absen_pulang = StatusAbsenMasukKeluarEnum.diluar_radius
+    findAbsenToday.status_absen_pulang = StatusAbsenMasukKeluarEnum.diluar_radius.value
     findAbsenToday.foto_absen_pulang = imagePulangUrl
 
     keteranganAbsenPulangMapping = {
@@ -215,7 +217,7 @@ async def absenDiluarRadius(id_siswa : int,id_dudi : int,note : str,radius : Rad
     }
 
 async def absenIzinTelat(id_siswa : int,id_dudi : int,note : str,statusIzin : IzinTelatAbsenEnum,radius : RadiusBody,image : UploadFile,session : AsyncSession) -> ResponseAbsenIzinTelat :
-    await validateRadius(id_dudi,radius,session)
+    isRadius = await validateRadius(id_dudi,radius,session,True if statusIzin.value == IzinTelatAbsenEnum.IZIN.value else False)
 
     # get time zone and datetime based on timezona
     zonaWaktu = await get_timezone_from_coordinates(radius.latitude,radius.longitude)
@@ -250,16 +252,17 @@ async def absenIzinTelat(id_siswa : int,id_dudi : int,note : str,statusIzin : Iz
         if timeNow > findHariAbsenToday.batas_absen_pulang :
             raise HttpException(400,"anda telah melewati batas absen hari ini,anda dinyatakan tidak hadir")
         
-        imageMasukUrl = await save_image(image)
+        # imageMasukUrl = await save_image(image)
         findAbsenToday.absen_masuk = timeNow
         findAbsenToday.status_absen_masuk = statusIzin.value
-        findAbsenToday.foto_absen_masuk = imageMasukUrl
-        findAbsenToday.status = StatusAbsenEnum.hadir.value
+        findAbsenToday.foto_absen_masuk = "http://localhost:2008/guru_pembimbing_profile/500468177839-WhatsApp.jpg"
+        findAbsenToday.status = StatusAbsenEnum.izin.value if statusIzin == IzinTelatAbsenEnum.IZIN else StatusAbsenEnum.hadir.value
 
         keteranganAbsenMasukMapping = {
             "id" : random_strings.random_digits(6),
             "id_absen" : findAbsenToday.id,
             "note" : note,
+            "insideRadius" : isRadius,
             "status_izin" : statusIzin.value
         } 
 
@@ -276,20 +279,23 @@ async def absenIzinTelat(id_siswa : int,id_dudi : int,note : str,statusIzin : Iz
 
         #  jika status izin telat validasi jika user belum memenuhi batas minimum kerja
         if statusIzin == IzinTelatAbsenEnum.TELAT :
-            pass
             # validasi jika user belum memenuhi batas minimum kerja
             if timeNowFloat - absenMasukFloat < findHariAbsenToday.min_jam_absen :
                 raise HttpException(400,"anda belum memenuhi minimum waktu untuk melakukan absen pulang,jika silahkan melakukan izin absen jika ingin melakukan absen pulang")
         
-        imagePulangUrl = await save_image(image)
+        # imagePulangUrl = await save_image(image)
         findAbsenToday.absen_pulang = timeNow
         findAbsenToday.status_absen_pulang = statusIzin.value
-        findAbsenToday.foto_absen_pulang = imagePulangUrl
+        findAbsenToday.foto_absen_pulang = "http://localhost:2008/guru_pembimbing_profile/500468177839-WhatsApp.jpg"
+
+        if statusIzin == IzinTelatAbsenEnum.TELAT :
+            findAbsenToday.status = StatusAbsenEnum.hadir.value
 
         keteranganAbsenPulangMapping = {
             "id" : random_strings.random_digits(6),
             "id_absen" : findAbsenToday.id,
             "note" : note,
+            "insideRadius" : True,
             "status_izin" : StatusOtherAbsenEnum.diluar_radius.value
         }
 
@@ -329,12 +335,12 @@ async def absenSakit(id_siswa : int,radius : RadiusBody,dokumen : UploadFile,not
         raise HttpException(400,"tanggal absen tidak sesuai dengan jadwal")
     
     findAbsenToday.status = StatusAbsenEnum.sakit.value
-    dokumenUrl = await save_dokumen(dokumen)
+    # dokumenUrl = await save_dokumen(dokumen)
 
     absenSakitMapping = {
         "id" : random_strings.random_digits(6),
         "id_absen" : findAbsenToday.id,
-        "dokumen" : dokumenUrl,
+        "dokumen" : "http://localhost:2008/guru_pembimbing_profile/500468177839-WhatsApp.jpg",
         "note" : note
     }
 

@@ -10,12 +10,4 @@ class UpdateProfileBody(BaseModel) :
     tempat_lahir : str | None = None
     tanggal_lahir : str | None = None         
     agama : str | None = None
-    password : str | None = None
     token_FCM : str | None = None
-
-    @field_validator("password")
-    def validate_password(cls, v):
-        if " " in v:
-            raise ValueError("password tidak bisa mengandung spasi")
-        return v
-    

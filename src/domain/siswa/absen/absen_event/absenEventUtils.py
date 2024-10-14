@@ -10,11 +10,15 @@ import os
 import aiofiles
 
 from sqlalchemy.ext.asyncio import AsyncSession
-async def validateRadius(id_dudi : int,radius,session : AsyncSession) :
+async def validateRadius(id_dudi : int,radius,session : AsyncSession,isIzin : bool = False) :
     radius = await cekRadiusAbsen(id_dudi,radius,session)
     print(radius)
     if not radius["data"]["inside_radius"] :
-        raise HttpException(400,"anda berada di luar radius")
+        if not isIzin:
+            raise HttpException(400,"anda berada di luar radius")
+        else :
+            return True
+    return True
     
 async def validateAbsen(id_siswa : int,dateNow : date,session : AsyncSession) -> Absen :
     # find absen siswa today
@@ -46,9 +50,9 @@ DOKUMEN_STORE = os.getenv("DEV_DOKUMEN_ABSEN_STORE")
 DOKUMEN_BASE_URL = os.getenv("DEV_DOKUMEN_ABSEN_BASE_URL")
 async def save_dokumen(file : UploadFile) -> str :
     ext_file = file.filename.split(".")
-
+    print(file.filename)
     if ext_file[-1] not in ["jpg","png","jpeg","pdf","docx","doc"] :
-        raise HttpException(400,f"file harus berupa gambar")
+        raise HttpException(400,f"file tidak didukung")
 
     file_name = f"{random_strings.random_digits(12)}-{file.filename.split(' ')[0]}.{ext_file[-1]}"
     file_name_save = f"{DOKUMEN_STORE}{file_name}"

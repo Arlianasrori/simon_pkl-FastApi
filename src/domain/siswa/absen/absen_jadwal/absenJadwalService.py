@@ -173,10 +173,11 @@ async def cekAbsen(id_siswa : int,id_dudi : int | None,koordinat : RadiusBody,se
 
         # handle jika siswa sudah melakukan absen masuk atau handle siswa untuk absen pulang
         else :
+            # cek apakah siswa sudah melakukan absen pulang atau belum
             if findAbsenSiswaToday.absen_pulang :
                 return {
-                    "msg": "anda telah melakukan absen pulang",
-                    "data": {
+                    "msg" : "anda telah melakukan absen pulang",
+                    "data" : {
                         "canAbsen" : False
                     }
                 }

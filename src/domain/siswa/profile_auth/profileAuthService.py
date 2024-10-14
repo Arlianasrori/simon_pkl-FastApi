@@ -16,6 +16,7 @@ from ....error.errorHandling import HttpException
 from ....utils.updateTable import updateTable
 from python_random_strings import random_strings
 import os
+from ....utils.sendOtp import sendOtp
 
 async def getSiswa(id_siswa : int,session : AsyncSession) -> SiswaBase :
     findSiswa = (await session.execute(select(Siswa).where(Siswa.id == id_siswa))).scalar_one_or_none()
@@ -103,4 +104,18 @@ async def updateFotoProfile(id_siswa : int,foto_profile : UploadFile,session : A
     return {
         "msg" : "success",
         "data" : siswaDictCopy
+    }
+
+async def sendOtpForVerifySiswa(id_siswa : int,session : AsyncSession) -> SiswaBase :
+    findSiswa = (await session.execute(select(Siswa).where(Siswa.id == id_siswa))).scalar_one_or_none()
+    if not findSiswa :
+        raise HttpException(404,f"siswa tidak ditemukan")
+    
+    otp = await sendOtp(findSiswa.email)
+    findSiswa.OTP_code = otp
+    await session.commit()
+    
+    return {
+        "msg" : "success",
+        "data" : findSiswa
     }

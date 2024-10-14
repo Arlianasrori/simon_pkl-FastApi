@@ -66,6 +66,10 @@ async def updateGuruPembimbing(guru : dict = Depends(getGuruPembimbingAuth),body
 async def updateGuruPembimbing(foto_profile : UploadFile,guru : dict = Depends(getGuruPembimbingAuth),session : sessionDepedency = None):
     return await profileAuthService.updateFotoProfile(guru["id"],foto_profile,session)
 
+@guruPembimbingRouter.post("/profile/send-otp-verify",response_model=ResponseModel[GuruPembimbingBase],tags=["GURU-PEMBIMBING/PROFILE-AUTH"])
+async def sendOtpForVerifyGuru(guru : dict = Depends(getGuruPembimbingAuth),session : sessionDepedency = None):
+    return await profileAuthService.sendOtpForVerifyGuru(guru["id"],session)
+
 # siswa-manage
 @guruPembimbingRouter.get("/siswa",response_model=ResponseModel[ResponseSiswaPag | list[SiswaWithDudi]],tags=["GURU-PEMBIMBING/SISWA-MANAGE"])
 async def getSiswa(page : int | None = None, guru : dict = Depends(getGuruPembimbingAuth),session : sessionDepedency = None):
