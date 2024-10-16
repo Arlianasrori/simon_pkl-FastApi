@@ -18,7 +18,7 @@ from datetime import datetime
 from multiprocessing import Process
 
 # notification
-from ..notification.notifUtils import runningProccessSync
+from ..notification_siswa.notifUtils import runningProccessSyncPengajuan
 
 async def addPengajuanCancelPkl(id_siswa : int,pengajuan : AddPengajuanCancelPklBody,session : AsyncSession) -> PengajuanCancelPklBase :
     findSiswa = (await session.execute(select(Siswa).filter(Siswa.id == id_siswa))).scalar_one_or_none()
@@ -42,7 +42,7 @@ async def addPengajuanCancelPkl(id_siswa : int,pengajuan : AddPengajuanCancelPkl
     await session.commit()
 
     # Menjalankan addNotif dalam proses terpisah
-    proccess = Process(target=runningProccessSync,args=(pengajuanCancelMapping["id_dudi"],siswaDictCopy["nama"],True))
+    proccess = Process(target=runningProccessSyncPengajuan,args=(pengajuanCancelMapping["id_dudi"],siswaDictCopy["nama"],True,pengajuanCancelMapping["id"]))
     proccess.start()
 
     return {

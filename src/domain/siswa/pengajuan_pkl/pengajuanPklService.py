@@ -19,7 +19,7 @@ from datetime import datetime
 from multiprocessing import Process
 
 # notif
-from ..notification.notifUtils import runningProccessSync
+from ..notification_siswa.notifUtils import runningProccessSyncPengajuan
 
 
 async def addPengajuanPkl(id_siswa : int,id_sekolah : int,pengajuan : AddPengajuanPklBody,session : AsyncSession) -> PengajuanPklWithDudi :
@@ -135,7 +135,7 @@ async def addPengajuanPkl(id_siswa : int,id_sekolah : int,pengajuan : AddPengaju
     await session.commit()
 
     # Menjalankan addNotif dalam proses terpisah
-    proccess = Process(target=runningProccessSync,args=(pengajuan.id_dudi,siswaDictCopy["nama"]))
+    proccess = Process(target=runningProccessSyncPengajuan,args=(pengajuan.id_dudi,siswaDictCopy["nama"],False,pengjuanPklMapping["id"]))
     proccess.start()
 
     return {

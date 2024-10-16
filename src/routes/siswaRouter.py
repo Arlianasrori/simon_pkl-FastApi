@@ -59,7 +59,7 @@ from ..domain.siswa.absen.get_absen.getAbsenModel import FilterAbsen,AbsenRespon
 from ..domain.models_domain.absen_model import MoreAbsen,MoreAbsenWithDokumenSakit,MoreAbsenWithHariAbsen
 
 # notification
-from ..domain.siswa.notification import notificationService
+from ..domain.siswa.notification_siswa import notificationService
 from ..domain.models_domain.notification_model import NotificationModelBase,ResponseGetUnreadNotification,ResponseGetAllNotification
 
 from ..db.sessionDepedency import sessionDepedency

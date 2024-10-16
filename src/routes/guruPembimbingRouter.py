@@ -32,7 +32,8 @@ from ..domain.guru_pembimbing.laporan_kendala.laporanKendalaModel import Laporan
 
 # laporan-kendala-dudi
 from ..domain.guru_pembimbing.laporan_kendala_dudi import laporanKendalaDudiService
-from ..domain.guru_pembimbing.laporan_kendala_dudi.laporanKendalaDudiModel import Filter,LaporanKendalaDudiResponse,LaporanKendalaDudiWithSiswa
+from ..domain.guru_pembimbing.laporan_kendala_dudi.laporanKendalaDudiModel import Filter,LaporanKendalaDudiResponse
+from ..domain.models_domain.laporan_kendala_dudi_model import LaporanKendalaDudiWithSiswaPembimbingDudi
 
 # get-dudi
 from ..domain.guru_pembimbing.get_dudi import getDudiService
@@ -49,7 +50,7 @@ from ..domain.guru_pembimbing.absen.absenModel import FilterAbsen,AbsenResponse
 from ..domain.models_domain.absen_model import MoreAbsen
 
 # notification
-from ..domain.guru_pembimbing.notification import notificationService
+from ..domain.guru_pembimbing.notification_guru_pembimbing import notificationService
 from ..domain.models_domain.notification_model import NotificationModelBase,ResponseGetUnreadNotification,ResponseGetAllNotification
 
 # common
@@ -128,7 +129,7 @@ async def getLaporanKendalaSiswaById(id_laporan : int, guru : dict = Depends(get
 async def getAllLaporanKendalaDudi(filter : Filter = Depends(), guru : dict = Depends(getGuruPembimbingAuth),session : sessionDepedency = None):
     return await laporanKendalaDudiService.getAllLaporanKendalaDudi(guru["id"],guru["id_sekolah"],filter,session)
 
-@guruPembimbingRouter.get("/laporan-kendala-sdudi/{id_laporan}",response_model=ResponseModel[LaporanKendalaDudiWithSiswa],tags=["GURU-PEMBIMBING/LAPORAN-KENDALA-DUDI"])
+@guruPembimbingRouter.get("/laporan-kendala-dudi/{id_laporan}",response_model=ResponseModel[LaporanKendalaDudiWithSiswaPembimbingDudi],tags=["GURU-PEMBIMBING/LAPORAN-KENDALA-DUDI"])
 async def getLaporanKendalaSiswaById(id_laporan : int, guru : dict = Depends(getGuruPembimbingAuth),session : sessionDepedency = None):
     return await laporanKendalaDudiService.getLaporanKendalaById(id_laporan,guru["id"],session)
 
