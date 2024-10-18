@@ -4,8 +4,8 @@ from sqlalchemy.orm import joinedload
 
 # models
 from .getAbsenModel import FilterAbsen,AbsenResponse
-from ....models_domain.absen_model import MoreAbsen,MoreAbsenWithDokumenSakit,MoreAbsenWithDudiHariAbsen
-from .....models.absenModel import Absen,AbsenJadwal,HariAbsen,HariEnum
+from ....models_domain.absen_model import MoreAbsen,MoreAbsenWithHariAbsen
+from .....models.absenModel import Absen,HariAbsen,AbsenJadwal
 from .....models.siswaModel import Siswa
 
 # common
@@ -27,29 +27,36 @@ async def getAllAbsen(id_siswa : int,filter : FilterAbsen,isThreeDay : bool,sess
         extract('day', Absen.tanggal) == filter.day if filter.day else True
         )).order_by(desc(Absen.tanggal)))).scalars().all()
     
+    locale_id = Locale('id', 'ID')
+    absenDict: dict[str, list[Absen]] = {}
+    for absen in findAbsen:
+        dateFormat = format_date(absen.tanggal, format="EEEE, d MMMM yyyy", locale=locale_id)
+        if dateFormat not in absenDict:
+            absenDict[dateFormat] = []
+        absenDict[dateFormat].append(absen)
 
     return {
         "msg" : "success",
-        "data" : findAbsen
+        "data" : absenDict
     }
 
-async def getAbsenById(id_absen : int,id_siswa : int,session : AsyncSession) -> MoreAbsenWithDudiHariAbsen :  
-    findAbsen = (await session.execute(select(Absen).options(joinedload(Absen.siswa).joinedload(Siswa.dudi),joinedload(Absen.keterangan_absen_masuk),joinedload(Absen.keterangan_absen_pulang),joinedload(Absen.dokumenSakit),joinedload(Absen.jadwal_absen).options(joinedload(AbsenJadwal.dudi))).where(and_(Absen.id == id_absen,Absen.id_siswa == id_siswa)))).scalar_one_or_none()
+async def getAbsenById(id_absen : int,id_siswa : int,session : AsyncSession) -> MoreAbsenWithHariAbsen :
+    findAbsen = (await session.execute(select(Absen).options(joinedload(Absen.siswa).joinedload(Siswa.dudi),joinedload(Absen.keterangan_absen_masuk),joinedload(Absen.keterangan_absen_pulang),joinedload(Absen.dokumenSakit)).where(and_(Absen.id == id_absen,Absen.id_siswa == id_siswa)))).scalar_one_or_none()
 
     if not findAbsen :
         raise HttpException(404,"absen tidak ditemukan")
     
     locale_id = Locale('id', 'ID')
-    date_key = format_date(findAbsen.tanggal, format="EEEE, d MMMM yyyy", locale=locale_id)
-    day = date_key.split(" ")[0].split(",")[0]
-    print(day)
     
-    findHariAbsen = (await session.execute(select(HariAbsen).where(and_(HariAbsen.id_jadwal == findAbsen.id_absen_jadwal,HariAbsen.hari == day.lower())))).scalar_one_or_none()
-    findAbsenDict = findAbsen.__dict__
+    day = format_date(findAbsen.tanggal, format="EEEE, d MMMM yyyy", locale=locale_id).split(" ")[0].split(",")[0]
+
+    findHari = (await session.execute(select(HariAbsen).where(and_(HariAbsen.id_jadwal == findAbsen.id_absen_jadwal,HariAbsen.hari == day.lower())))).scalar_one_or_none()
+
+    findAbsenDictCopy = findAbsen.__dict__
     return {
         "msg" : "success",
         "data" : {
-            **findAbsenDict,
-            "jadwal_hari" : findHariAbsen
+            **findAbsenDictCopy,
+            "keterangan_hari" : findHari
         }
     }

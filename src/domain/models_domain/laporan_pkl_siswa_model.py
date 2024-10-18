@@ -6,6 +6,8 @@ from .dudi_model import DudiBase
 class LaporanPklWithoutDudiAndSiswa(BaseModel) :
     id : int
     topik_pekerjaan : str
+    tanggal : Date
+    tanggal : Date
     rujukan_kompetensi_dasar : str
     dokumentasi :  str | None = None
 

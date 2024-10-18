@@ -5,10 +5,10 @@ from sqlalchemy.orm import joinedload
 
 # models
 from .pengajuanCancelPklModel import AddPengajuanCancelPklBody
-from ...models_domain.pengajuan_cancel_pkl_model import PengajuanCancelPklWithDudi,PengajuanCancelPklBase
+from ...models_domain.pengajuan_cancel_pkl_model import PengajuanCancelPklWithDudi,PengajuanCancelPklWithDudiAlamat,PengajuanCancelPklBase
 from ....models.pengajuanPklModel import PengajuanCancelPKL,StatusCancelPKLENUM
 from ....models.siswaModel import Siswa,StatusPKLEnum
-from ....models.pembimbingDudiModel import PembimbingDudi
+from ....models.dudiModel import Dudi
 
 # common
 from ....error.errorHandling import HttpException
@@ -76,8 +76,8 @@ async def cancelPengjuan(id_siswa : int,id_pengajuan : int,session : AsyncSessio
         "data" : pengajuanDict
     }
 
-async def getPengajuanCancelPklById(id_siswa : int,id_pengajuan : int,session : AsyncSession) -> PengajuanCancelPklWithDudi :
-    findPengajuanCancelPkl = (await session.execute(select(PengajuanCancelPKL).options(joinedload(PengajuanCancelPKL.dudi)).filter(and_(PengajuanCancelPKL.id == id_pengajuan,PengajuanCancelPKL.id_siswa == id_siswa)))).scalar_one_or_none()
+async def getPengajuanCancelPklById(id_siswa : int,id_pengajuan : int,session : AsyncSession) -> PengajuanCancelPklWithDudiAlamat :
+    findPengajuanCancelPkl = (await session.execute(select(PengajuanCancelPKL).options(joinedload(PengajuanCancelPKL.dudi).joinedload(Dudi.alamat)).filter(and_(PengajuanCancelPKL.id == id_pengajuan,PengajuanCancelPKL.id_siswa == id_siswa)))).scalar_one_or_none()
     
     if not findPengajuanCancelPkl :
         raise HttpException(404,"pengajuan cancel pkl tidak ditemukan")

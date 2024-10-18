@@ -105,13 +105,15 @@ async def cekAbsen(id_siswa : int,id_dudi : int | None,koordinat : RadiusBody,se
         await session.refresh(findHariAbsenNow)
 
         # validasi ketika user belum melakukan absen masuk dan sudah melewati waktu absen pulang
+        print('ttytytyt')
         if timeNow > findHariAbsenNow.batas_absen_pulang :
-                    return {
-                        "msg" : "anda sudah melewati batas absen,anda dinyatakan tidak hadir hari ini",
-                        "data" : {
-                            "canAbsen" : False
-                        }
-                    }
+            print('njnjnj')
+            return {
+                "msg" : "anda sudah melewati batas absen,anda dinyatakan tidak hadir hari ini",
+                "data" : {
+                    "canAbsen" : False
+                }
+            }
         # validasi ketika user belum melakukan absen masuk dan sudah melewati batas absen masuk
         elif timeNow > findHariAbsenNow.batas_absen_masuk :
             return {
@@ -145,22 +147,24 @@ async def cekAbsen(id_siswa : int,id_dudi : int | None,koordinat : RadiusBody,se
                     }
             # validate jika waktu sekarang sudah melebihi batas absen masuk
             if timeNow > findHariAbsenNow.batas_absen_masuk :
+                print("gyvygvuyvyg")
                 # validasi jika waktu telah melebihi batas absen pulang,siswa tidak dapat melakukan absen lagi untuk hari ini
                 if timeNow > findHariAbsenNow.batas_absen_pulang :
+                    print("ghbh b")
                     return {
                         "msg" : "anda sudah melewati batas absen,anda dinyatakan tidak hadir hari ini",
                         "data" : {
                             "canAbsen" : False
                         }
                     }
-
-                return {
-                    "msg" : "anda sudah melewati batas absen masuk yang ditentukan,silahkan anda melakukan melakukan absen masuk dengan status telat untuk absen masuk",
-                    "data" : {
-                        "canAbsen" : True,
-                        "jenis_absen" : JenisAbsenEnum.TELAT
+                else :
+                    return {
+                        "msg" : "anda sudah melewati batas absen masuk yang ditentukan,silahkan anda melakukan melakukan absen masuk dengan status telat untuk absen masuk",
+                        "data" : {
+                            "canAbsen" : True,
+                            "jenis_absen" : JenisAbsenEnum.TELAT
+                        }
                     }
-                }
             # jika tidak telat
             else :
                 return {

@@ -6,34 +6,32 @@ from sqlalchemy.orm import joinedload
 from ....models.laporanPklModel import LaporanSiswaPKL
 from ...models_domain.laporan_pkl_siswa_model import LaporanPklSiswaBase
 from ....models.siswaModel import Siswa
-from .laporanPklSiswaModel import FilterBySiswa,ResponselaporanPklSiswaPag
+from .laporanPklSiswaModel import FilterBySiswa,LaporanResponse
 
 # common
 from ....error.errorHandling import HttpException
 import math
+from collections import defaultdict
+from babel.dates import format_date
+from babel import Locale
 
-async def getAllLaporanPklSiswa(id_guru : int,id_sekolah : int,filter : FilterBySiswa,page : int | None,session : AsyncSession) -> list[LaporanPklSiswaBase] | ResponselaporanPklSiswaPag :
-    print(filter)
+async def getAllLaporanPklSiswa(id_guru : int,id_sekolah : int,filter : FilterBySiswa,session : AsyncSession) -> list[LaporanPklSiswaBase] | LaporanResponse :
     statementSelectLaporanPklSiswa = select(LaporanSiswaPKL).options(joinedload(LaporanSiswaPKL.siswa),joinedload(LaporanSiswaPKL.dudi)).where(and_(LaporanSiswaPKL.siswa.has(Siswa.id_sekolah == id_sekolah),LaporanSiswaPKL.siswa.has(Siswa.id_guru_pembimbing == id_guru),LaporanSiswaPKL.id_siswa == filter.id_siswa if filter.id_siswa else True,LaporanSiswaPKL.siswa.has(Siswa.nama.ilike(f"%{filter.nama_siswa}%") if filter.nama_siswa else True)))
 
-    if page is not None :
-        findLaporan = (await session.execute(statementSelectLaporanPklSiswa.limit(10).offset(10 * (page - 1)))).scalars().all()
-        conntData = (await session.execute(func.count(LaporanSiswaPKL.id))).scalar_one()
-        countPage = math.ceil(conntData / 10)
-        return {
-            "msg" : "success",
-            "data" : {
-                "data" : findLaporan,
-                "count_data" : len(findLaporan),
-                "count_page" : countPage
-            }
-        } 
-    else :
-        findLaporan = (await session.execute(statementSelectLaporanPklSiswa)).scalars().all()
-        return {
-            "msg" : "success",
-            "data" : findLaporan
-        }
+    
+    findLaporan = (await session.execute(statementSelectLaporanPklSiswa)).scalars().all()
+
+    grouped_laporan = defaultdict(list)
+     # Membuat locale Indonesia
+    locale_id = Locale('id', 'ID')
+    for laporan in findLaporan:
+        date_key = format_date(laporan.tanggal, format="EEEE, d MMMM yyyy", locale=locale_id)
+        grouped_laporan[date_key].append(laporan)
+
+    return {
+        "msg" : "success",
+        "data" : grouped_laporan
+    }
 
 async def getLaporanPklSiswaById(id_laporan : int,id_guru : int,session : AsyncSession) -> LaporanPklSiswaBase :
     findLaporan = (await session.execute(select(LaporanSiswaPKL).where(and_(LaporanSiswaPKL.id == id_laporan,LaporanSiswaPKL.siswa.has(Siswa.id_guru_pembimbing == id_guru))))).scalar_one_or_none()

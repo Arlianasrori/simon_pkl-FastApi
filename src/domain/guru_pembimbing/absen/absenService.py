@@ -12,9 +12,6 @@ from ....models.siswaModel import Siswa
 # common
 from ....error.errorHandling import HttpException
 from datetime import datetime,timedelta
-from collections import defaultdict
-from babel.dates import format_date
-from babel import Locale
 
 async def getAllAbsen(id_guru : int,filter : FilterAbsen,isSevenDay : bool,session : AsyncSession) -> AbsenResponse :
     seven_days_ago = datetime.now() - timedelta(days=7)
@@ -30,24 +27,9 @@ async def getAllAbsen(id_guru : int,filter : FilterAbsen,isSevenDay : bool,sessi
         Absen.siswa.has(Siswa.nama.like(f"%{filter.nama}%")) if filter.nama else True,
         )).order_by(desc(Absen.tanggal)))).scalars().all()
     
-
-    grouped_absen = defaultdict(list)
-     # Membuat locale Indonesia
-    locale_id = Locale('id', 'ID')
-    for absen in findAbsen:
-        date_key = format_date(absen.tanggal, format="EEEE, d MMMM yyyy", locale=locale_id)
-        grouped_absen[date_key].append(absen)
-
-    # absenDict: dict[str, list[Absen]] = {}
-    # for absen in findAbsen:
-    #     tanggal_str = absen.tanggal.strftime("%Y-%m-%d")
-    #     if tanggal_str not in absenDict:
-    #         absenDict[tanggal_str] = []
-    #     absenDict[tanggal_str].append(absen)
-    
     return {
         "msg" : "success",
-        "data" : grouped_absen
+        "data" : findAbsen
     }
 
 

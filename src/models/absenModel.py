@@ -95,7 +95,7 @@ class IzinAbsenMasuk(Base):
     id = Column(Integer, primary_key=True)
     id_absen = Column(Integer, ForeignKey('absen.id'), unique=True)
     note = Column(String(30000))
-    insideRadius = Column(Boolean,nullable=False)
+    inside_radius = Column(Boolean)
     status_izin = Column(Enum(StatusOtherAbsenEnum))
 
     absen = relationship("Absen", back_populates="keterangan_absen_masuk")
@@ -106,7 +106,7 @@ class IzinAbsenPulang(Base):
     id = Column(Integer, primary_key=True)
     id_absen = Column(Integer, ForeignKey('absen.id'), unique=True)
     note = Column(String(30000))
-    insideRadius = Column(Boolean,nullable=False)
+    inside_radius = Column(Boolean)
     status_izin = Column(Enum(StatusOtherAbsenEnum))
 
     absen = relationship("Absen", back_populates="keterangan_absen_pulang")

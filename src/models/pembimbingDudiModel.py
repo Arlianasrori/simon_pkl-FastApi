@@ -32,6 +32,7 @@ class PembimbingDudi(User):
     dudi = relationship("Dudi", back_populates="pembimbing_dudi")
     sekolah = relationship("Sekolah", back_populates="pembimbing_dudi")
     tahun = relationship("TahunSekolah", back_populates="pembimbing_dudi")
+    laporan_kendala_dudi = relationship("LaporanKendalaDudi", back_populates="pembimbingDudi")
     
     __mapper_args__ = {
         'polymorphic_identity': UserTypeEnum.PEMBIMBING_DUDI,

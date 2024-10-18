@@ -1,6 +1,8 @@
-from pydantic import BaseModel
-from datetime import datetime 
+from pydantic import BaseModel,field_validator
 from ...models_domain.absen_model import AbsenWithSiswaDudi 
+from babel.dates import format_date
+from babel import Locale
+
 
 class FilterAbsen(BaseModel) :
     year : int | None = None
@@ -9,11 +11,9 @@ class FilterAbsen(BaseModel) :
     id_siswa : int | None = None
     nama : str | None = None
 
-class AbsenResponse(BaseModel):
-    msg: str
-    data: dict[datetime, list[AbsenWithSiswaDudi]]
-
-    class Config:
-        json_encoders = {
-            datetime: lambda v: v.isoformat()
-        }
+class AbsenResponse(AbsenWithSiswaDudi):
+    tanggal : str
+    @field_validator('tanggal',mode='before')
+    def validate_tanggal(cls,v):
+        locale_id = Locale('id', 'ID')
+        return format_date(v, format="EEEE, d MMMM yyyy", locale=locale_id)

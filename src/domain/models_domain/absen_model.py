@@ -11,14 +11,14 @@ dayCodeSet = (HariEnum.senin,HariEnum.selasa,HariEnum.rabu,HariEnum.kamis,HariEn
 class KeteranganAbsenMasuk(BaseModel) :
     id : int
     note : str
-    insideRadius : bool
     status_izin : StatusOtherAbsenEnum
+    inside_radius : bool
 
 class KeteranganAbsenKeluar(BaseModel) :
     id : int
     note : str
-    insideRadius : bool
     status_izin : StatusOtherAbsenEnum
+    inside_radius : bool
 
 class AbsenBase(BaseModel):
     id : int
@@ -59,12 +59,14 @@ class MoreAbsen(AbsenBase) :
     keterangan_absen_masuk : KeteranganAbsenMasuk | None = None
     keterangan_absen_pulang : KeteranganAbsenKeluar | None = None
 
-class MoreAbsenSiswaWithDudi(AbsenBase) :
+
+class MoreAbsenWithSiswaDudi(AbsenBase) :
     siswa : SiswaWithDudiWithOutKelasJurusan
     keterangan_absen_masuk : KeteranganAbsenMasuk | None = None
     keterangan_absen_pulang : KeteranganAbsenKeluar | None = None
-    
-class MoreAbsenWithDokumenSakit(MoreAbsenSiswaWithDudi) :
+    dokumenSakit : DokumenAbsenSakitBase | None = None
+
+class MoreAbsenWithDokumenSakit(MoreAbsen) :
     dokumenSakit : DokumenAbsenSakitBase | None = None
 
 # jadwal absen
@@ -93,6 +95,6 @@ class koordinatAbsenBase(BaseModel) :
 
 class KoordinatAbsenWithDudi(koordinatAbsenBase) :
     dudi : DudiBase
-    
-class MoreAbsenWithDudiHariAbsen(MoreAbsenWithDokumenSakit) :
-    jadwal_hari : HariAbsenBase
+
+class MoreAbsenWithHariAbsen(MoreAbsenWithSiswaDudi) :
+    keterangan_hari : HariAbsenBase | None = None
