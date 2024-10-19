@@ -133,6 +133,7 @@ async def getDudi(id_siswa : int,id_sekolah : int,page : int,filter : FilterGetD
                 if findSiswa.jenis_kelamin == JenisKelaminEnum.laki :
                     # cek apakah sisa kuota pada dudi lebih kecil atau sama dengan jumlah kuota yang belum terpenuhi disemua jurusan.Maksudnya apakah sisa kuota pada dudi masih bisa menampung total kuota yang ada pada jurusan.jika tidak bisa maka user dengan jurusan selain itu tidak diizinkan
                     if sisakuotaDudiPria <= kebutuhanJurusanLaki :
+                        print("p")
                         dudiDict["tersedia"] = False
                 elif findSiswa.jenis_kelamin == JenisKelaminEnum.perempuan :
                     # cek apakah sisa kuota pada dudi lebih kecil atau sama dengan jumlah kuota yang belum terpenuhi disemua jurusan.Maksudnya apakah sisa kuota pada dudi masih bisa menampung total kuota yang ada pada jurusan.jika tidak bisa maka user dengan jurusan selain itu tidak diizinkan

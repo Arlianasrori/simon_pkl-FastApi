@@ -19,6 +19,9 @@ from ..absen_utils.selisihTanggal import get_date_difference_in_days
 from ..radius_absen.radiusAbsenService import cekRadiusAbsen
 from python_random_strings import random_strings
 
+# notification
+from ...notification_siswa.notifUtils import runningProccessSyncAbsen,AddNotifAfterAbsen
+from multiprocessing import Process
 
 async def absenMasuk(id_siswa : int,id_dudi : int,radius : RadiusBody,image : UploadFile,session : AsyncSession) -> AbsenBase :   
     await validateRadius(id_dudi,radius,session)
@@ -75,6 +78,10 @@ async def absenMasuk(id_siswa : int,id_dudi : int,radius : RadiusBody,image : Up
 
     absenTodayDictCopy = deepcopy(findAbsenToday.__dict__)
     await session.commit()
+
+    proccess = Process(target=runningProccessSyncAbsen,args=(id_siswa,findAbsenToday.id,"masuk"))
+    proccess.start()
+
 
     return {
         "msg" : "success",
@@ -144,6 +151,9 @@ async def absenPulang(id_siswa : int,id_dudi : int,radius : RadiusBody,image : U
     absenTodayDictCopy = deepcopy(findAbsenToday.__dict__)
     await session.commit()
 
+    proccess = Process(target=runningProccessSyncAbsen,args=(id_siswa,findAbsenToday.id,"pulang"))
+    proccess.start()
+
     return {
         "msg" : "success",
         "data" : absenTodayDictCopy
@@ -211,6 +221,9 @@ async def absenDiluarRadius(id_siswa : int,id_dudi : int,note : str,radius : Rad
     absenTodayDictCopy = deepcopy(findAbsenToday.__dict__)
     await session.commit()
 
+    proccess = Process(target=runningProccessSyncAbsen,args=(id_siswa,findAbsenToday.id,"diluar radius"))
+    proccess.start()
+
     return {
         "msg" : "absen diluar radius success",
         "data" : {
@@ -249,6 +262,8 @@ async def absenIzinTelat(id_siswa : int,id_dudi : int,note : str,statusIzin : Iz
     if selisihTanggalAbsen < 0 or selisihTanggalAbsen > selisihTanggalJadwal :
         raise HttpException(400,"tanggal absen tidak sesuai dengan jadwal")
     
+    # jenis absen untuk notifikasi
+    absenTypeForNotif = None
     # if user belum melakukan absen masuk atau handle izin telat pada absen masuk
     if not findAbsenToday.absen_masuk or not findAbsenToday.status_absen_masuk :
         # jika telah melewati batas absen pulang
@@ -270,7 +285,7 @@ async def absenIzinTelat(id_siswa : int,id_dudi : int,note : str,statusIzin : Iz
         } 
 
         session.add(IzinAbsenMasuk(**keteranganAbsenMasukMapping))
-        
+        absenTypeForNotif = "masuk"
     # if user sudah melakukan absen masuk atau handle izin telat pada absen pulang   
     else :
         # if user telah melakukan absen pulang,atau menyelsaikan absen
@@ -303,8 +318,14 @@ async def absenIzinTelat(id_siswa : int,id_dudi : int,note : str,statusIzin : Iz
         }
 
         session.add(IzinAbsenPulang(**keteranganAbsenPulangMapping))
+        absenTypeForNotif = "pulang"
 
+    id_absen = deepcopy(findAbsenToday.id)
     await session.commit()
+
+    proccess = Process(target=runningProccessSyncAbsen,args=(id_siswa,id_absen,f"{statusIzin.value} untuk jenis absen {absenTypeForNotif}"))
+    proccess.start()
+
     return {
         "msg" : "absen success"
     }
@@ -351,6 +372,9 @@ async def absenSakit(id_siswa : int,radius : RadiusBody,dokumen : UploadFile,not
 
     absenTodayDictCopy = deepcopy(findAbsenToday.__dict__)
     await session.commit()
+
+    proccess = Process(target=runningProccessSyncAbsen,args=(id_siswa,findAbsenToday.id,f"sakit"))
+    proccess.start()
 
     return {
         "msg" : "absen sakit success",

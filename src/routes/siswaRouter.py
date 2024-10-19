@@ -59,8 +59,8 @@ from ..domain.siswa.absen.get_absen.getAbsenModel import FilterAbsen,AbsenRespon
 from ..domain.models_domain.absen_model import MoreAbsen,MoreAbsenWithDokumenSakit,MoreAbsenWithHariAbsen
 
 # notification
-from ..domain.siswa.notification import notificationService
-from ..domain.models_domain.notification_model import NotificationModelBase,ResponseGetUnreadNotification,ResponseGetAllNotification
+from ..domain.siswa.notification_siswa import notificationService
+from ..domain.models_domain.notification_model import NotificationModelBase,ResponseGetUnreadNotification,ResponseGetAllNotification,NotificationWithData
 
 from ..db.sessionDepedency import sessionDepedency
 from ..models.responseModel import ResponseModel
@@ -245,7 +245,7 @@ async def absenSakit(latitude: float = Form(...),longitude: float = Form(...),do
     return await absenEventService.absenSakit(siswa["id"],radius,dokumen,note,session)
 
 # get-absen
-@siswaRouter.get("/absen",response_model= AbsenResponse,tags=["SISWA/GETABSEN"])
+@siswaRouter.get("/absen",response_model=ResponseModel[list[MoreAbsen]],tags=["SISWA/GETABSEN"])
 async def getAllAbsen(isThreeDayAgo : bool | None = None,siswa : dict = Depends(getSiswaAuth),filter : FilterAbsen = Depends(),session : sessionDepedency = None):
     return await getAbsenService.getAllAbsen(siswa["id"],filter,isThreeDayAgo,session)
 
@@ -258,7 +258,7 @@ async def getAbsenById(id_absen : int,siswa : dict = Depends(getSiswaAuth),sessi
 async def getAllNotification(siswa : dict = Depends(getSiswaAuth),session : sessionDepedency = None):
     return await notificationService.getAllNotification(siswa["id"],siswa["id_dudi"],session)
 
-@siswaRouter.get("/notification/{id_notification}",response_model=ResponseModel[NotificationModelBase],tags=["SISWA/NOTIFICATION"])
+@siswaRouter.get("/notification/{id_notification}",response_model=ResponseModel[NotificationWithData],tags=["SISWA/NOTIFICATION"])
 async def getNotificationById(id_notification : int,siswa : dict = Depends(getSiswaAuth),session : sessionDepedency = None):
     return await notificationService.getNotificationById(id_notification,siswa["id"],siswa["id_dudi"],session)
 

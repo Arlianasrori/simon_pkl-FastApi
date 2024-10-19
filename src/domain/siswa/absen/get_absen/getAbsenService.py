@@ -27,17 +27,17 @@ async def getAllAbsen(id_siswa : int,filter : FilterAbsen,isThreeDay : bool,sess
         extract('day', Absen.tanggal) == filter.day if filter.day else True
         )).order_by(desc(Absen.tanggal)))).scalars().all()
     
-    locale_id = Locale('id', 'ID')
-    absenDict: dict[str, list[Absen]] = {}
-    for absen in findAbsen:
-        dateFormat = format_date(absen.tanggal, format="EEEE, d MMMM yyyy", locale=locale_id)
-        if dateFormat not in absenDict:
-            absenDict[dateFormat] = []
-        absenDict[dateFormat].append(absen)
+    # locale_id = Locale('id', 'ID')
+    # absenDict: dict[str, list[Absen]] = {}
+    # for absen in findAbsen:
+    #     tanggal_str = absen.tanggal.strftime("%Y-%m-%d")
+    #     if tanggal_str not in absenDict:
+    #         absenDict[tanggal_str] = []
+    #     absenDict[tanggal_str].append(absen)
 
     return {
         "msg" : "success",
-        "data" : absenDict
+        "data" : findAbsen
     }
 
 async def getAbsenById(id_absen : int,id_siswa : int,session : AsyncSession) -> MoreAbsenWithHariAbsen :
