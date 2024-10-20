@@ -63,6 +63,8 @@ async def updatekoordinatAbsen(id_dudi : int,id_koordinat : str,koordinat : Upda
         if not is_valid_longitude(koordinat.longitude) :
             raise HttpException(400,"koordinat longitude tidak valid")
         findKoordinat.longitude = koordinat.longitude
+    if koordinat.radius_absen_meter :
+        findKoordinat.radius_absen_meter = koordinat.radius_absen_meter
     koordinatDictCopy = deepcopy(findKoordinat.__dict__)
     await session.commit()
 

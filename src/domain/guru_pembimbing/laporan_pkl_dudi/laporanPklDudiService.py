@@ -6,6 +6,7 @@ from sqlalchemy.orm import joinedload
 from ....models.laporanPklModel import LaporanPKL
 from ...models_domain.laporan_pkl_dudi_model import LaporanPklDudiBase
 from .laporanPklDudiModel import Filter,LaporanDudiResponse 
+from ....models.dudiModel import Dudi
 from ....models.siswaModel import Siswa
 
 # common
@@ -17,7 +18,11 @@ from babel import Locale
 
 async def getAllLaporanPklDudi(id_guru : int,id_sekolah : int,filter : Filter,session : AsyncSession) -> LaporanDudiResponse :
     print(filter)
-    statementSelectLaporanPklDudi = select(LaporanPKL).options(joinedload(LaporanPKL.siswa),joinedload(LaporanPKL.dudi),joinedload(LaporanPKL.pembimbing_dudi)).where(and_(LaporanPKL.siswa.has(Siswa.id_sekolah == id_sekolah),LaporanPKL.siswa.has(Siswa.id_guru_pembimbing == id_guru),LaporanPKL.id_dudi == filter.id_dudi if filter.id_dudi else True,LaporanPKL.id_siswa == filter.id_siswa if filter.id_siswa else True))
+    findAllSiswa = (await session.execute(select(Siswa).where(Siswa.id_guru_pembimbing == id_guru))).scalars().all()
+    
+    list_id_dudi = [siswa.id_dudi for siswa in findAllSiswa]
+    
+    statementSelectLaporanPklDudi = select(LaporanPKL).options(joinedload(LaporanPKL.dudi),joinedload(LaporanPKL.pembimbing_dudi)).where(and_(LaporanPKL.dudi.has(Dudi.id_sekolah == id_sekolah),LaporanPKL.id_dudi.in_(list_id_dudi),LaporanPKL.id_dudi == filter.id_dudi if filter.id_dudi else True))
 
     findLaporan = (await session.execute(statementSelectLaporanPklDudi)).scalars().all()
 
@@ -34,7 +39,7 @@ async def getAllLaporanPklDudi(id_guru : int,id_sekolah : int,filter : Filter,se
     }
 
 async def getLaporanPklDudiById(id_laporan : int,id_guru : int,session : AsyncSession) -> LaporanPklDudiBase :
-    findLaporan = (await session.execute(select(LaporanPKL).options(joinedload(LaporanPKL.siswa),joinedload(LaporanPKL.dudi),joinedload(LaporanPKL.pembimbing_dudi)).where(and_(LaporanPKL.id == id_laporan,LaporanPKL.siswa.has(Siswa.id_guru_pembimbing == id_guru))))).scalar_one_or_none()
+    findLaporan = (await session.execute(select(LaporanPKL).options(joinedload(LaporanPKL.dudi),joinedload(LaporanPKL.pembimbing_dudi)).where(and_(LaporanPKL.id == id_laporan)))).scalar_one_or_none()
     if not findLaporan :
         raise HttpException(404,"laporan tidak ditemukan")
     

@@ -27,6 +27,13 @@ async def getAllAbsen(id_siswa : int,filter : FilterAbsen,isThreeDay : bool,sess
         extract('day', Absen.tanggal) == filter.day if filter.day else True
         )).order_by(desc(Absen.tanggal)))).scalars().all()
     
+    # locale_id = Locale('id', 'ID')
+    # absenDict: dict[str, list[Absen]] = {}
+    # for absen in findAbsen:
+    #     tanggal_str = absen.tanggal.strftime("%Y-%m-%d")
+    #     if tanggal_str not in absenDict:
+    #         absenDict[tanggal_str] = []
+    #     absenDict[tanggal_str].append(absen)
 
     return {
         "msg" : "success",
@@ -36,11 +43,11 @@ async def getAllAbsen(id_siswa : int,filter : FilterAbsen,isThreeDay : bool,sess
 async def getAbsenById(id_absen : int,id_siswa : int,session : AsyncSession) -> MoreAbsenWithHariAbsen :
     findAbsen = (await session.execute(select(Absen).options(joinedload(Absen.siswa).joinedload(Siswa.dudi),joinedload(Absen.keterangan_absen_masuk),joinedload(Absen.keterangan_absen_pulang),joinedload(Absen.dokumenSakit)).where(and_(Absen.id == id_absen,Absen.id_siswa == id_siswa)))).scalar_one_or_none()
 
-
     if not findAbsen :
         raise HttpException(404,"absen tidak ditemukan")
     
     locale_id = Locale('id', 'ID')
+    
     day = format_date(findAbsen.tanggal, format="EEEE, d MMMM yyyy", locale=locale_id).split(" ")[0].split(",")[0]
 
     findHari = (await session.execute(select(HariAbsen).where(and_(HariAbsen.id_jadwal == findAbsen.id_absen_jadwal,HariAbsen.hari == day.lower())))).scalar_one_or_none()

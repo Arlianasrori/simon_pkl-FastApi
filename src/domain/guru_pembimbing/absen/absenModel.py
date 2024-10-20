@@ -1,5 +1,5 @@
 from pydantic import BaseModel,field_validator
-from ...models_domain.absen_model import AbsenWithSiswaDudi 
+from ...models_domain.absen_model import AbsenWithSiswaDudi,AbsenWithSiswaDudiJurusanKelas
 from babel.dates import format_date
 from babel import Locale
 
@@ -17,3 +17,7 @@ class AbsenResponse(AbsenWithSiswaDudi):
     def validate_tanggal(cls,v):
         locale_id = Locale('id', 'ID')
         return format_date(v, format="EEEE, d MMMM yyyy", locale=locale_id)
+
+class AbsenResponseFormat(BaseModel):
+    msg: str
+    data: dict[str, list[AbsenWithSiswaDudiJurusanKelas]]

@@ -24,15 +24,10 @@ async def addLaporanPkl(id_pembimbing_dudi : int,id_dudi : int,laporan : AddLapo
     laporanPklMapping = laporan.model_dump()
     laporanPklMapping.update({"id" : random_strings.random_digits(6),"id_dudi" : id_dudi,"id_pembimbing_dudi" : id_pembimbing_dudi})
 
-    findSiswa = (await session.execute(select(Siswa).where(and_(Siswa.id == laporanPklMapping["id_siswa"],Siswa.id_pembimbing_dudi == id_pembimbing_dudi)))).scalar_one_or_none()
-
-    if not findSiswa :
-        raise HttpException(404,f"siswa tidak ditemukan")
-
     session.add(LaporanPKL(**laporanPklMapping))
     await session.commit()
 
-    findLaporanPkl = (await session.execute(select(LaporanPKL).options(joinedload(LaporanPKL.siswa),joinedload(LaporanPKL.dudi),joinedload(LaporanPKL.pembimbing_dudi)).where(LaporanPKL.id == laporanPklMapping["id"]))).scalar_one_or_none()
+    findLaporanPkl = (await session.execute(select(LaporanPKL).options(joinedload(LaporanPKL.dudi),joinedload(LaporanPKL.pembimbing_dudi)).where(LaporanPKL.id == laporanPklMapping["id"]))).scalar_one_or_none()
 
     return {
         "msg" : "success",
@@ -75,30 +70,17 @@ async def addUpdateFileLaporanPkl(id_laporan_pkl : int,file : UploadFile,session
         "data" : laporanPklDictCopy
     }
 
-async def getLaporanPkl(id_pembimbing_dudi : int,page : int | None,session : AsyncSession) -> list[LaporanPklDudiBase] :
-    statementSelectlaporan = select(LaporanPKL).options(joinedload(LaporanPKL.siswa),joinedload(LaporanPKL.dudi),joinedload(LaporanPKL.pembimbing_dudi)).where(LaporanPKL.id_pembimbing_dudi == id_pembimbing_dudi)
+async def getLaporanPkl(id_pembimbing_dudi : int,session : AsyncSession) -> list[LaporanPklDudiBase] :
+    statementSelectlaporan = select(LaporanPKL).options(joinedload(LaporanPKL.dudi),joinedload(LaporanPKL.pembimbing_dudi)).where(LaporanPKL.id_pembimbing_dudi == id_pembimbing_dudi)
     
-    if page :
-        findLaporan = (await session.execute(statementSelectlaporan.limit(10).offset(10 * (page - 1)))).scalars().all()
-        conntData = (await session.execute(func.count(LaporanPKL.id))).scalar_one()
-        countPage = math.ceil(conntData / 10)
-        return {
-            "msg" : "success",
-            "data" : {
-                "data" : findLaporan,
-                "count_data" : len(findLaporan),
-                "count_page" : countPage
-            }
-        }
-    else :
-        findlaporan = (await session.execute(statementSelectlaporan)).scalars().all()
-        return {
-            "msg" : "success",
-            "data" : findlaporan
-        }
+    findlaporan = (await session.execute(statementSelectlaporan)).scalars().all()
+    return {
+        "msg" : "success",
+        "data" : findlaporan
+    }
 
 async def getLaporanPklById(id_laporan_pkl : int,id_pembimbing_dudi : int,session : AsyncSession) -> LaporanPklDudiBase :
-    findLaporanPkl = (await session.execute(select(LaporanPKL).options(joinedload(LaporanPKL.siswa),joinedload(LaporanPKL.dudi),joinedload(LaporanPKL.pembimbing_dudi)).where(and_(LaporanPKL.id == id_laporan_pkl,LaporanPKL.id_pembimbing_dudi == id_pembimbing_dudi)))).scalar_one_or_none()
+    findLaporanPkl = (await session.execute(select(LaporanPKL).options(joinedload(LaporanPKL.dudi),joinedload(LaporanPKL.pembimbing_dudi)).where(and_(LaporanPKL.id == id_laporan_pkl,LaporanPKL.id_pembimbing_dudi == id_pembimbing_dudi)))).scalar_one_or_none()
 
     if not findLaporanPkl :
         raise HttpException(404,f"laporan pkl tidak ditemukan")
@@ -109,7 +91,7 @@ async def getLaporanPklById(id_laporan_pkl : int,id_pembimbing_dudi : int,sessio
     }
 
 async def updateLaporanPkl(id_laporan_pkl : int,id_pembimbing_dudi : int,laporan : UpdateLaporanPklDudiBody,session : AsyncSession) -> LaporanPklDudiBase :
-    findLaporanPkl = (await session.execute(select(LaporanPKL).options(joinedload(LaporanPKL.siswa),joinedload(LaporanPKL.dudi),joinedload(LaporanPKL.pembimbing_dudi)).where(and_(LaporanPKL.id == id_laporan_pkl,LaporanPKL.id_pembimbing_dudi == id_pembimbing_dudi)))).scalar_one_or_none()
+    findLaporanPkl = (await session.execute(select(LaporanPKL).options(joinedload(LaporanPKL.dudi),joinedload(LaporanPKL.pembimbing_dudi)).where(and_(LaporanPKL.id == id_laporan_pkl,LaporanPKL.id_pembimbing_dudi == id_pembimbing_dudi)))).scalar_one_or_none()
 
     if not findLaporanPkl :
         raise HttpException(404,f"laporan pkl tidak ditemukan")
@@ -126,7 +108,7 @@ async def updateLaporanPkl(id_laporan_pkl : int,id_pembimbing_dudi : int,laporan
     }
     
 async def deleteLaporanPkl(id_laporan_pkl : int,id_pembimbing_dudi : int,session : AsyncSession) -> LaporanPklDudiBase :
-    findLaporanPkl = (await session.execute(select(LaporanPKL).options(joinedload(LaporanPKL.siswa),joinedload(LaporanPKL.dudi),joinedload(LaporanPKL.pembimbing_dudi)).where(and_(LaporanPKL.id == id_laporan_pkl,LaporanPKL.id_pembimbing_dudi == id_pembimbing_dudi)))).scalar_one_or_none()
+    findLaporanPkl = (await session.execute(select(LaporanPKL).options(joinedload(LaporanPKL.dudi),joinedload(LaporanPKL.pembimbing_dudi)).where(and_(LaporanPKL.id == id_laporan_pkl,LaporanPKL.id_pembimbing_dudi == id_pembimbing_dudi)))).scalar_one_or_none()
 
     if not findLaporanPkl :
         raise HttpException(404,f"laporan pkl tidak ditemukan")

@@ -11,4 +11,4 @@ class UpdateLaporanKendalaDudiBody(BaseModel):
     tanggal : Date | None = None
     kendala : str | None = None
     deskripsi : str | None = None
-    id_siswa : int
+    id_siswa : int | None = None

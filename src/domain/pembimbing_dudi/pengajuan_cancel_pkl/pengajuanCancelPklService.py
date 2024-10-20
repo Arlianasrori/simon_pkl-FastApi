@@ -16,7 +16,7 @@ import math
 from multiprocessing import Process
 
 # notification
-from ..notification.notificationUtils import runningProccessSync
+from ..notification_pembimbing_dudi.notificationUtils import runningProccessSync
 
 async def getAllPengajuancancelPkl(id_dudi : int,page : int | None,session : AsyncSession) -> list[PengajuanCancelPklWithSiswa] | ResponsePengajuanCancelPklPag :
     statementSelectPengajuanPkl = select(PengajuanCancelPKL).options(joinedload(PengajuanCancelPKL.siswa)).where(PengajuanCancelPKL.id_dudi == id_dudi)
@@ -83,10 +83,12 @@ async def accDccPengajuanPkl(id_pengajuan_cancel_pkl : int,id_dudi : int,pengaju
         print("tidak setuju")
     
     pengajuanDictCopy = deepcopy(findPengajuanPkl)
+    id_pengajuan = deepcopy(findPengajuanPkl.id)
+    
     await session.commit()
 
     # Menjalankan addNotif dalam proses terpisah
-    proccess = Process(target=runningProccessSync,args=(mappingForNotif["id_siswa"],mappingForNotif["title"],mappingForNotif["body"]))
+    proccess = Process(target=runningProccessSync,args=(mappingForNotif["id_siswa"],mappingForNotif["title"],mappingForNotif["body"],id_pengajuan))
     proccess.start()
 
     return {

@@ -9,13 +9,12 @@ from .kuotaDudiModel import AddKuotaDudiBody,UpdateKuotaDudiBody,AddKuotaJurusan
 from ....models.dudiModel import Dudi, KuotaSiswa,KuotaSiswaByJurusan
 from ...models_domain.dudi_model import DudiWithKuota
 from ....models.siswaModel import Jurusan
-from ....models.siswaModel import Siswa
+from ....models.siswaModel import Siswa,Jurusan
 # common
 from copy import deepcopy
 from ....error.errorHandling import HttpException
 from ....utils.updateTable import updateTable
 from python_random_strings import random_strings
-
 
 async def getKuotaDudi(id_dudi : int,session : AsyncSession) -> DudiWithKuota :
     findDudi = (await session.execute(select(Dudi).options(joinedload(Dudi.kuota).subqueryload(KuotaSiswa.kuota_jurusan).joinedload(KuotaSiswaByJurusan.jurusan)).where(Dudi.id == id_dudi))).scalar_one_or_none()

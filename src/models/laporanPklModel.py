@@ -6,14 +6,14 @@ class LaporanPKL(Base):
     __tablename__ = 'laporan_pkl'
 
     id = Column(Integer, primary_key=True)
-    id_siswa = Column(Integer, ForeignKey('siswa.id',ondelete='CASCADE',onupdate='CASCADE'))
     id_dudi = Column(Integer, ForeignKey('dudi.id',ondelete='CASCADE',onupdate='CASCADE'))
     id_pembimbing_dudi = Column(Integer, ForeignKey('pembimbing_dudi.id',ondelete='CASCADE',onupdate='CASCADE'))
     tanggal = Column(Date)
-    keterangan = Column(String(1500))
+    # keterangan = Column(String(1500))
+    topik_pekerjaan = Column(String(255))
+    rujukan_kompetensi_dasar = Column(String(255))
     file_laporan = Column(String(1500),nullable=True)
 
-    siswa = relationship("Siswa", back_populates="laporan_pkl")
     dudi = relationship("Dudi", back_populates="laporan_pkl")
     pembimbing_dudi = relationship("PembimbingDudi", back_populates="laporan_pkl")
 
