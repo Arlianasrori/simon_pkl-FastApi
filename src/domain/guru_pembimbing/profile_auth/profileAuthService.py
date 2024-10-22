@@ -15,6 +15,7 @@ from ....error.errorHandling import HttpException
 from ....utils.updateTable import updateTable
 from python_random_strings import random_strings
 import os
+from ....utils.sendOtp import sendOtp
 
 async def getGuruPembimbing(id_guru_pembimbing : int,session : AsyncSession) -> GuruPembimbingBase :
     findGuruPembimbing = (await session.execute(select(GuruPembimbing).where(GuruPembimbing.id == id_guru_pembimbing))).scalar_one_or_none()
@@ -101,3 +102,17 @@ async def updateFotoProfile(id_guru : int,foto_profile : UploadFile,session : As
         "msg" : "success",
         "data" : guruDictCopy
     } 
+
+async def sendOtpForVerifyGuru(id_guru : int,session : AsyncSession) -> GuruPembimbingBase :
+    findGuruPembimbing = (await session.execute(select(GuruPembimbing).where(GuruPembimbing.id == id_guru))).scalar_one_or_none()
+    if not findGuruPembimbing :
+        raise HttpException(404,f"guru pembimbing tidak ditemukan")
+    
+    otp = await sendOtp(findGuruPembimbing.email)
+    findGuruPembimbing.OTP_code = otp
+    await session.commit()
+
+    return {
+        "msg" : "success",
+        "data" : findGuruPembimbing
+    }

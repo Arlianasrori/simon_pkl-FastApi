@@ -161,6 +161,7 @@ async def getAllSiswa(page : int | None,id_sekolah : int,id_tahun : int,session 
         }
     else :
         findSiswa = (await session.execute(statementSelectSiswa)).scalars().all()
+        print(findSiswa)
         return {
             "msg" : "success",
             "data" : findSiswa

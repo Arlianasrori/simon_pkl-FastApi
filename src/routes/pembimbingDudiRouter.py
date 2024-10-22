@@ -27,9 +27,14 @@ from ..domain.pembimbing_dudi.laporan_pkl import laporanPklService
 from ..domain.pembimbing_dudi.laporan_pkl.laporanPklModel import AddLaporanPklDudiBody,UpdateLaporanPklDudiBody
 from ..domain.models_domain.laporan_pkl_dudi_model import LaporanPklDudiBase,LaporanPklDudiWithOut
 
+# laporan pkl
+from ..domain.pembimbing_dudi.laporan_kendala_dudi import laporanKendalaDudiService
+from ..domain.pembimbing_dudi.laporan_kendala_dudi.laporanKendalaDudiModel import AddLaporanKendalaDudiBody,UpdateLaporanKendalaDudiBody
+from ..domain.models_domain.laporan_kendala_dudi_model import LaporankendalaDudiBase,LaporanKendalaDudiWithSiswa
+
 # pengajuan pkl
 from ..domain.pembimbing_dudi.pengajuan_pkl import pengajuanPklService
-from ..domain.pembimbing_dudi.pengajuan_pkl.pengajuanPklModel import AccDccPengajuanPkl as ACCPengajuan
+from ..domain.pembimbing_dudi.pengajuan_pkl.pengajuanPklModel import AccDccPengajuanPkl as ACCPengajuan,ResponseGroupingPengajuanPag,ResponsePengajuanPklPag,ResponseGroupingPengajuan
 from ..domain.models_domain.pengajuan_pkl_model import PengajuanPklWithSiswa
 
 # pengajuan cancel pkl
@@ -54,7 +59,7 @@ from ..domain.models_domain.absen_model import MoreAbsen
 
 # notification
 from ..domain.pembimbing_dudi.notification import notificationService
-from ..domain.models_domain.notification_model import NotificationModelBase,ResponseGetUnreadNotification
+from ..domain.models_domain.notification_model import NotificationModelBase,ResponseGetUnreadNotification,ResponseGetAllNotification
 
 
 # common
@@ -79,6 +84,10 @@ async def updateProfile(pembimbing : dict = Depends(getPembimbingDudiAuth),body 
 @pembimbingDudiRouter.put("/profile/foto",response_model=ResponseModel[PembimbingDudiBase],tags=["PEMBIMBING-DUDI/PROFILE"])
 async def updateFotoProfile(foto_profile : UploadFile,pembimbing : dict = Depends(getPembimbingDudiAuth),session : sessionDepedency = None) :
     return await profileAuthService.updateFotoProfile(pembimbing["id"],foto_profile,session)
+
+@pembimbingDudiRouter.post("/profile/send-otp-verify",response_model=ResponseModel[PembimbingDudiBase],tags=["PEMBIMBING-DUDI/PROFILE"])
+async def sendOtpForVerifyPembimbingDudi(pembimbing : dict = Depends(getPembimbingDudiAuth),session : sessionDepedency = None) :
+    return await profileAuthService.sendOtpForVerifyPembimbingDudi(pembimbing["id"],session)
 
 # siswa
 @pembimbingDudiRouter.get("/siswa",response_model=ResponseModel[list[MoreSiswa] | ResponseSiswaPag],tags=["PEMBIMBING-DUDI/SISWA"])
@@ -131,7 +140,7 @@ async def getLaporanPklById(id_laporan_pkl : int,pembimbing : dict = Depends(get
     return await laporanPklService.getLaporanPklById(id_laporan_pkl,pembimbing["id"],session)
 
 @pembimbingDudiRouter.patch("/laporan-pkl/file/{id_laporan_pkl}",response_model=ResponseModel[LaporanPklDudiWithOut],tags=["PEMBIMBING-DUDI/LAPORAN-PKL"])
-async def add_update_profile(id_laporan_pkl : int,file : UploadFile,session : sessionDepedency = None) :
+async def add_update_file(id_laporan_pkl : int,file : UploadFile,session : sessionDepedency = None) :
     return await laporanPklService.addUpdateFileLaporanPkl(id_laporan_pkl,file,session)
 
 @pembimbingDudiRouter.put("/laporan-pkl/{id_laporan}",response_model=ResponseModel[LaporanPklDudiBase],tags=["PEMBIMBING-DUDI/LAPORAN-PKL"])
@@ -142,10 +151,35 @@ async def updateLaporanPkl(id_laporan : int,laporan : UpdateLaporanPklDudiBody =
 async def deleteLaporanPkl(id_laporan : int,pembimbing : dict = Depends(getPembimbingDudiAuth),session : sessionDepedency = None) :
     return await laporanPklService.deleteLaporanPkl(id_laporan,pembimbing["id"],session)
 
+# laporan kendala dudi
+@pembimbingDudiRouter.post("/laporan-pkl-kendala",response_model=ResponseModel[LaporankendalaDudiBase],tags=["PEMBIMBING-DUDI/LAPORAN-KENDALA"])
+async def addLaporanPkl(laporan : AddLaporanKendalaDudiBody,pembimbing : dict = Depends(getPembimbingDudiAuth),session : sessionDepedency = None) :
+    return await laporanKendalaDudiService.addLaporanPKLKendalaSiswa(pembimbing["id"],laporan,session)
+
+@pembimbingDudiRouter.get("/laporan-pkl-kendala",response_model=ResponseModel[list[LaporankendalaDudiBase]],tags=["PEMBIMBING-DUDI/LAPORAN-KENDALA"])
+async def getAllLaporanPkl(pembimbing : dict = Depends(getPembimbingDudiAuth),session : sessionDepedency = None) :
+    return await laporanKendalaDudiService.getAllLaporanKendala(pembimbing["id"],session)
+
+@pembimbingDudiRouter.get("/laporan-pkl-kendala/{id_laporan}",response_model=ResponseModel[LaporanKendalaDudiWithSiswa],tags=["PEMBIMBING-DUDI/LAPORAN-KENDALA"])
+async def getLaporanPklById(id_laporan : int,pembimbing : dict = Depends(getPembimbingDudiAuth),session : sessionDepedency = None) :
+    return await laporanKendalaDudiService.getLaporanKendalaById(pembimbing["id"],id_laporan,session)
+
+@pembimbingDudiRouter.patch("/laporan-pkl-kendala/file/{id_laporan}",response_model=ResponseModel[LaporankendalaDudiBase],tags=["PEMBIMBING-DUDI/LAPORAN-KENDALA"])
+async def add_update_file(id_laporan : int,file : UploadFile,pembimbing : dict = Depends(getPembimbingDudiAuth),session : sessionDepedency = None) :
+    return await laporanKendalaDudiService.addUpdateFileLaporanKendala(pembimbing["id"],id_laporan,file,session)
+
+@pembimbingDudiRouter.put("/laporan-pkl-kendala/{id_laporan}",response_model=ResponseModel[LaporankendalaDudiBase],tags=["PEMBIMBING-DUDI/LAPORAN-KENDALA"])
+async def updateLaporanPkl(id_laporan : int,laporan : UpdateLaporanPklDudiBody = UpdateLaporanPklDudiBody(),pembimbing : dict = Depends(getPembimbingDudiAuth),session : sessionDepedency = None) :
+    return await laporanKendalaDudiService.updateLaporanKendala(pembimbing["id"],id_laporan,laporan,session)
+
+@pembimbingDudiRouter.delete("/laporan-pkl-kendala/{id_laporan}",response_model=ResponseModel[LaporanPklDudiBase],tags=["PEMBIMBING-DUDI/LAPORAN-KENDALA"])
+async def deleteLaporanPkl(id_laporan : int,pembimbing : dict = Depends(getPembimbingDudiAuth),session : sessionDepedency = None) :
+    return await laporanKendalaDudiService.deleteLaporanPklKendala(pembimbing["id"],id_laporan,session)
+
 # pengajuan pkl
-@pembimbingDudiRouter.get("/pengajuan-pkl",response_model=ResponseModel[list[PengajuanPklWithSiswa]],tags=["PEMBIMBING-DUDI/PENGJUAN-PKL"])
-async def getAllPengajuanPkl(page : int | None = None,pembimbing : dict = Depends(getPembimbingDudiAuth),session : sessionDepedency = None) :
-    return await pengajuanPklService.getAllPengajuanPkl(pembimbing["id_dudi"],page,session)
+@pembimbingDudiRouter.get("/pengajuan-pkl",response_model=ResponseModel[list[PengajuanPklWithSiswa] | ResponsePengajuanPklPag ] | ResponseGroupingPengajuan | ResponseGroupingPengajuanPag,tags=["PEMBIMBING-DUDI/PENGJUAN-PKL"])
+async def getAllPengajuanPkl(usingGrouping : bool = False,page : int | None = None,pembimbing : dict = Depends(getPembimbingDudiAuth),session : sessionDepedency = None) :
+    return await pengajuanPklService.getAllPengajuanPkl(pembimbing["id_dudi"],page,usingGrouping,session)
 
 @pembimbingDudiRouter.get("/pengajuan-pkl/{id_pengajuan_pkl}",response_model=ResponseModel[PengajuanPklWithSiswa],tags=["PEMBIMBING-DUDI/PENGJUAN-PKL"])
 async def getPengajuanPklById(id_pengajuan_pkl : int,pembimbing : dict = Depends(getPembimbingDudiAuth),session : sessionDepedency = None) :
@@ -221,7 +255,7 @@ async def getAbsenById(id_absen : int,pembimbing : dict = Depends(getPembimbingD
     return await getAbsenservice.getAbsenById(id_absen,pembimbing["id_dudi"],session)
 
 # notification
-@pembimbingDudiRouter.get("/notification",response_model=ResponseModel[list[NotificationModelBase]],tags=["PEMBIMBING-DUDI/NOTIFICATION"])
+@pembimbingDudiRouter.get("/notification",response_model=ResponseGetAllNotification,tags=["PEMBIMBING-DUDI/NOTIFICATION"])
 async def getAllNotification(pembimbing : dict = Depends(getPembimbingDudiAuth),session : sessionDepedency = None) :
     return await notificationService.getAllNotification(pembimbing["id"],session)
 

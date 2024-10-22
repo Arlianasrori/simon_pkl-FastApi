@@ -27,16 +27,9 @@ async def getAllAbsen(id_guru : int,filter : FilterAbsen,isSevenDay : bool,sessi
         Absen.siswa.has(Siswa.nama.like(f"%{filter.nama}%")) if filter.nama else True,
         )).order_by(desc(Absen.tanggal)))).scalars().all()
     
-    absenDict: dict[str, list[Absen]] = {}
-    for absen in findAbsen:
-        tanggal_str = absen.tanggal.strftime("%Y-%m-%d")
-        if tanggal_str not in absenDict:
-            absenDict[tanggal_str] = []
-        absenDict[tanggal_str].append(absen)
-    
     return {
         "msg" : "success",
-        "data" : absenDict
+        "data" : findAbsen
     }
 
 

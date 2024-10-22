@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Enum, ForeignKey,Time,Date,Float
+from sqlalchemy import Column, Integer, String, Enum, ForeignKey,Time,Date,Float,Boolean
 from sqlalchemy.orm import relationship
 from ..db.db import Base
 import enum
@@ -10,13 +10,12 @@ class StatusAbsenMasukKeluarEnum(enum.Enum):
     telat = "telat"
     tidak_hadir = "tidak_hadir"
     izin = "izin"
-    diluar_radius = "diluar_radius"
     sakit = "sakit"
 
 class StatusAbsenEnum(enum.Enum):
     hadir = "hadir"
     tidak_hadir = "tidak_hadir"
-    diluar_radius = "diluar_radius"
+    izin = "izin"
     sakit = "sakit"
 
 class StatusOtherAbsenEnum(enum.Enum):
@@ -78,6 +77,17 @@ class Absen(Base):
     siswa = relationship("Siswa", back_populates="absen")
     keterangan_absen_masuk = relationship("IzinAbsenMasuk", back_populates="absen", uselist=False)
     keterangan_absen_pulang = relationship("IzinAbsenPulang", back_populates="absen", uselist=False)
+    dokumenSakit = relationship("DokumenAbsenSakit",back_populates="absen",uselist=False)
+
+class DokumenAbsenSakit(Base) :
+    __tablename__ = 'dokumen_absen_sakit'
+
+    id = Column(Integer, primary_key=True)
+    id_absen = Column(Integer,ForeignKey("absen.id"),nullable=False)
+    dokumen = Column(String,nullable=False)
+    note = Column(String(30000))
+
+    absen = relationship("Absen",back_populates="dokumenSakit",uselist=False)
 
 class IzinAbsenMasuk(Base):
     __tablename__ = 'izin_absen_masuk'
@@ -85,6 +95,7 @@ class IzinAbsenMasuk(Base):
     id = Column(Integer, primary_key=True)
     id_absen = Column(Integer, ForeignKey('absen.id'), unique=True)
     note = Column(String(30000))
+    inside_radius = Column(Boolean)
     status_izin = Column(Enum(StatusOtherAbsenEnum))
 
     absen = relationship("Absen", back_populates="keterangan_absen_masuk")

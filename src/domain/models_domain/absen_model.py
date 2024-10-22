@@ -31,6 +31,15 @@ class AbsenBase(BaseModel):
     foto_absen_pulang : str | None = None
     status : StatusAbsenEnum
 
+class DokumenAbsenSakitBase(BaseModel) :
+    id : int
+    id_absen : int
+    dokumen : str
+    note : str
+
+class AbsenWithDokumenSakit(AbsenBase) :
+    dokumenSakit : DokumenAbsenSakitBase | None = None
+
 class AbsenWithSiswa(AbsenBase) :
     siswa : SiswaBase
 
@@ -48,6 +57,14 @@ class MoreAbsen(AbsenBase) :
     keterangan_absen_masuk : KeteranganAbsenMasuk | None = None
     keterangan_absen_pulang : KeteranganAbsenKeluar | None = None
 
+class MoreAbsenWithSiswaDudi(AbsenBase) :
+    siswa : SiswaWithDudiWithOutKelasJurusan
+    keterangan_absen_masuk : KeteranganAbsenMasuk | None = None
+    keterangan_absen_pulang : KeteranganAbsenKeluar | None = None
+    dokumenSakit : DokumenAbsenSakitBase | None = None
+
+class MoreAbsenWithDokumenSakit(MoreAbsen) :
+    dokumenSakit : DokumenAbsenSakitBase | None = None
 
 # jadwal absen
 class JadwalAbsenBase(BaseModel) :
@@ -75,3 +92,6 @@ class koordinatAbsenBase(BaseModel) :
 
 class KoordinatAbsenWithDudi(koordinatAbsenBase) :
     dudi : DudiBase
+
+class MoreAbsenWithHariAbsen(MoreAbsenWithSiswaDudi) :
+    keterangan_hari : HariAbsenBase | None = None

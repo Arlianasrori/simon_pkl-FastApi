@@ -1,11 +1,11 @@
 from fastapi import UploadFile
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select,and_,func,extract
+from sqlalchemy import desc, literal_column, select,and_,func,extract, union_all
 from sqlalchemy.orm import joinedload
 
 # models
 from ...models_domain.laporan_pkl_siswa_model import LaporanPklSiswaBase,LaporanPklWithoutDudiAndSiswa
-from ....models.laporanPklModel import LaporanSiswaPKL
+from ....models.laporanPklModel import LaporanSiswaPKL,LaporanKendalaSiswa
 from .laporanPklSiswaModel import AddLaporanPklSiswaBody,UpdateLaporanPklSiswaBody,ResponseGetLaporanPklSiswaPag,FilterLaporan
 
 # common
@@ -109,14 +109,13 @@ async def deleteLaporanPklSiswa(id_siswa : int,id_laporan_pkl : int,session : As
         "msg" : "success",
         "data" : laporanPklDictCopy
     }
-    
-
 
 async def getAllLaporanPklSiswa(id_siswa : int,page : int,filter : FilterLaporan,session : AsyncSession) -> ResponseGetLaporanPklSiswaPag :
-    findLaporan = (await session.execute(select(LaporanSiswaPKL).where(and_(LaporanSiswaPKL.id_siswa == id_siswa,extract('month', LaporanSiswaPKL.tanggal) == filter.month,extract('year', LaporanSiswaPKL.tanggal) == filter.year)).limit(10).offset(10 * (page - 1)))).scalars().all()
-    countData = (await session.execute(select(func.count(LaporanSiswaPKL.id).filter(and_(LaporanSiswaPKL.id_siswa == id_siswa,extract('month', LaporanSiswaPKL.tanggal) == filter.month,extract('year', LaporanSiswaPKL.tanggal) == filter.year))))).scalar_one()
+    findLaporan = (await session.execute(select(LaporanSiswaPKL).where(and_(LaporanSiswaPKL.id_siswa == id_siswa,extract('month', LaporanSiswaPKL.tanggal) == filter.month if filter.month else True,extract('year', LaporanSiswaPKL.tanggal) == filter.year if filter.year else True)).limit(10).offset(10 * (page - 1)))).scalars().all()
+
+    countData = (await session.execute(select(func.count(LaporanSiswaPKL.id).filter(and_(LaporanSiswaPKL.id_siswa == id_siswa,extract('month', LaporanSiswaPKL.tanggal) == filter.month if filter.month else True,extract('year', LaporanSiswaPKL.tanggal) == filter.year if filter.year else True))))).scalar_one()
+
     countPage = math.ceil(countData / 10)
-    print(findLaporan[0].__dict__)
 
     return {
         "msg" : "success",
@@ -136,4 +135,36 @@ async def getLaporanPklSiswaById(id_siswa : int,id_laporan : int,session : Async
     return {
         "msg" : "success",
         "data" : findLaporan
+    }
+
+async def getAllLaporanPklSiswaAndKendala(id_siswa : int,session : AsyncSession) -> ResponseGetLaporanPklSiswaPag :
+    laporan_pkl_query = select(
+        LaporanSiswaPKL.id,
+        LaporanSiswaPKL.tanggal,
+        literal_column("'laporanSiswa'").label('jenis_laporan')
+    ).where(
+        and_(
+            LaporanSiswaPKL.id_siswa == id_siswa
+        )
+    )
+
+    laporan_kendala_query = select(
+        LaporanKendalaSiswa.id,
+        LaporanKendalaSiswa.tanggal,
+        literal_column("'kendala'").label('jenis_laporan')
+    ).where(
+        and_(
+            LaporanKendalaSiswa.id_siswa == id_siswa
+        )
+    )
+
+    combined_query = union_all(laporan_pkl_query, laporan_kendala_query).order_by(desc('tanggal'))
+
+    findLaporan = (await session.execute(combined_query)).all()
+    print(findLaporan)
+
+
+    return {
+        "msg": "success",
+        "data": [row._asdict() for row in findLaporan]
     }

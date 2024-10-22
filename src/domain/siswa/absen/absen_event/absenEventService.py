@@ -5,13 +5,13 @@ from sqlalchemy import select, and_
 
 # models
 from .absenEventModel import RadiusBody,IzinTelatAbsenEnum, ResponseAbsenIzinTelat
-from ....models_domain.absen_model import AbsenBase,AbsenWithKeteranganPulang,MoreAbsen
-from .....models.absenModel import Absen,HariAbsen,HariEnum,StatusAbsenEnum,StatusAbsenMasukKeluarEnum,StatusOtherAbsenEnum,IzinAbsenPulang,IzinAbsenMasuk
+from ....models_domain.absen_model import AbsenBase,AbsenWithKeteranganPulang,MoreAbsen,AbsenWithDokumenSakit
+from .....models.absenModel import Absen,HariAbsen,HariEnum,StatusAbsenEnum,StatusAbsenMasukKeluarEnum,StatusOtherAbsenEnum,IzinAbsenPulang,IzinAbsenMasuk,DokumenAbsenSakit
 
 # common
 from copy import deepcopy
 from .....error.errorHandling import HttpException
-from .absenEventUtils import validateRadius,validateAbsen,save_image
+from .absenEventUtils import validateRadius,validateAbsen,save_image,save_dokumen
 from ..absen_utils.zonaWaktu import get_timezone_from_coordinates,get_local_time
 from ..absen_utils.dayUtils import get_day
 from .....utils.timeToFloat import time_to_float
@@ -25,6 +25,10 @@ async def absenMasuk(id_siswa : int,id_dudi : int,radius : RadiusBody,image : Up
 
     # get time zone and datetime based on timezona
     zonaWaktu = await get_timezone_from_coordinates(radius.latitude,radius.longitude)
+
+    if not zonaWaktu :
+        raise HttpException(400,"anda berada diluar indonesia")
+    
     now = await get_local_time(zonaWaktu)
     dateNow = now.date()
     timeNow = now.time()
@@ -53,7 +57,7 @@ async def absenMasuk(id_siswa : int,id_dudi : int,radius : RadiusBody,image : Up
 
     # jika telah melewati batas absen pulang
     if timeNow > findHariAbsenToday.batas_absen_pulang :
-        raise HttpException(400,"anda telah melewati batas absen hari ini,anda dinaytakan tidak hadir")
+        raise HttpException(400,"anda telah melewati batas absen hari ini,anda dinyatakan tidak hadir")
 
     # jika telah melewati batas absen masuk,maka dinyatakn telat
     if timeNow > findHariAbsenToday.batas_absen_masuk :
@@ -82,6 +86,9 @@ async def absenPulang(id_siswa : int,id_dudi : int,radius : RadiusBody,image : U
         raise HttpException(400,"anda sedang berada diluar radius,silahkan melakukan absen diluar radius")
     # get time zone and datetime based on timezona
     zonaWaktu = await get_timezone_from_coordinates(radius.latitude,radius.longitude)
+
+    if not zonaWaktu :
+        raise HttpException(400,"anda berada diluar indonesia")
     now = await get_local_time(zonaWaktu)
     dateNow = now.date()
     timeNow = now.time()
@@ -128,6 +135,9 @@ async def absenPulang(id_siswa : int,id_dudi : int,radius : RadiusBody,image : U
     findAbsenToday.status_absen_pulang = StatusAbsenMasukKeluarEnum.hadir.value
     findAbsenToday.foto_absen_pulang = imagePulangUrl
 
+    if findAbsenToday.status == StatusAbsenEnum.izin.value :
+        findAbsenToday.status = StatusAbsenEnum.hadir.value
+
     absenTodayDictCopy = deepcopy(findAbsenToday.__dict__)
     await session.commit()
 
@@ -139,6 +149,9 @@ async def absenPulang(id_siswa : int,id_dudi : int,radius : RadiusBody,image : U
 
 async def absenDiluarRadius(id_siswa : int,id_dudi : int,note : str,radius : RadiusBody,image : UploadFile,session : AsyncSession) -> AbsenWithKeteranganPulang:
     zonaWaktu = await get_timezone_from_coordinates(radius.latitude,radius.longitude)
+
+    if not zonaWaktu :
+        raise HttpException(400,"anda berada diluar indonesia")
     now = await get_local_time(zonaWaktu)
     dateNow = now.date()
     timeNow = now.time()
@@ -178,13 +191,14 @@ async def absenDiluarRadius(id_siswa : int,id_dudi : int,note : str,radius : Rad
     imagePulangUrl = await save_image(image)
     
     findAbsenToday.absen_pulang = timeNow
-    findAbsenToday.status_absen_pulang = StatusAbsenMasukKeluarEnum.diluar_radius
+    findAbsenToday.status_absen_pulang = StatusAbsenMasukKeluarEnum.diluar_radius.value
     findAbsenToday.foto_absen_pulang = imagePulangUrl
 
     keteranganAbsenPulangMapping = {
         "id" : random_strings.random_digits(6),
         "id_absen" : findAbsenToday.id,
         "note" : note,
+        "inside_radius" : False,
         "status_izin" : StatusOtherAbsenEnum.diluar_radius.value
     } 
 
@@ -202,10 +216,13 @@ async def absenDiluarRadius(id_siswa : int,id_dudi : int,note : str,radius : Rad
     }
 
 async def absenIzinTelat(id_siswa : int,id_dudi : int,note : str,statusIzin : IzinTelatAbsenEnum,radius : RadiusBody,image : UploadFile,session : AsyncSession) -> ResponseAbsenIzinTelat :
-    await validateRadius(id_dudi,radius,session)
+    statusRadius = await validateRadius(id_dudi,radius,session,True if statusIzin.value == IzinTelatAbsenEnum.IZIN.value else False)
 
     # get time zone and datetime based on timezona
     zonaWaktu = await get_timezone_from_coordinates(radius.latitude,radius.longitude)
+
+    # if not zonaWaktu :
+    #     raise HttpException(400,"anda berada diluar indonesia")
     now = await get_local_time(zonaWaktu)
     dateNow = now.date()
     timeNow = now.time()
@@ -238,11 +255,13 @@ async def absenIzinTelat(id_siswa : int,id_dudi : int,note : str,statusIzin : Iz
         findAbsenToday.absen_masuk = timeNow
         findAbsenToday.status_absen_masuk = statusIzin.value
         findAbsenToday.foto_absen_masuk = imageMasukUrl
+        findAbsenToday.status = StatusAbsenEnum.izin.value if statusIzin == IzinTelatAbsenEnum.IZIN else StatusAbsenEnum.hadir.value
 
         keteranganAbsenMasukMapping = {
             "id" : random_strings.random_digits(6),
             "id_absen" : findAbsenToday.id,
             "note" : note,
+            "inside_radius" : statusRadius,
             "status_izin" : statusIzin.value
         } 
 
@@ -259,7 +278,6 @@ async def absenIzinTelat(id_siswa : int,id_dudi : int,note : str,statusIzin : Iz
 
         #  jika status izin telat validasi jika user belum memenuhi batas minimum kerja
         if statusIzin == IzinTelatAbsenEnum.TELAT :
-            pass
             # validasi jika user belum memenuhi batas minimum kerja
             if timeNowFloat - absenMasukFloat < findHariAbsenToday.min_jam_absen :
                 raise HttpException(400,"anda belum memenuhi minimum waktu untuk melakukan absen pulang,jika silahkan melakukan izin absen jika ingin melakukan absen pulang")
@@ -269,10 +287,14 @@ async def absenIzinTelat(id_siswa : int,id_dudi : int,note : str,statusIzin : Iz
         findAbsenToday.status_absen_pulang = statusIzin.value
         findAbsenToday.foto_absen_pulang = imagePulangUrl
 
+        if statusIzin == IzinTelatAbsenEnum.TELAT :
+            findAbsenToday.status = StatusAbsenEnum.hadir.value
+
         keteranganAbsenPulangMapping = {
             "id" : random_strings.random_digits(6),
             "id_absen" : findAbsenToday.id,
             "note" : note,
+            "inside_radius" : statusRadius,
             "status_izin" : StatusOtherAbsenEnum.diluar_radius.value
         }
 
@@ -283,9 +305,12 @@ async def absenIzinTelat(id_siswa : int,id_dudi : int,note : str,statusIzin : Iz
         "msg" : "absen success"
     }
 
-async def absenSakit(id_siswa : int,radius : RadiusBody,session : AsyncSession) -> AbsenBase :
+async def absenSakit(id_siswa : int,radius : RadiusBody,dokumen : UploadFile,note : str,session : AsyncSession) -> AbsenWithDokumenSakit :
     # get time zone and datetime based on timezona
     zonaWaktu = await get_timezone_from_coordinates(radius.latitude,radius.longitude)
+
+    # if not zonaWaktu :
+    #     raise HttpException(400,"anda berada diluar indonesia")
     now = await get_local_time(zonaWaktu)
     dateNow = now.date()
 
@@ -308,11 +333,24 @@ async def absenSakit(id_siswa : int,radius : RadiusBody,session : AsyncSession) 
         raise HttpException(400,"tanggal absen tidak sesuai dengan jadwal")
     
     findAbsenToday.status = StatusAbsenEnum.sakit.value
+    dokumenUrl = await save_dokumen(dokumen)
+
+    absenSakitMapping = {
+        "id" : random_strings.random_digits(6),
+        "id_absen" : findAbsenToday.id,
+        "dokumen" : dokumenUrl,
+        "note" : note
+    }
+
+    session.add(DokumenAbsenSakit(**absenSakitMapping))
 
     absenTodayDictCopy = deepcopy(findAbsenToday.__dict__)
     await session.commit()
 
     return {
         "msg" : "absen sakit success",
-        "data" : absenTodayDictCopy
+        "data" : {
+            **absenTodayDictCopy,
+            "dokumenSakit" : absenSakitMapping
+        }
     }

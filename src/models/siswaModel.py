@@ -42,6 +42,7 @@ class Siswa(User):
     pengajuan_pkl = relationship("PengajuanPKL", back_populates="siswa")
     laporan_pkl = relationship("LaporanPKL", back_populates="siswa")
     laporan_kendala = relationship("LaporanKendalaSiswa", back_populates="siswa")
+    laporan_kendala_dudi = relationship("LaporanKendalaDudi", back_populates="siswa")
     laporans_siswa_pkl = relationship("LaporanSiswaPKL", back_populates="siswa")
     pengajuan_cancel_pkl = relationship("PengajuanCancelPKL", back_populates="siswa")
     notifications = relationship("Notification", back_populates="siswa")

@@ -7,7 +7,7 @@ from sqlalchemy.orm import joinedload
 from ...models_domain.laporan_kendala_model import LaporanKendalaWithSiswa, LaporankendalaBase
 from ....models.laporanPklModel import LaporanKendalaSiswa
 from .laporanKendalaModel import AddLaporanKendalaBody,UpdateLaporanKendalaBody
-
+from ....models.siswaModel import Siswa
 # common
 from copy import deepcopy
 import math
@@ -118,7 +118,7 @@ async def getAllLaporanKendala(id_siswa : int,session : AsyncSession) -> Laporan
     }
     
 async def getLaporanKendalaById(id_siswa : int,id_laporan : int,session : AsyncSession) -> LaporanKendalaWithSiswa :
-    findLaporan = (await session.execute(select(LaporanKendalaSiswa).options(joinedload(LaporanKendalaSiswa.siswa)).where(and_(LaporanKendalaSiswa.id_siswa == id_siswa,LaporanKendalaSiswa.id == id_laporan)))).scalar_one_or_none()
+    findLaporan = (await session.execute(select(LaporanKendalaSiswa).options(joinedload(LaporanKendalaSiswa.siswa).joinedload(Siswa.dudi)).where(and_(LaporanKendalaSiswa.id_siswa == id_siswa,LaporanKendalaSiswa.id == id_laporan)))).scalar_one_or_none()
     
     if not findLaporan :
         raise HttpException(404,f"Laporan kendala dengan id {id_laporan} tidak ditemukan")

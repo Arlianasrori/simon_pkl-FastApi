@@ -55,7 +55,7 @@ for router in routes:
 
 # Configure CORS middleware
 origins = [
-    "http://localhost:3000",
+    "http://localhost:3000"
 ]
 
 App.add_middleware(

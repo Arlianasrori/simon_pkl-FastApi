@@ -9,7 +9,7 @@ from ..auth.dependsAuthMiddleware.siswa.get_siswa_auth import getSiswaAuth
 # profile-auth
 from ..domain.siswa.profile_auth import profileAuthService
 from ..domain.siswa.profile_auth.profileAuthModel import UpdateProfileBody
-from ..domain.models_domain.siswa_model import SiswaBase,DetailSiswa,SiswaWithJurusanKelas
+from ..domain.models_domain.siswa_model import SiswaBase,SiswaWithJurusanKelas,DetailSiswaDudiAlamat
 
 # get_dudi
 from ..domain.siswa.get_dudi import getDudiService
@@ -18,19 +18,20 @@ from ..domain.models_domain.dudi_model import DudiWithAlamat
 
 # pengajuan pkl
 from ..domain.siswa.pengajuan_pkl import pengajuanPklService
-from ..domain.siswa.pengajuan_pkl.pengajuanPklModel import AddPengajuanPklBody
-from ..domain.models_domain.pengajuan_pkl_model import PengajuanPklWithDudi
+from ..domain.siswa.pengajuan_pkl.pengajuanPklModel import AddPengajuanPklBody,CancelPengajuanBody
+from ..domain.models_domain.pengajuan_pkl_model import PengajuanPklWithDudi,PengajuanPklWithDudiAlamat
 
 from ..models.pengajuanPklModel import StatusPengajuanENUM,StatusCancelPKLENUM
 
 # pengjuan_cancel pkl
+from ..domain.siswa.pengajuan_cancel_pkl.pengajuanCancelPklModel import AddPengajuanCancelPklBody
 from ..domain.siswa.pengajuan_cancel_pkl import pengajuanCancelPklService
-from ..domain.models_domain.pengajuan_cancel_pkl_model import PengajuanCancelPklWithDudi,PengajuanCancelPklBase
+from ..domain.models_domain.pengajuan_cancel_pkl_model import PengajuanCancelPklWithDudi,PengajuanCancelPklWithDudiAlamat,PengajuanCancelPklBase
 
 # laporan-siswa-pkl
 from ..domain.siswa.laporan_pkl_siswa import laporanPklSiswaService
 from ..domain.models_domain.laporan_pkl_siswa_model import LaporanPklSiswaBase,LaporanPklWithoutDudiAndSiswa
-from ..domain.siswa.laporan_pkl_siswa.laporanPklSiswaModel import AddLaporanPklSiswaBody,UpdateLaporanPklSiswaBody,ResponseGetLaporanPklSiswaPag,FilterLaporan
+from ..domain.siswa.laporan_pkl_siswa.laporanPklSiswaModel import AddLaporanPklSiswaBody,UpdateLaporanPklSiswaBody,ResponseGetLaporanPklSiswaPag,FilterLaporan,ResponseGetLaporanPklSiswaAndKendala
 
 # laporan-dudi-pkl
 from ..domain.siswa.laporan_pkl_dudi import laporanPklDudiService
@@ -44,8 +45,8 @@ from ..domain.models_domain.absen_model import koordinatAbsenBase
 
 # absen-jadwal
 from ..domain.siswa.absen.absen_jadwal import absenJadwalService
-from ..domain.siswa.absen.absen_jadwal.absenJadwalModel import RadiusBody,ResponseCekAbsen,ResponseJadwalAbsenToday
-from ..domain.models_domain.absen_model import JadwalAbsenWithHari
+from ..domain.siswa.absen.absen_jadwal.absenJadwalModel import RadiusBody,ResponseCekAbsen
+from ..domain.models_domain.absen_model import JadwalAbsenWithHari,AbsenWithDokumenSakit
 
 # absen-event
 from ..domain.siswa.absen.absen_event import absenEventService
@@ -55,11 +56,11 @@ from ..domain.models_domain.absen_model import AbsenBase,AbsenWithKeteranganPula
 # get-absen
 from ..domain.siswa.absen.get_absen import getAbsenService
 from ..domain.siswa.absen.get_absen.getAbsenModel import FilterAbsen,AbsenResponse
-from ..domain.models_domain.absen_model import MoreAbsen
+from ..domain.models_domain.absen_model import MoreAbsen,MoreAbsenWithDokumenSakit,MoreAbsenWithHariAbsen
 
 # notification
 from ..domain.siswa.notification import notificationService
-from ..domain.models_domain.notification_model import NotificationModelBase,ResponseGetUnreadNotification
+from ..domain.models_domain.notification_model import NotificationModelBase,ResponseGetUnreadNotification,ResponseGetAllNotification
 
 from ..db.sessionDepedency import sessionDepedency
 from ..models.responseModel import ResponseModel
@@ -77,7 +78,7 @@ siswaRouter = APIRouter(prefix="/siswa",dependencies=[Depends(siswaDependAuth)])
 async def getSiswa(siswa : dict = Depends(getSiswaAuth),session : sessionDepedency = None):
     return await profileAuthService.getSiswa(siswa["id"],session)
 
-@siswaRouter.get("/profile",response_model=ResponseModel[DetailSiswa],tags=["SISWA/PROFILE-AUTH"])
+@siswaRouter.get("/profile",response_model=ResponseModel[DetailSiswaDudiAlamat],tags=["SISWA/PROFILE-AUTH"])
 async def getProfile(siswa : dict = Depends(getSiswaAuth),session : sessionDepedency = None):
     return await profileAuthService.getProfileAuth(siswa["id"],session)
 
@@ -88,6 +89,10 @@ async def updateFotoProfile(foto_profile : UploadFile,siswa : dict = Depends(get
 @siswaRouter.put("/profile",response_model=ResponseModel[SiswaWithJurusanKelas],tags=["SISWA/PROFILE-AUTH"])
 async def updateProfile(body : UpdateProfileBody = UpdateProfileBody(),siswa : dict = Depends(getSiswaAuth),session : sessionDepedency = None):
     return await profileAuthService.updateProfile(siswa["id"],body,session)
+
+@siswaRouter.post("/profile/send-otp-verify",response_model=ResponseModel[SiswaBase],tags=["SISWA/PROFILE-AUTH"])
+async def sendOtpForVerifySiswa(siswa : dict = Depends(getSiswaAuth),session : sessionDepedency = None):
+    return await profileAuthService.sendOtpForVerifySiswa(siswa["id"],session)
 
 # get-dudi
 @siswaRouter.get("/dudi",response_model=ResponseModel[ResponseGetDudiPag],tags=["SISWA/GET-DUDI"])
@@ -104,25 +109,25 @@ async def addPengajuanPkl(body : AddPengajuanPklBody,siswa : dict = Depends(getS
     return await pengajuanPklService.addPengajuanPkl(siswa["id"],siswa["id_sekolah"],body,session)
 
 @siswaRouter.put("/pengajuan_pkl/cancel/{id_pengajuan}",response_model=ResponseModel[PengajuanPklWithDudi],tags=["SISWA/PENGAJUAN-PKL"])
-async def cancelPengajuan(id_pengajuan : int,siswa : dict = Depends(getSiswaAuth),session : sessionDepedency = None):
-    return await pengajuanPklService.cancelPengajuanPkl(siswa["id"],id_pengajuan,session)
+async def cancelPengajuan(id_pengajuan : int,body : CancelPengajuanBody,siswa : dict = Depends(getSiswaAuth),session : sessionDepedency = None):
+    return await pengajuanPklService.cancelPengajuanPkl(siswa["id"],id_pengajuan,body,session)
 
-@siswaRouter.get("/pengajuan_pkl",response_model=ResponseModel[list[PengajuanPklWithDudi]],tags=["SISWA/PENGAJUAN-PKL"])      
+@siswaRouter.get("/pengajuan_pkl",response_model=ResponseModel[list[PengajuanPklWithDudiAlamat]],tags=["SISWA/PENGAJUAN-PKL"])      
 async def getAllPengajuanPkl(status : StatusPengajuanENUM | None = None, siswa : dict = Depends(getSiswaAuth),session : sessionDepedency = None):
     return await pengajuanPklService.getAllPengajuanPkl(siswa["id"],status,session)
 
-@siswaRouter.get("/pengajuan_pkl/{id_pengajuan_pkl}",response_model=ResponseModel[PengajuanPklWithDudi],tags=["SISWA/PENGAJUAN-PKL"])
+@siswaRouter.get("/pengajuan_pkl/{id_pengajuan_pkl}",response_model=ResponseModel[PengajuanPklWithDudiAlamat],tags=["SISWA/PENGAJUAN-PKL"])
 async def getPengajuanPklById(id_pengajuan_pkl : int,siswa : dict = Depends(getSiswaAuth),session : sessionDepedency = None):
     return await pengajuanPklService.getPengajuanPklById(siswa["id"],id_pengajuan_pkl,session)
 
-@siswaRouter.get("/pengajuan_pkl/last/get",response_model=ResponseModel[PengajuanPklWithDudi],tags=["SISWA/PENGAJUAN-PKL"])
+@siswaRouter.get("/pengajuan_pkl/last/get",response_model=ResponseModel[PengajuanPklWithDudiAlamat],tags=["SISWA/PENGAJUAN-PKL"])
 async def getLastPengajuan(siswa : dict = Depends(getSiswaAuth),session : sessionDepedency = None):
     return await pengajuanPklService.getLastPengajuanPkl(siswa["id"],session)
 
 # pengajuan_cancel pkl
 @siswaRouter.post("/pengajuan_cancel_pkl",response_model=ResponseModel[PengajuanCancelPklBase],tags=["SISWA/PENGAJUAN-CANCEL-PKL"])
-async def addPengajuanCancelPkl(siswa : dict = Depends(getSiswaAuth),session : sessionDepedency = None):
-    return await pengajuanCancelPklService.addPengajuanCancelPkl(siswa["id"],session)
+async def addPengajuanCancelPkl(body : AddPengajuanCancelPklBody,siswa : dict = Depends(getSiswaAuth),session : sessionDepedency = None):
+    return await pengajuanCancelPklService.addPengajuanCancelPkl(siswa["id"],body,session)
 
 @siswaRouter.get("/pengajuan_cancel_pkl",response_model=ResponseModel[list[PengajuanCancelPklWithDudi]],tags=["SISWA/PENGAJUAN-CANCEL-PKL"])
 async def getAllPengajuanCancelPkl(status : StatusCancelPKLENUM | None = None,siswa : dict = Depends(getSiswaAuth),session : sessionDepedency = None):
@@ -132,7 +137,7 @@ async def getAllPengajuanCancelPkl(status : StatusCancelPKLENUM | None = None,si
 async def cancelPengajuan(id_pengajuan : int,siswa : dict = Depends(getSiswaAuth),session : sessionDepedency = None):
     return await pengajuanCancelPklService.cancelPengjuan(siswa["id"],id_pengajuan,session)
 
-@siswaRouter.get("/pengajuan_cancel_pkl/{id_pengajuan_cancel_pkl}",response_model=ResponseModel[PengajuanCancelPklWithDudi],tags=["SISWA/PENGAJUAN-CANCEL-PKL"])
+@siswaRouter.get("/pengajuan_cancel_pkl/{id_pengajuan_cancel_pkl}",response_model=ResponseModel[PengajuanCancelPklWithDudiAlamat],tags=["SISWA/PENGAJUAN-CANCEL-PKL"])
 async def getPengajuanCancelPklById(id_pengajuan_cancel_pkl : int,siswa : dict = Depends(getSiswaAuth),session : sessionDepedency = None):
     return await pengajuanCancelPklService.getPengajuanCancelPklById(siswa["id"],id_pengajuan_cancel_pkl,session)
 
@@ -148,7 +153,7 @@ async def addLaporanPklSiswa(body : AddLaporanPklSiswaBody,siswa : dict = Depend
 
 @siswaRouter.get("/laporan_pkl_siswa",response_model=ResponseModel[ResponseGetLaporanPklSiswaPag],tags=["SISWA/LAPORAN-PKL-SISWA"])
 async def getAllLaporanPklSiswa(page : int,filter : FilterLaporan = Depends(),siswa : dict = Depends(getSiswaAuth),session : sessionDepedency = None):
-    return await laporanPklSiswaService.getAllLaporanPklSiswa(siswa["id"],filter,page,session)
+    return await laporanPklSiswaService.getAllLaporanPklSiswa(siswa["id"],page,filter,session)
 
 @siswaRouter.get("/laporan_pkl_siswa/{id_laporan_pkl_siswa}",response_model=ResponseModel[LaporanPklSiswaBase],tags=["SISWA/LAPORAN-PKL-SISWA"])
 async def getLaporanPklSiswaById(id_laporan_pkl_siswa : int,siswa : dict = Depends(getSiswaAuth),session : sessionDepedency = None):
@@ -165,6 +170,10 @@ async def uploadUpdateFileLaporanPklSiswa(id_laporan_siswa : int,file_laporan : 
 @siswaRouter.delete("/laporan_pkl_siswa/{id_laporan_siswa}",response_model=ResponseModel[LaporanPklWithoutDudiAndSiswa],tags=["SISWA/LAPORAN-PKL-SISWA"])
 async def deleteLaporanPklSiswa(id_laporan_siswa : int,siswa : dict = Depends(getSiswaAuth),session : sessionDepedency = None):
     return await laporanPklSiswaService.deleteLaporanPklSiswa(siswa["id"],id_laporan_siswa,session)
+
+@siswaRouter.get("/laporan_pkl_siswa/get/laporanSiswaKendala",response_model=ResponseModel[list[ResponseGetLaporanPklSiswaAndKendala]],tags=["SISWA/LAPORAN-PKL-SISWA"])
+async def getAllLaporanHarianAndKendala(siswa : dict = Depends(getSiswaAuth),session : sessionDepedency = None):
+    return await laporanPklSiswaService.getAllLaporanPklSiswaAndKendala(siswa["id"],session)
 
 # laporan pkl dudi
 @siswaRouter.get("/laporan_pkl_dudi",response_model=ResponseModel[ResponseGetLaporanPklDudiPag],tags=["SISWA/LAPORAN-PKL-DUDI"])
@@ -229,22 +238,22 @@ async def absenizinTelat(latitude: float = Form(...),longitude: float = Form(...
     radius = RadiusBody(latitude=latitude, longitude=longitude)
     return await absenEventService.absenIzinTelat(siswa["id"],siswa["id_dudi"],note,statusizinTelat,radius,foto,session)
 
-@siswaRouter.post("/absen/absen-sakit",response_model=ResponseModel[AbsenBase],tags=["SISWA/ABSEN"])
-async def absenSakit(latitude: float = Form(...),longitude: float = Form(...),siswa : dict = Depends(getSiswaAuth),session : sessionDepedency = None):
+@siswaRouter.post("/absen/absen-sakit",response_model=ResponseModel[AbsenWithDokumenSakit],tags=["SISWA/ABSEN"])
+async def absenSakit(latitude: float = Form(...),longitude: float = Form(...),dokumen : UploadFile = File(...),note : str = Form(...),siswa : dict = Depends(getSiswaAuth),session : sessionDepedency = None):
     radius = RadiusBody(latitude=latitude, longitude=longitude)
-    return await absenEventService.absenSakit(siswa["id"],radius,session)
+    return await absenEventService.absenSakit(siswa["id"],radius,dokumen,note,session)
 
 # get-absen
 @siswaRouter.get("/absen",response_model=ResponseModel[list[MoreAbsen]] | AbsenResponse,tags=["SISWA/GETABSEN"])
-async def getAllAbsen(isSevenDayAgo : bool | None = None,isGrouping : bool | None = None,siswa : dict = Depends(getSiswaAuth),filter : FilterAbsen = Depends(),session : sessionDepedency = None):
-    return await getAbsenService.getAllAbsen(siswa["id"],filter,isSevenDayAgo,isGrouping,session)
+async def getAllAbsen(isThreeDayAgo : bool | None = None,siswa : dict = Depends(getSiswaAuth),filter : FilterAbsen = Depends(),session : sessionDepedency = None):
+    return await getAbsenService.getAllAbsen(siswa["id"],filter,isThreeDayAgo,session)
 
-@siswaRouter.get("/absen/{id_absen}",response_model=ResponseModel[AbsenBase],tags=["SISWA/GETABSEN"])
+@siswaRouter.get("/absen/{id_absen}",response_model=ResponseModel[MoreAbsenWithHariAbsen],tags=["SISWA/GETABSEN"])
 async def getAbsenById(id_absen : int,siswa : dict = Depends(getSiswaAuth),session : sessionDepedency = None):
     return await getAbsenService.getAbsenById(id_absen,siswa["id"],session)
 
 # notification
-@siswaRouter.get("/notification",response_model=ResponseModel[list[NotificationModelBase]],tags=["SISWA/NOTIFICATION"])
+@siswaRouter.get("/notification",response_model=ResponseGetAllNotification,tags=["SISWA/NOTIFICATION"])
 async def getAllNotification(siswa : dict = Depends(getSiswaAuth),session : sessionDepedency = None):
     return await notificationService.getAllNotification(siswa["id"],siswa["id_dudi"],session)
 

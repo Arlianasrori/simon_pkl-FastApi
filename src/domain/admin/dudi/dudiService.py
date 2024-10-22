@@ -13,7 +13,6 @@ from ....models.sekolahModel import TahunSekolah
 # common
 from copy import deepcopy
 import math
-import os
 from python_random_strings import random_strings
 from ....error.errorHandling import HttpException
 from ....utils.updateTable import updateTable

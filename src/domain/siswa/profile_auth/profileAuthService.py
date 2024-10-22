@@ -6,6 +6,7 @@ from sqlalchemy.orm import joinedload
 
 # models
 from ...models_domain.siswa_model import SiswaBase,DetailSiswa,SiswaWithJurusanKelas
+from ....models.dudiModel import Dudi
 from ....models.siswaModel import Siswa,Jurusan,Kelas
 from .profileAuthModel import UpdateProfileBody
 
@@ -15,6 +16,7 @@ from ....error.errorHandling import HttpException
 from ....utils.updateTable import updateTable
 from python_random_strings import random_strings
 import os
+from ....utils.sendOtp import sendOtp
 
 async def getSiswa(id_siswa : int,session : AsyncSession) -> SiswaBase :
     findSiswa = (await session.execute(select(Siswa).where(Siswa.id == id_siswa))).scalar_one_or_none()
@@ -28,7 +30,7 @@ async def getSiswa(id_siswa : int,session : AsyncSession) -> SiswaBase :
     }
 
 async def getProfileAuth(id_siswa : int,session : AsyncSession) -> DetailSiswa :
-    findSiswa = (await session.execute(select(Siswa).options(joinedload(Siswa.dudi),joinedload(Siswa.pembimbing_dudi),joinedload(Siswa.guru_pembimbing),joinedload(Siswa.kelas),joinedload(Siswa.jurusan),joinedload(Siswa.alamat)).where(Siswa.id == id_siswa))).scalar_one_or_none()
+    findSiswa = (await session.execute(select(Siswa).options(joinedload(Siswa.dudi).joinedload(Dudi.alamat),joinedload(Siswa.pembimbing_dudi),joinedload(Siswa.guru_pembimbing),joinedload(Siswa.kelas),joinedload(Siswa.jurusan),joinedload(Siswa.alamat)).where(Siswa.id == id_siswa))).scalar_one_or_none()
 
     if not findSiswa :
         raise HttpException(404,"siswa tidak ditemukan")
@@ -102,4 +104,18 @@ async def updateFotoProfile(id_siswa : int,foto_profile : UploadFile,session : A
     return {
         "msg" : "success",
         "data" : siswaDictCopy
+    }
+
+async def sendOtpForVerifySiswa(id_siswa : int,session : AsyncSession) -> SiswaBase :
+    findSiswa = (await session.execute(select(Siswa).where(Siswa.id == id_siswa))).scalar_one_or_none()
+    if not findSiswa :
+        raise HttpException(404,f"siswa tidak ditemukan")
+    
+    otp = await sendOtp(findSiswa.email)
+    findSiswa.OTP_code = otp
+    await session.commit()
+    
+    return {
+        "msg" : "success",
+        "data" : findSiswa
     }

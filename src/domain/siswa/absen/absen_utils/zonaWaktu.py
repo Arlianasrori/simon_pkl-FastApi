@@ -13,7 +13,7 @@ async def get_timezone_from_coordinates(lat, lon):
     elif 120 <= lon < 135:
         return timezone("Asia/Jayapura")
     else:
-        return "Koordinat di luar wilayah Indonesia"
+        return None
 
 async def get_local_time(zona_waktu : str): 
     print(zona_waktu) 

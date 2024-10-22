@@ -27,7 +27,7 @@ async def getAllLaporanPklDudi(id_siswa : int,page : int | None,session : AsyncS
     }
 
 async def getLaporanPklDudiById(id_laporan_pkl : int,id_siswa : int,session : AsyncSession) -> LaporanPklDudiBase :
-    findLaporanPkl = (await session.execute(select(LaporanPKL).options(joinedload(LaporanPKL.dudi),joinedload(LaporanPKL.pembimbing_dudi)).where(and_(LaporanPKL.id == id_laporan_pkl,LaporanPKL.id_siswa == id_siswa)))).scalar_one_or_none()
+    findLaporanPkl = (await session.execute(select(LaporanPKL).options(joinedload(LaporanPKL.dudi),joinedload(LaporanPKL.pembimbing_dudi),joinedload(LaporanPKL.siswa)).where(and_(LaporanPKL.id == id_laporan_pkl,LaporanPKL.id_siswa == id_siswa)))).scalar_one_or_none()
 
     if not findLaporanPkl :
         raise HttpException(404,f"laporan pkl tidak ditemukan")

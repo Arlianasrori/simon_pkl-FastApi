@@ -42,3 +42,17 @@ class LaporanKendalaSiswa(Base):
     deskripsi = Column(String(1500))
 
     siswa = relationship("Siswa", back_populates="laporan_kendala")
+
+class LaporanKendalaDudi(Base):
+    __tablename__ = 'laporan_kendala_dudi'
+
+    id = Column(Integer, primary_key=True)
+    id_siswa = Column(Integer, ForeignKey('siswa.id',ondelete='CASCADE',onupdate='CASCADE'))
+    id_pembimbing_dudi = Column(Integer, ForeignKey('pembimbing_dudi.id',ondelete='CASCADE',onupdate='CASCADE'))
+    tanggal = Column(Date)
+    kendala = Column(String(1500))
+    file_laporan = Column(String(1500),nullable=True)
+    deskripsi = Column(String(1500))
+
+    siswa = relationship("Siswa", back_populates="laporan_kendala_dudi")
+    pembimbingDudi = relationship("PembimbingDudi", back_populates="laporan_kendala_dudi")

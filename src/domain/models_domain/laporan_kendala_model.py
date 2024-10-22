@@ -1,6 +1,6 @@
 from pydantic import BaseModel
 from datetime import date as Date
-from .siswa_model import SiswaBase
+from .siswa_model import SiswaWithDudiWithOutKelasJurusan
 
 class LaporankendalaBase(BaseModel) :
     id : int
@@ -10,4 +10,4 @@ class LaporankendalaBase(BaseModel) :
     deskripsi : str | None = None
 
 class LaporanKendalaWithSiswa(LaporankendalaBase) :
-    siswa : SiswaBase
+    siswa : SiswaWithDudiWithOutKelasJurusan
