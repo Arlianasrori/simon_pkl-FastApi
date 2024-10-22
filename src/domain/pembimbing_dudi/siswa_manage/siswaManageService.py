@@ -33,7 +33,7 @@ async def getSiswa(id_pembimbing_dudi : int,page : int | None,session : AsyncSes
         }
     
 async def getSiswaById(id_pembimbing_dudi : int,id_siswa : int ,session : AsyncSession) -> MoreSiswa :
-    findSiswa = (await session.execute(select(Siswa).options(joinedload(Siswa.jurusan),joinedload(Siswa.kelas),joinedload(Siswa.guru_pembimbing)).where(and_(Siswa.id_pembimbing_dudi == id_pembimbing_dudi,Siswa.id == id_siswa)))).scalar_one_or_none()
+    findSiswa = (await session.execute(select(Siswa).options(joinedload(Siswa.jurusan),joinedload(Siswa.kelas),joinedload(Siswa.alamat),joinedload(Siswa.guru_pembimbing)).where(and_(Siswa.id_pembimbing_dudi == id_pembimbing_dudi,Siswa.id == id_siswa)))).scalar_one_or_none()
 
     if not findSiswa :
         print("tes")

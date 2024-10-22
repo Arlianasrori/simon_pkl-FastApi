@@ -36,7 +36,7 @@ from ..domain.models_domain.laporan_kendala_dudi_model import LaporankendalaDudi
 # pengajuan pkl
 from ..domain.pembimbing_dudi.pengajuan_pkl import pengajuanPklService
 from ..domain.pembimbing_dudi.pengajuan_pkl.pengajuanPklModel import AccDccPengajuanPkl as ACCPengajuan,ResponseGroupingPengajuanPag,ResponsePengajuanPklPag,ResponseGroupingPengajuan
-from ..domain.models_domain.pengajuan_pkl_model import PengajuanPklWithSiswa
+from ..domain.models_domain.pengajuan_pkl_model import PengajuanPklWithSiswa,PengajuanPklWithSiswaJurusanKelas
 
 # pengajuan cancel pkl
 from ..domain.pembimbing_dudi.pengajuan_cancel_pkl import pengajuanCancelPklService
@@ -56,7 +56,7 @@ from ..domain.models_domain.absen_model import koordinatAbsenBase
 # get absen
 from ..domain.pembimbing_dudi.absen.get_absen import getAbsenservice
 from ..domain.pembimbing_dudi.absen.get_absen.getAbsenModel import FilterAbsen,AbsenResponse
-from ..domain.models_domain.absen_model import MoreAbsen
+from ..domain.models_domain.absen_model import MoreAbsen, MoreAbsenWithDokumenSakit
 
 # notification
 from ..domain.pembimbing_dudi.notification_pembimbing_dudi import notificationService
@@ -178,11 +178,11 @@ async def deleteLaporanPkl(id_laporan : int,pembimbing : dict = Depends(getPembi
     return await laporanKendalaDudiService.deleteLaporanPklKendala(pembimbing["id"],id_laporan,session)
 
 # pengajuan pkl
-@pembimbingDudiRouter.get("/pengajuan-pkl",response_model=ResponseModel[list[PengajuanPklWithSiswa] | ResponsePengajuanPklPag ] | ResponseGroupingPengajuan | ResponseGroupingPengajuanPag,tags=["PEMBIMBING-DUDI/PENGJUAN-PKL"])
+@pembimbingDudiRouter.get("/pengajuan-pkl",response_model=ResponseModel[list[PengajuanPklWithSiswaJurusanKelas] | ResponsePengajuanPklPag ] | ResponseGroupingPengajuan | ResponseGroupingPengajuanPag,tags=["PEMBIMBING-DUDI/PENGJUAN-PKL"])
 async def getAllPengajuanPkl(usingGrouping : bool = False,page : int | None = None,pembimbing : dict = Depends(getPembimbingDudiAuth),session : sessionDepedency = None) :
     return await pengajuanPklService.getAllPengajuanPkl(pembimbing["id_dudi"],page,usingGrouping,session)
 
-@pembimbingDudiRouter.get("/pengajuan-pkl/{id_pengajuan_pkl}",response_model=ResponseModel[PengajuanPklWithSiswa],tags=["PEMBIMBING-DUDI/PENGJUAN-PKL"])
+@pembimbingDudiRouter.get("/pengajuan-pkl/{id_pengajuan_pkl}",response_model=ResponseModel[PengajuanPklWithSiswaJurusanKelas],tags=["PEMBIMBING-DUDI/PENGJUAN-PKL"])
 async def getPengajuanPklById(id_pengajuan_pkl : int,pembimbing : dict = Depends(getPembimbingDudiAuth),session : sessionDepedency = None) :
     return await pengajuanPklService.getPengajuanPklById(id_pengajuan_pkl,pembimbing["id_dudi"],session)
 
@@ -247,11 +247,11 @@ async def deleteKoordinatAbsen(id_koordinat_absen : int,pembimbing : dict = Depe
     return await koordinatAbsenService.deleteKoordinat(pembimbing["id_dudi"],id_koordinat_absen,session)
 
 # get absen
-@pembimbingDudiRouter.get("/absen",response_model=ResponseModel[MoreAbsen],tags=["PEMBIMBING-DUDI/ABSEN"])
+@pembimbingDudiRouter.get("/absen",response_model=ResponseModel[list[MoreAbsen]],tags=["PEMBIMBING-DUDI/ABSEN"])
 async def getAllAbsen(isSevenDayAgo : int | None = None,filter : FilterAbsen = Depends(),pembimbing : dict = Depends(getPembimbingDudiAuth),session : sessionDepedency = None) :
     return await getAbsenservice.getAllAbsen(pembimbing["id_dudi"],filter,isSevenDayAgo,session)
 
-@pembimbingDudiRouter.get("/absen/{id_absen}",response_model=ResponseModel[MoreAbsen],tags=["PEMBIMBING-DUDI/ABSEN"])
+@pembimbingDudiRouter.get("/absen/{id_absen}",response_model=ResponseModel[MoreAbsenWithDokumenSakit],tags=["PEMBIMBING-DUDI/ABSEN"])
 async def getAbsenById(id_absen : int,pembimbing : dict = Depends(getPembimbingDudiAuth),session : sessionDepedency = None) :
     return await getAbsenservice.getAbsenById(id_absen,pembimbing["id_dudi"],session)
 
