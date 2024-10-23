@@ -43,6 +43,7 @@ async def addNotification(data : AddNotificationModel,data_notification : AddDat
 
             if data.id_siswa :
                 findSiswa = (await session.execute(select(Siswa).where(Siswa.id == data.id_siswa))).scalar_one_or_none()
+                print(findSiswa)
 
                 if not findSiswa :
                     raise HttpException(400,"siswa tidak ditemukan")

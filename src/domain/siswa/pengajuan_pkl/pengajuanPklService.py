@@ -128,6 +128,7 @@ async def addPengajuanPkl(id_siswa : int,id_sekolah : int,pengajuan : AddPengaju
     pengjuanPklMapping = pengajuan.model_dump()
     pengjuanPklMapping.update({"id" : random_strings.random_digits(6),"id_siswa":id_siswa,"status" : StatusPengajuanENUM.proses.value,"waktu_pengajuan" : datetime.utcnow()})
 
+    findSiswa.status = StatusPKLEnum.menunggu.value
     dudiDictCopy = deepcopy(findDudi.__dict__)
     siswaDictCopy = deepcopy(findSiswa.__dict__)
     session.add(PengajuanPKL(**pengjuanPklMapping))
@@ -148,7 +149,7 @@ async def addPengajuanPkl(id_siswa : int,id_sekolah : int,pengajuan : AddPengaju
 
 async def cancelPengajuanPkl(id_siswa : int,id_pengajuan : int,body : CancelPengajuanBody,session : AsyncSession) -> PengajuanPklWithDudi :
     findPengjuanPkl = (await session.execute(select(PengajuanPKL).options(joinedload(PengajuanPKL.dudi),joinedload(PengajuanPKL.siswa)).filter(and_(PengajuanPKL.id == id_pengajuan,PengajuanPKL.id_siswa == id_siswa)))).scalar_one_or_none()
-    print(findPengjuanPkl.__dict__)
+    
     if not findPengjuanPkl :
         raise HttpException(404,"pengajuan tidak ditemukan")
     if findPengjuanPkl.status != StatusPengajuanENUM.proses :

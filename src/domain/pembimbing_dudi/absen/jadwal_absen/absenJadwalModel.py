@@ -5,6 +5,7 @@ from .....models.absenModel import HariEnum
 
 class AddHariAbsen(BaseModel) :
     hari : HariEnum
+    enable : bool = True
     batas_absen_masuk : Time
     batas_absen_pulang : Time
     min_jam_absen : int
@@ -15,7 +16,9 @@ class AddJadwalAbsenBody(BaseModel) :
     hari : list[AddHariAbsen]
 
 class UpdateHariAbsenBody(BaseModel) :
-    id : int
+    id : int | None = None
+    hari : HariEnum | None = None
+    enable : bool | None = None
     batas_absen_masuk : Time | None = None
     batas_absen_pulang : Time | None = None
     min_jam_absen : int | None = None

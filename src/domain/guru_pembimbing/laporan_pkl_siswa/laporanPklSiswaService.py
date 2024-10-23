@@ -34,7 +34,7 @@ async def getAllLaporanPklSiswa(id_guru : int,id_sekolah : int,filter : FilterBy
     }
 
 async def getLaporanPklSiswaById(id_laporan : int,id_guru : int,session : AsyncSession) -> LaporanPklSiswaBase :
-    findLaporan = (await session.execute(select(LaporanSiswaPKL).where(and_(LaporanSiswaPKL.id == id_laporan,LaporanSiswaPKL.siswa.has(Siswa.id_guru_pembimbing == id_guru))))).scalar_one_or_none()
+    findLaporan = (await session.execute(select(LaporanSiswaPKL).options(joinedload(LaporanSiswaPKL.siswa),joinedload(LaporanSiswaPKL.dudi)).where(and_(LaporanSiswaPKL.id == id_laporan,LaporanSiswaPKL.siswa.has(Siswa.id_guru_pembimbing == id_guru))))).scalar_one_or_none()
     if not findLaporan :
         raise HttpException(404,"laporan tidak ditemukan")
     

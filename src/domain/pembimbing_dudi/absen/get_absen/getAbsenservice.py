@@ -4,7 +4,7 @@ from sqlalchemy import desc, select,and_,extract
 from sqlalchemy.orm import joinedload
 
 # models
-from ....models_domain.absen_model import MoreAbsen
+from ....models_domain.absen_model import MoreAbsen,MoreAbsenWithDokumenSakit
 from .getAbsenModel import FilterAbsen,AbsenResponse
 from .....models.absenModel import Absen
 from .....models.siswaModel import Siswa
@@ -13,10 +13,10 @@ from .....models.siswaModel import Siswa
 from .....error.errorHandling import HttpException
 from datetime import datetime,timedelta
 
-async def getAllAbsen(id_dudi : int,filter : FilterAbsen,isSevenDay : bool,session : AsyncSession) -> AbsenResponse :
+async def getAllAbsen(id_dudi : int,filter : FilterAbsen,isSevenDay : bool,session : AsyncSession) -> MoreAbsen :
     seven_days_ago = datetime.now() - timedelta(days=7)
 
-    findAbsen = (await session.execute(select(Absen).options(joinedload(Absen.siswa).joinedload(Siswa.dudi))
+    findAbsen = (await session.execute(select(Absen).options(joinedload(Absen.siswa).joinedload(Siswa.dudi),joinedload(Absen.keterangan_absen_masuk),joinedload(Absen.keterangan_absen_pulang))
         .where(and_(
         Absen.siswa.has(Siswa.id_dudi == id_dudi),
         Absen.tanggal >= seven_days_ago if isSevenDay else True,
@@ -27,21 +27,21 @@ async def getAllAbsen(id_dudi : int,filter : FilterAbsen,isSevenDay : bool,sessi
         Absen.siswa.has(Siswa.nama.like(f"%{filter.nama}%")) if filter.nama else True,
         )).order_by(desc(Absen.tanggal)))).scalars().all()
     
-    absenDict: dict[str, list[Absen]] = {}
-    for absen in findAbsen:
-        tanggal_str = absen.tanggal.strftime("%Y-%m-%d")
-        if tanggal_str not in absenDict:
-            absenDict[tanggal_str] = []
-        absenDict[tanggal_str].append(absen)
+    # absenDict: dict[str, list[Absen]] = {}
+    # for absen in findAbsen:
+    #     tanggal_str = absen.tanggal.strftime("%Y-%m-%d")
+    #     if tanggal_str not in absenDict:
+    #         absenDict[tanggal_str] = []
+    #     absenDict[tanggal_str].append(absen)
     
     return {
         "msg" : "success",
-        "data" : absenDict
+        "data" : findAbsen
     }
 
 
-async def getAbsenById(id_absen : int,id_dudi : int,session : AsyncSession)-> MoreAbsen :
-    findAbsen = (await session.execute(select(Absen).options(joinedload(Absen.siswa).joinedload(Siswa.dudi),joinedload(Absen.keterangan_absen_masuk),joinedload(Absen.keterangan_absen_pulang)).where(and_(Absen.id == id_absen,Absen.siswa.has(Siswa.id_dudi == id_dudi))))).scalar_one_or_none()
+async def getAbsenById(id_absen : int,id_dudi : int,session : AsyncSession)-> MoreAbsenWithDokumenSakit :
+    findAbsen = (await session.execute(select(Absen).options(joinedload(Absen.siswa).joinedload(Siswa.dudi),joinedload(Absen.keterangan_absen_masuk),joinedload(Absen.keterangan_absen_pulang),joinedload(Absen.dokumenSakit)).where(and_(Absen.id == id_absen,Absen.siswa.has(Siswa.id_dudi == id_dudi))))).scalar_one_or_none()
 
     if not findAbsen :
         raise HttpException(404,"absen tidak ditemukan")

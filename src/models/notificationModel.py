@@ -25,7 +25,7 @@ class Notification(Base):
     pembimbing_dudi = relationship("PembimbingDudi", back_populates="notifications")
     guru_pembimbing = relationship("GuruPembimbing", back_populates="notifications")
     reads = relationship("NotificationRead", back_populates="notification")
-    data = relationship("NotificationData", back_populates="notification")
+    data = relationship("NotificationData", back_populates="notification",uselist=False)
 
 class NotificationRead(Base):
     __tablename__ = 'notification_read'

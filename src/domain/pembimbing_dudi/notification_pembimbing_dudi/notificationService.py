@@ -1,10 +1,10 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import desc, select,and_
-from sqlalchemy.orm import subqueryload
+from sqlalchemy.orm import subqueryload,joinedload
 
 # models
 from ....models.notificationModel import Notification,NotificationRead
-from ...models_domain.notification_model import NotificationModelBase,ResponseGetUnreadNotification,ResponseGetAllNotification
+from ...models_domain.notification_model import NotificationModelBase,ResponseGetUnreadNotification,ResponseGetAllNotification,NotificationWithData
 
 # common
 from copy import deepcopy
@@ -32,8 +32,8 @@ async def getAllNotification(id_pembimbing_dudi : int,session : AsyncSession) ->
         "data" : grouped_data
     }
 
-async def getNotificationById(id_notification : int,id_pembimbing_dudi : int,session : AsyncSession) -> NotificationModelBase:
-    findNotification = (await session.execute(select(Notification).options(subqueryload(Notification.reads.and_(NotificationRead.id_pembimbing_dudi == id_pembimbing_dudi))).where(and_(Notification.id == id_notification,Notification.id_pembimbing_dudi == id_pembimbing_dudi)))).scalar_one_or_none()
+async def getNotificationById(id_notification : int,id_pembimbing_dudi : int,session : AsyncSession) -> NotificationWithData:
+    findNotification = (await session.execute(select(Notification).options(subqueryload(Notification.reads.and_(NotificationRead.id_pembimbing_dudi == id_pembimbing_dudi)),joinedload(Notification.data)).where(and_(Notification.id == id_notification,Notification.id_pembimbing_dudi == id_pembimbing_dudi)))).scalar_one_or_none()
 
     if not findNotification :
         raise HttpException(400,"notification tidak ditemukan")

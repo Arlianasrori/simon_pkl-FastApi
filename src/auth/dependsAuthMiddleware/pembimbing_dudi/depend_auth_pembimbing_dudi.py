@@ -47,7 +47,7 @@ async def pembimbingDudiAuth(access_token: str | None = Cookie(None), Authorizat
             raise HttpException(status=401, message="invalid token(unauthorized)")
         
         # Create a select query to find the pembimbing dudi in the database
-        selectQuery = select(PembimbingDudi.id, PembimbingDudi.username, PembimbingDudi.token_FCM, PembimbingDudi.id_sekolah,PembimbingDudi.id_dudi).where(PembimbingDudi.id == pemimbingDudi["id"])
+        selectQuery = select(PembimbingDudi.id, PembimbingDudi.username, PembimbingDudi.token_FCM, PembimbingDudi.id_sekolah,PembimbingDudi.id_dudi,PembimbingDudi.id_tahun).where(PembimbingDudi.id == pemimbingDudi["id"])
         exec = await Session.execute(selectQuery)
         findPembimbingDudi = exec.first()
 

@@ -56,4 +56,5 @@ async def AddNotifAfterAbsen(id_siswa : int,id_absen : int,keteranganAbsen : str
     await addNotification(notifMapping,dataNotification if dataNotification else None)
 
 def runningProccessSyncAbsen(id_siswa : int,id_absen : int,keteranganAbsen : str) :
-    asyncio.run(AddNotifAfterPengajuan(id_siswa, id_absen,keteranganAbsen))
+    print("p")
+    asyncio.run(AddNotifAfterAbsen(id_siswa, id_absen,keteranganAbsen))

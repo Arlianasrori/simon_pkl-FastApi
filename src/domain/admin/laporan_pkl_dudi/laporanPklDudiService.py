@@ -8,6 +8,7 @@ from ...models_domain.laporan_pkl_dudi_model import LaporanPklDudiBase
 from ....models.laporanPklModel import LaporanPKL
 from ....models.sekolahModel import TahunSekolah
 from ....models.siswaModel import Siswa
+from ....models.dudiModel import Dudi
 
 # common 
 import math
@@ -38,7 +39,7 @@ async def getAllLaporanPkl(page: int, id_sekolah: int, id_tahun: int, query: Fil
         endQuery = datetime.date(query.year if query.year else now.year, query.month if query.month else 12, 31)
         print(startQuery)
 
-    statement = select(LaporanPKL).options(joinedload(LaporanPKL.siswa), joinedload(LaporanPKL.dudi), joinedload(LaporanPKL.pembimbing_dudi)).where(and_(and_(LaporanPKL.tanggal >= startQuery, LaporanPKL.tanggal <= endQuery)) if query.month else True, LaporanPKL.tanggal == query.tanggal if query.tanggal else True, LaporanPKL.siswa.has(Siswa.id_sekolah == id_sekolah), LaporanPKL.id_siswa == query.id_siswa if query.id_siswa else True,LaporanPKL.siswa.has(Siswa.id_tahun == id_tahun))
+    statement = select(LaporanPKL).options(joinedload(LaporanPKL.dudi), joinedload(LaporanPKL.pembimbing_dudi)).where(and_(and_(LaporanPKL.tanggal >= startQuery, LaporanPKL.tanggal <= endQuery)) if query.month else True, LaporanPKL.tanggal == query.tanggal if query.tanggal else True, LaporanPKL.dudi.has(Dudi.id_sekolah == id_sekolah)).limit(10).offset(10 * (page - 1))
 
     getLapoaran = (await session.execute(statement.limit(10).offset(10 * (page - 1)))).scalars().all()
 
@@ -69,7 +70,7 @@ async def getLaporanPkl(id_laporan: int, id_sekolah: int, session: AsyncSession)
     Raises:
         HttpException: If the specified PKL report is not found.
     """
-    findLaporanPkl = (await session.execute(select(LaporanPKL).options(joinedload(LaporanPKL.siswa), joinedload(LaporanPKL.dudi), joinedload(LaporanPKL.pembimbing_dudi)).where(and_(LaporanPKL.id == id_laporan, LaporanPKL.siswa.has(Siswa.id_sekolah == id_sekolah))))).scalar_one_or_none()
+    findLaporanPkl = (await session.execute(select(LaporanPKL).options(joinedload(LaporanPKL.dudi), joinedload(LaporanPKL.pembimbing_dudi)).where(and_(LaporanPKL.id == id_laporan, LaporanPKL.dudi.has(Dudi.id_sekolah == id_sekolah))))).scalar_one_or_none()
 
     if not findLaporanPkl:
         raise HttpException(404, "laporan pkl tidak ditemukan")

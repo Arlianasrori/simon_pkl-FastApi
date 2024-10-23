@@ -27,7 +27,7 @@ from ..domain.guru_pembimbing.laporan_pkl_dudi.laporanPklDudiModel import Lapora
 
 # laporan-kendala-siswa
 from ..domain.guru_pembimbing.laporan_kendala import laporanKendalaService
-from ..domain.guru_pembimbing.laporan_kendala.laporanKendalaModel import Filter,LaporanKendalaResponse
+from ..domain.guru_pembimbing.laporan_kendala.laporanKendalaModel import Filter,LaporanKendalaResponse,ResponseLaporanKendalaCount
 from ..domain.guru_pembimbing.laporan_kendala.laporanKendalaModel import LaporanKendalaWithSiswa
 
 # laporan-kendala-dudi
@@ -46,12 +46,12 @@ from ..domain.models_domain.kunjungan_guru_pembimbing_model import KunjunganGuru
 
 # get absen
 from ..domain.guru_pembimbing.absen import absenService
-from ..domain.guru_pembimbing.absen.absenModel import FilterAbsen,AbsenResponse
-from ..domain.models_domain.absen_model import MoreAbsen
+from ..domain.guru_pembimbing.absen.absenModel import FilterAbsen,AbsenResponse,AbsenResponseFormat
+from ..domain.models_domain.absen_model import MoreAbsen,MoreAbsenSiswaDudi
 
 # notification
 from ..domain.guru_pembimbing.notification_guru_pembimbing import notificationService
-from ..domain.models_domain.notification_model import NotificationModelBase,ResponseGetUnreadNotification,ResponseGetAllNotification
+from ..domain.models_domain.notification_model import NotificationModelBase,ResponseGetUnreadNotification,ResponseGetAllNotification,NotificationWithData
 
 # common
 from ..db.sessionDepedency import sessionDepedency
@@ -120,6 +120,10 @@ async def getLaporanPklDudiById(id_laporan : int, guru : dict = Depends(getGuruP
 async def getAllLaporanKendalaSiswa(filter : Filter = Depends(), guru : dict = Depends(getGuruPembimbingAuth),session : sessionDepedency = None):
     return await laporanKendalaService.getAllLaporanKendala(guru["id"],guru["id_sekolah"],filter,session)
 
+@guruPembimbingRouter.get("/laporan-kendala-siswa/get/count",response_model=ResponseModel[ResponseLaporanKendalaCount],tags=["GURU-PEMBIMBING/LAPORAN-KENDALA-SISWA"])
+async def getAllLaporanKendalaSiswa(filter : Filter = Depends(), guru : dict = Depends(getGuruPembimbingAuth),session : sessionDepedency = None):
+    return await laporanKendalaService.getCountLaporanKendala(guru["id"],guru["id_sekolah"],filter,session)
+
 @guruPembimbingRouter.get("/laporan-kendala-siswa/{id_laporan}",response_model=ResponseModel[LaporanKendalaWithSiswa],tags=["GURU-PEMBIMBING/LAPORAN-KENDALA-SISWA"])
 async def getLaporanKendalaSiswaById(id_laporan : int, guru : dict = Depends(getGuruPembimbingAuth),session : sessionDepedency = None):
     return await laporanKendalaService.getLaporanKendalaById(id_laporan,guru["id"],session)
@@ -164,7 +168,11 @@ async def deleteKunjungan(id_kunjungan : int, guru : dict = Depends(getGuruPembi
 async def getAllAbsen(filter : FilterAbsen = Depends(),isSevenDay : bool = False,guru : dict = Depends(getGuruPembimbingAuth),session : sessionDepedency = None):
     return await absenService.getAllAbsen(guru["id"],filter,isSevenDay,session)
 
-@guruPembimbingRouter.get("/absen/{id_absen}",response_model=ResponseModel[MoreAbsen],tags=["GURU-PEMBIMBING/GET-ABSEN"])
+@guruPembimbingRouter.get("/absen/all/format",response_model=AbsenResponseFormat,tags=["GURU-PEMBIMBING/GET-ABSEN"])
+async def getAllAbsen(filter : FilterAbsen = Depends(),isSevenDay : bool = False,guru : dict = Depends(getGuruPembimbingAuth),session : sessionDepedency = None):
+    return await absenService.getAllAbsenWithFormat(guru["id"],filter,isSevenDay,session)
+
+@guruPembimbingRouter.get("/absen/{id_absen}",response_model=ResponseModel[MoreAbsenSiswaDudi],tags=["GURU-PEMBIMBING/GET-ABSEN"])
 async def getAbsenById(id_absen : int, guru : dict = Depends(getGuruPembimbingAuth),session : sessionDepedency = None):
     return await absenService.getAbsenById(id_absen,guru["id"],session)
 
@@ -173,7 +181,7 @@ async def getAbsenById(id_absen : int, guru : dict = Depends(getGuruPembimbingAu
 async def getAllNotification(guru : dict = Depends(getGuruPembimbingAuth),session : sessionDepedency = None):
     return await notificationService.getAllNotification(guru["id"],session)
 
-@guruPembimbingRouter.get("/notification/{id_notification}",response_model=ResponseModel[NotificationModelBase],tags=["GURU-PEMBIMBING/NOTIFICATION"])
+@guruPembimbingRouter.get("/notification/{id_notification}",response_model=ResponseModel[NotificationWithData],tags=["GURU-PEMBIMBING/NOTIFICATION"])
 async def getNotificationById(id_notification : int,guru : dict = Depends(getGuruPembimbingAuth),session : sessionDepedency = None):
     return await notificationService.getNotificationById(id_notification,guru["id"],session)
 

@@ -5,9 +5,10 @@ from sqlalchemy.orm import joinedload
 
 # models
 from .pengajuanPklModel import ResponsePengajuanPklPag,AccDccPengajuanPkl,AccPengajuanEnum,EnumForAllPengjuan,ResponseGroupingPengajuanPag,ResponseGroupingPengajuan
-from ...models_domain.pengajuan_pkl_model import PengajuanPklWithSiswa
+from ...models_domain.pengajuan_pkl_model import PengajuanPklWithSiswa,PengajuanPklWithSiswaJurusanKelas
 from ....models.pengajuanPklModel import PengajuanPKL,StatusPengajuanENUM
 from ....models.siswaModel import StatusPKLEnum
+from ....models.siswaModel import Siswa
 
 # common
 from ....error.errorHandling import HttpException
@@ -18,8 +19,8 @@ from multiprocessing import Process
 # notification
 from ..notification_pembimbing_dudi.notificationUtils import runningProccessSync
 
-async def getAllPengajuanPkl(id_dudi : int,page : int | None,usingGrouping : bool,session : AsyncSession) -> list[PengajuanPklWithSiswa] | ResponsePengajuanPklPag | ResponseGroupingPengajuanPag | ResponseGroupingPengajuan:
-    statementSelectPengajuanPkl = select(PengajuanPKL).options(joinedload(PengajuanPKL.siswa)).where(PengajuanPKL.id_dudi == id_dudi)
+async def getAllPengajuanPkl(id_dudi : int,page : int | None,usingGrouping : bool,session : AsyncSession) -> list[PengajuanPklWithSiswaJurusanKelas] | ResponsePengajuanPklPag | ResponseGroupingPengajuanPag | ResponseGroupingPengajuan:
+    statementSelectPengajuanPkl = select(PengajuanPKL).options(joinedload(PengajuanPKL.siswa).options(joinedload(Siswa.jurusan),joinedload(Siswa.kelas),joinedload(Siswa.alamat))).where(PengajuanPKL.id_dudi == id_dudi)
 
     if page :
         findPengajuanPkl = (await session.execute(statementSelectPengajuanPkl.limit(10).offset(10 * (page - 1)).order_by(case((PengajuanPKL.status == StatusPengajuanENUM.proses, 1)),desc(PengajuanPKL.waktu_pengajuan)))).scalars().all()
@@ -74,8 +75,8 @@ async def getAllPengajuanPkl(id_dudi : int,page : int | None,usingGrouping : boo
             "data" : responsePengajuan
         }
 
-async def getPengajuanPklById(id_pengajuan_pkl : int,id_dudi : int,session : AsyncSession) -> PengajuanPklWithSiswa :
-    findPengajuanPkl = (await session.execute(select(PengajuanPKL).options(joinedload(PengajuanPKL.siswa)).where(and_(PengajuanPKL.id == id_pengajuan_pkl,PengajuanPKL.id_dudi == id_dudi)))).scalar_one_or_none()
+async def getPengajuanPklById(id_pengajuan_pkl : int,id_dudi : int,session : AsyncSession) -> PengajuanPklWithSiswaJurusanKelas :
+    findPengajuanPkl = (await session.execute(select(PengajuanPKL).options(joinedload(PengajuanPKL.siswa).options(joinedload(Siswa.jurusan),joinedload(Siswa.kelas),joinedload(Siswa.alamat))).where(and_(PengajuanPKL.id == id_pengajuan_pkl,PengajuanPKL.id_dudi == id_dudi)))).scalar_one_or_none()
 
     if not findPengajuanPkl :
         raise HttpException(404,"Pengajuan PKL tidak ditemukan")
@@ -122,7 +123,8 @@ async def accDccPengajuanPkl(id_pengajuan_pkl : int,id_pembimbing: int,id_dudi :
     await session.commit()
 
     # Menjalankan addNotif dalam proses terpisah
-    proccess = Process(target=runningProccessSync,args=(mappingForNotif["id_siswa"],mappingForNotif["title"],mappingForNotif["body"],findPengajuanPkl.id))
+    id_pengajuan = deepcopy(findPengajuanPkl.id)
+    proccess = Process(target=runningProccessSync,args=(mappingForNotif["id_siswa"],mappingForNotif["title"],mappingForNotif["body"],id_pengajuan))
     proccess.start()
 
     return {

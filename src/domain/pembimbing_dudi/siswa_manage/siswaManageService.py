@@ -33,7 +33,7 @@ async def getSiswa(id_pembimbing_dudi : int,page : int | None,session : AsyncSes
         }
     
 async def getSiswaById(id_pembimbing_dudi : int,id_siswa : int ,session : AsyncSession) -> MoreSiswa :
-    findSiswa = (await session.execute(select(Siswa).options(joinedload(Siswa.jurusan),joinedload(Siswa.kelas),joinedload(Siswa.guru_pembimbing)).where(and_(Siswa.id_pembimbing_dudi == id_pembimbing_dudi,Siswa.id == id_siswa)))).scalar_one_or_none()
+    findSiswa = (await session.execute(select(Siswa).options(joinedload(Siswa.jurusan),joinedload(Siswa.kelas),joinedload(Siswa.alamat),joinedload(Siswa.guru_pembimbing)).where(and_(Siswa.id_pembimbing_dudi == id_pembimbing_dudi,Siswa.id == id_siswa)))).scalar_one_or_none()
 
     if not findSiswa :
         print("tes")
@@ -53,8 +53,8 @@ async def getCountSiswa(id_pembimbing_dudi : int,session : AsyncSession) -> Resp
         }
     }
 
-async def getAllJurusan(id_sekolah : int,session : AsyncSession) -> list[JurusanBase] :
-    findJurusan = (await session.execute(select(Jurusan).where(Jurusan.id_sekolah == id_sekolah))).scalars().all()
+async def getAllJurusan(id_sekolah : int,id_tahun : int,nama : str | None,session : AsyncSession) -> list[JurusanBase] :
+    findJurusan = (await session.execute(select(Jurusan).where(and_(Jurusan.id_sekolah == id_sekolah,Jurusan.id_tahun == id_tahun,Jurusan.nama.ilike(f"%{nama}%")) if nama else True))).scalars().all()
     return {
         "msg" : "success",
         "data" : findJurusan

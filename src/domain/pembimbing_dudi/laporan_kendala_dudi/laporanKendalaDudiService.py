@@ -20,6 +20,10 @@ from multiprocessing import Process
 from ....utils.removeFile import removeFile
 
 async def addLaporanPKLKendalaSiswa(id_pembimbing_dudi: int,laporan : AddLaporanKendalaDudiBody,session : AsyncSession) -> LaporankendalaDudiBase :
+    findSiswa = (await session.execute(select(Siswa).where(Siswa.id == laporan.id_siswa))).scalar_one_or_none()
+    
+    if not findSiswa :
+        raise HttpException(404,"siswa tidak ditemukan")
     laporanMapping = laporan.model_dump()
     laporanMapping.update({"id" : random_strings.random_digits(6),"id_pembimbing_dudi":id_pembimbing_dudi})
     

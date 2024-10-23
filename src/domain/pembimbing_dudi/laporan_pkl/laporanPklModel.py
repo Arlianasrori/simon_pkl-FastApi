@@ -5,10 +5,10 @@ from typing import Optional
 
 class AddLaporanPklDudiBody(BaseModel):
     tanggal: Date
-    keterangan: str
-    id_siswa: int
+    topik_pekerjaan : str
+    rujukan_kompetensi_dasar : str
 
 class UpdateLaporanPklDudiBody(BaseModel):
     tanggal: Date | None = None
-    keterangan: str | None = None
-    id_siswa: int | None = None
+    topik_pekerjaan : str | None = None
+    rujukan_kompetensi_dasar : str | None = None
