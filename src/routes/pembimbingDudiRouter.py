@@ -191,16 +191,16 @@ async def accDccPengajuanPkl(id_pengajuan_pkl : int,pengajuan_pkl : ACCPengajuan
 
 
 # pengjuan cancel pkl
-@pembimbingDudiRouter.get("/pengajuan-cancel-pkl",response_model=ResponseModel[list[PengajuanCancelPklWithSiswa]],tags=["PEMBIMBING-DUDI/PENGJUAN-CANCEL-PKL"])
-async def getAllPengajuanCancelPkl(page : int | None = None,pembimbing : dict = Depends(getPembimbingDudiAuth),session : sessionDepedency = None) :
+@pembimbingDudiRouter.get("/pengajuan-keluar-pkl",response_model=ResponseModel[list[PengajuanCancelPklWithSiswa]],tags=["PEMBIMBING-DUDI/PENGJUAN-KELUAR-PKL"])
+async def getAllPengajuanKeluarPkl(page : int | None = None,pembimbing : dict = Depends(getPembimbingDudiAuth),session : sessionDepedency = None) :
     return await pengajuanCancelPklService.getAllPengajuancancelPkl(pembimbing["id_dudi"],page,session)
 
-@pembimbingDudiRouter.get("/pengajuan-cancel-pkl/{id_pengajuan_cancel_pkl}",response_model=ResponseModel[PengajuanCancelPklWithSiswa],tags=["PEMBIMBING-DUDI/PENGJUAN-CANCEL-PKL"])
-async def getPengajuanCancelPklById(id_pengajuan_cancel_pkl : int,pembimbing : dict = Depends(getPembimbingDudiAuth),session : sessionDepedency = None) :
+@pembimbingDudiRouter.get("/pengajuan-keluar-pkl/{id_pengajuan_cancel_pkl}",response_model=ResponseModel[PengajuanCancelPklWithSiswa],tags=["PEMBIMBING-DUDI/PENGJUAN-KELUAR-PKL"])
+async def getPengajuanKeluarPklById(id_pengajuan_cancel_pkl : int,pembimbing : dict = Depends(getPembimbingDudiAuth),session : sessionDepedency = None) :
     return await pengajuanCancelPklService.getPengajuanCancelPklById(id_pengajuan_cancel_pkl,pembimbing["id_dudi"],session)
 
-@pembimbingDudiRouter.put("/pengajuan-cancel-pkl/{id_pengajuan_cancel_pkl}",response_model=ResponseModel[PengajuanCancelPklWithSiswa],tags=["PEMBIMBING-DUDI/PENGJUAN-CANCEL-PKL"])
-async def accDccPengajuanCancelPkl(id_pengajuan_cancel_pkl : int,pengajuan_cancel_pkl : ACCPengajuanCancel,pembimbing : dict = Depends(getPembimbingDudiAuth),session : sessionDepedency = None) :
+@pembimbingDudiRouter.put("/pengajuan-keluar-pkl/{id_pengajuan_cancel_pkl}",response_model=ResponseModel[PengajuanCancelPklWithSiswa],tags=["PEMBIMBING-DUDI/PENGJUAN-KELUAR-PKL"])
+async def accDccPengajuanKeluarPkl(id_pengajuan_cancel_pkl : int,pengajuan_cancel_pkl : ACCPengajuanCancel,pembimbing : dict = Depends(getPembimbingDudiAuth),session : sessionDepedency = None) :
     return await pengajuanCancelPklService.accDccPengajuanPkl(id_pengajuan_cancel_pkl,pembimbing["id_dudi"],pengajuan_cancel_pkl,session)
 
 # jadwal-absen
