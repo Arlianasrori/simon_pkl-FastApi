@@ -20,6 +20,10 @@ from multiprocessing import Process
 from ....utils.removeFile import removeFile
 
 async def addLaporanPKLKendalaSiswa(id_pembimbing_dudi: int,laporan : AddLaporanKendalaDudiBody,session : AsyncSession) -> LaporankendalaDudiBase :
+    findSiswa = (await session.execute(select(Siswa).where(Siswa.id == laporan.id_siswa))).scalar_one_or_none()
+    
+    if not findSiswa :
+        raise HttpException(404,"siswa tidak ditemukan")
     laporanMapping = laporan.model_dump()
     laporanMapping.update({"id" : random_strings.random_digits(6),"id_pembimbing_dudi":id_pembimbing_dudi})
     
@@ -35,6 +39,7 @@ async def addLaporanPKLKendalaSiswa(id_pembimbing_dudi: int,laporan : AddLaporan
 FILE_LAPORAN_STORE = os.getenv("DEV_LAPORAN_KENDALA_DUDI")
 FILE_LAPORAN_BASE_URL = os.getenv("DEV_LAPORAN_KENDALA_DUDI_BASE_URL")
 async def addUpdateFileLaporanKendala(id_pembimbing_dudi : int,id_laporan_pkl : int,file : UploadFile,session : AsyncSession) -> LaporankendalaDudiBase :
+    print("anj")
     findLaporanPkl = (await session.execute(select(LaporanKendalaDudi).where(and_(LaporanKendalaDudi.id == id_laporan_pkl,LaporanKendalaDudi.id_pembimbing_dudi == id_pembimbing_dudi)))).scalar_one_or_none()
 
     if not findLaporanPkl :
@@ -48,14 +53,15 @@ async def addUpdateFileLaporanKendala(id_pembimbing_dudi : int,id_laporan_pkl : 
     file_name = f"{random_strings.random_digits(12)}-{file.filename.split(' ')[0]}.{ext_file[-1]}"
     
     file_name_save = f"{FILE_LAPORAN_STORE}{file_name}"
-    fotoProfileBefore = findLaporanPkl.file_laporan
+    fileBefore = findLaporanPkl.file_laporan
 
+    print("tes")
     async with aiofiles.open(file_name_save, "wb") as f:
         await f.write(file.file.read())
         findLaporanPkl.file_laporan = f"{FILE_LAPORAN_BASE_URL}/{file_name}"
     
-    if fotoProfileBefore :
-        file_nama_db_split = fotoProfileBefore.split("/")
+    if fileBefore :
+        file_nama_db_split = fileBefore.split("/")
         file_name_db = file_nama_db_split[-1]
         os.remove(f"{FILE_LAPORAN_STORE}/{file_name_db}")
     
@@ -68,11 +74,11 @@ async def addUpdateFileLaporanKendala(id_pembimbing_dudi : int,id_laporan_pkl : 
     }
 
 async def updateLaporanKendala(id_pembimbing_dudi : int,id_laporan_pkl : int,laporan : UpdateLaporanKendalaDudiBody,session : AsyncSession) -> LaporankendalaDudiBase :
-    findLaporanPkl = (await session.execute(select(LaporanKendalaDudi).where(and_(LaporanKendalaDudi.id == id_laporan_pkl,LaporanKendalaDudi.id_siswa == id_pembimbing_dudi)))).scalar_one_or_none()
+    findLaporanPkl = (await session.execute(select(LaporanKendalaDudi).where(and_(LaporanKendalaDudi.id == id_laporan_pkl,LaporanKendalaDudi.id_pembimbing_dudi == id_pembimbing_dudi)))).scalar_one_or_none()
 
     if not findLaporanPkl :
-        raise HttpException(404,f"laporan pkl tidak ditemukan")
-    
+        raise HttpException(404,f"laporan kendala tidak ditemukan")
+
     if laporan.model_dump() != {} :
         updateTable(laporan,findLaporanPkl)
 
@@ -85,19 +91,19 @@ async def updateLaporanKendala(id_pembimbing_dudi : int,id_laporan_pkl : int,lap
     }
 
 async def deleteLaporanPklKendala(id_pembimbing_dudi : int,id_laporan_pkl : int,session : AsyncSession) -> LaporankendalaDudiBase :
-    findLaporanKendala = (await session.execute(select(LaporanKendalaDudi).where(and_(LaporanKendalaDudi.id == id_laporan_pkl,LaporanKendalaDudi.id_pembimbing_dudi == id_pembimbing_dudi)))).scalar_one_or_none()
+    findLaporanKendala = (await session.execute(select(LaporanKendalaDudi).options(joinedload(LaporanKendalaDudi.siswa)).where(and_(LaporanKendalaDudi.id == id_laporan_pkl,LaporanKendalaDudi.id_pembimbing_dudi == id_pembimbing_dudi)))).scalar_one_or_none()
 
     if not findLaporanKendala :
         raise HttpException(404,f"laporan pkl tidak ditemukan")
     
     # remove file from folder
-    fotoProfileBefore = deepcopy(findLaporanKendala.file_laporan)
+    fileBefore = deepcopy(findLaporanKendala.file_laporan)
            
     await session.delete(findLaporanKendala)
     laporanKendalaDictCopy = deepcopy(findLaporanKendala.__dict__)
     await session.commit()
-    if fotoProfileBefore :
-        file_nama_db_split = fotoProfileBefore.split("/")
+    if fileBefore :
+        file_nama_db_split = fileBefore.split("/")
         file_name_db = file_nama_db_split[-1]
 
         proccess = Process(target=removeFile,args=(f"{FILE_LAPORAN_STORE}/{file_name_db}",))

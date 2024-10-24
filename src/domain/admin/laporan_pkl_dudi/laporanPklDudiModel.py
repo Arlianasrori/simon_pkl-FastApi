@@ -8,7 +8,6 @@ class ResponseLaporanPklDudiPag(PaginationBase) :
     data : list[LaporanPklDudiBase] = []
 
 class FilterLaporanPklDudiQuery(BaseModel) :
-    id_siswa : int | None = None
     tanggal : Date | None = None
     month : int | None = None
     year : int | None = None

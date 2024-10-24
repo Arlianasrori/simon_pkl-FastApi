@@ -1,6 +1,7 @@
 from pydantic import BaseModel
 from datetime import date as Date
 from .siswa_model import SiswaWithDudiWithOutKelasJurusan
+from ..models_domain.pembimbing_dudi_model import PembimbingDudiBase
 
 class LaporankendalaDudiBase(BaseModel) :
     id : int
@@ -13,3 +14,6 @@ class LaporankendalaDudiBase(BaseModel) :
 
 class LaporanKendalaDudiWithSiswa(LaporankendalaDudiBase) :
     siswa : SiswaWithDudiWithOutKelasJurusan
+
+class LaporanKendalaDudiWithSiswaPembimbingDudi(LaporanKendalaDudiWithSiswa) :
+    pembimbingDudi : PembimbingDudiBase

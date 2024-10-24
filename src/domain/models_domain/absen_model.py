@@ -1,7 +1,7 @@
 from pydantic import BaseModel
 from datetime import time as Time,date as Date
 from ...models.absenModel import StatusAbsenEnum,StatusAbsenMasukKeluarEnum,StatusOtherAbsenEnum,HariEnum
-from .siswa_model import SiswaBase,SiswaWithDudiWithOutKelasJurusan
+from .siswa_model import SiswaBase,SiswaWithDudiWithOutKelasJurusan,SiswaWithDudi
 from .dudi_model import DudiBase
 from datetime import date as Date,time as Time
 
@@ -12,11 +12,13 @@ class KeteranganAbsenMasuk(BaseModel) :
     id : int
     note : str
     status_izin : StatusOtherAbsenEnum
+    inside_radius : bool
 
 class KeteranganAbsenKeluar(BaseModel) :
     id : int
     note : str
     status_izin : StatusOtherAbsenEnum
+    inside_radius : bool
 
 class AbsenBase(BaseModel):
     id : int
@@ -45,6 +47,9 @@ class AbsenWithSiswa(AbsenBase) :
 
 class AbsenWithSiswaDudi(AbsenBase) :
     siswa : SiswaWithDudiWithOutKelasJurusan
+    
+class AbsenWithSiswaDudiJurusanKelas(AbsenBase) :
+    siswa : SiswaWithDudi
 
 class AbsenWithKeteranganPulang(AbsenBase) :
     keterangan_absen_pulang : KeteranganAbsenKeluar | None = None
@@ -56,6 +61,12 @@ class MoreAbsen(AbsenBase) :
     siswa : SiswaBase
     keterangan_absen_masuk : KeteranganAbsenMasuk | None = None
     keterangan_absen_pulang : KeteranganAbsenKeluar | None = None
+    
+class MoreAbsenSiswaDudi(AbsenBase) :
+    siswa : SiswaWithDudiWithOutKelasJurusan
+    keterangan_absen_masuk : KeteranganAbsenMasuk | None = None
+    keterangan_absen_pulang : KeteranganAbsenKeluar | None = None
+
 
 class MoreAbsenWithSiswaDudi(AbsenBase) :
     siswa : SiswaWithDudiWithOutKelasJurusan

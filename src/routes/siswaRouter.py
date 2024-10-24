@@ -59,8 +59,8 @@ from ..domain.siswa.absen.get_absen.getAbsenModel import FilterAbsen,AbsenRespon
 from ..domain.models_domain.absen_model import MoreAbsen,MoreAbsenWithDokumenSakit,MoreAbsenWithHariAbsen
 
 # notification
-from ..domain.siswa.notification import notificationService
-from ..domain.models_domain.notification_model import NotificationModelBase,ResponseGetUnreadNotification,ResponseGetAllNotification
+from ..domain.siswa.notification_siswa import notificationService
+from ..domain.models_domain.notification_model import NotificationModelBase,ResponseGetUnreadNotification,ResponseGetAllNotification,NotificationWithData
 
 from ..db.sessionDepedency import sessionDepedency
 from ..models.responseModel import ResponseModel
@@ -151,9 +151,10 @@ async def getLastPengajuanCancelPkl(siswa : dict = Depends(getSiswaAuth),session
 async def addLaporanPklSiswa(body : AddLaporanPklSiswaBody,siswa : dict = Depends(getSiswaAuth),session : sessionDepedency = None):
     return await laporanPklSiswaService.addLaporanPklSiswa(siswa["id"],siswa["id_dudi"],body,session)
 
-@siswaRouter.get("/laporan_pkl_siswa",response_model=ResponseModel[ResponseGetLaporanPklSiswaPag],tags=["SISWA/LAPORAN-PKL-SISWA"])
-async def getAllLaporanPklSiswa(page : int,filter : FilterLaporan = Depends(),siswa : dict = Depends(getSiswaAuth),session : sessionDepedency = None):
-    return await laporanPklSiswaService.getAllLaporanPklSiswa(siswa["id"],page,filter,session)
+@siswaRouter.get("/laporan_pkl_siswa",response_model=ResponseModel[list[LaporanPklWithoutDudiAndSiswa]],tags=["SISWA/LAPORAN-PKL-SISWA"])
+async def getAllLaporanPklSiswa(siswa : dict = Depends(getSiswaAuth),session : sessionDepedency = None):
+    print("p")
+    return await laporanPklSiswaService.getAllLaporanPklSiswa(siswa["id"],session)
 
 @siswaRouter.get("/laporan_pkl_siswa/{id_laporan_pkl_siswa}",response_model=ResponseModel[LaporanPklSiswaBase],tags=["SISWA/LAPORAN-PKL-SISWA"])
 async def getLaporanPklSiswaById(id_laporan_pkl_siswa : int,siswa : dict = Depends(getSiswaAuth),session : sessionDepedency = None):
@@ -234,17 +235,17 @@ async def absenDiluarRadius(latitude: float = Form(...),longitude: float = Form(
     return await absenEventService.absenDiluarRadius(siswa["id"],siswa["id_dudi"],note,radius,foto,session)
 
 @siswaRouter.post("/absen/absen-izin-telat",response_model=ResponseAbsenIzinTelat,description="statusIzinTelat containst between izin and telat",tags=["SISWA/ABSEN"])
-async def absenizinTelat(latitude: float = Form(...),longitude: float = Form(...),note : str = Form(...),statusizinTelat : IzinTelatAbsenEnum = Form(...), foto: UploadFile = File(...),siswa : dict = Depends(getSiswaAuth),session : sessionDepedency = None):
+async def absenizinTelat(latitude: float = Form(...),longitude: float = Form(...),note : str = Form(...),statusizinTelat : IzinTelatAbsenEnum = Form(...), foto: UploadFile | None = File(...),siswa : dict = Depends(getSiswaAuth),session : sessionDepedency = None):
     radius = RadiusBody(latitude=latitude, longitude=longitude)
     return await absenEventService.absenIzinTelat(siswa["id"],siswa["id_dudi"],note,statusizinTelat,radius,foto,session)
 
 @siswaRouter.post("/absen/absen-sakit",response_model=ResponseModel[AbsenWithDokumenSakit],tags=["SISWA/ABSEN"])
-async def absenSakit(latitude: float = Form(...),longitude: float = Form(...),dokumen : UploadFile = File(...),note : str = Form(...),siswa : dict = Depends(getSiswaAuth),session : sessionDepedency = None):
+async def absenSakit(latitude: float = Form(...),longitude: float = Form(...),dokumen : UploadFile | None = File(...),note : str = Form(...),siswa : dict = Depends(getSiswaAuth),session : sessionDepedency = None):
     radius = RadiusBody(latitude=latitude, longitude=longitude)
     return await absenEventService.absenSakit(siswa["id"],radius,dokumen,note,session)
 
 # get-absen
-@siswaRouter.get("/absen",response_model=ResponseModel[list[MoreAbsen]] | AbsenResponse,tags=["SISWA/GETABSEN"])
+@siswaRouter.get("/absen",response_model=ResponseModel[list[MoreAbsen]],tags=["SISWA/GETABSEN"])
 async def getAllAbsen(isThreeDayAgo : bool | None = None,siswa : dict = Depends(getSiswaAuth),filter : FilterAbsen = Depends(),session : sessionDepedency = None):
     return await getAbsenService.getAllAbsen(siswa["id"],filter,isThreeDayAgo,session)
 
@@ -257,7 +258,7 @@ async def getAbsenById(id_absen : int,siswa : dict = Depends(getSiswaAuth),sessi
 async def getAllNotification(siswa : dict = Depends(getSiswaAuth),session : sessionDepedency = None):
     return await notificationService.getAllNotification(siswa["id"],siswa["id_dudi"],session)
 
-@siswaRouter.get("/notification/{id_notification}",response_model=ResponseModel[NotificationModelBase],tags=["SISWA/NOTIFICATION"])
+@siswaRouter.get("/notification/{id_notification}",response_model=ResponseModel[NotificationWithData],tags=["SISWA/NOTIFICATION"])
 async def getNotificationById(id_notification : int,siswa : dict = Depends(getSiswaAuth),session : sessionDepedency = None):
     return await notificationService.getNotificationById(id_notification,siswa["id"],siswa["id_dudi"],session)
 

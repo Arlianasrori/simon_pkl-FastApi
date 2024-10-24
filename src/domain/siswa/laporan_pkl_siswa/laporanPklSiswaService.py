@@ -6,7 +6,7 @@ from sqlalchemy.orm import joinedload
 # models
 from ...models_domain.laporan_pkl_siswa_model import LaporanPklSiswaBase,LaporanPklWithoutDudiAndSiswa
 from ....models.laporanPklModel import LaporanSiswaPKL,LaporanKendalaSiswa
-from .laporanPklSiswaModel import AddLaporanPklSiswaBody,UpdateLaporanPklSiswaBody,ResponseGetLaporanPklSiswaPag,FilterLaporan
+from .laporanPklSiswaModel import AddLaporanPklSiswaBody,UpdateLaporanPklSiswaBody,ResponseGetLaporanPklSiswaPag,FilterLaporan,ResponseGetLaporanPklSiswaAndKendala
 
 # common
 from copy import deepcopy
@@ -18,6 +18,9 @@ from ....utils.updateTable import updateTable
 import aiofiles
 from multiprocessing import Process
 from ....utils.removeFile import removeFile
+from collections import defaultdict
+from babel.dates import format_date
+from babel import Locale
 
 async def addLaporanPklSiswa(id_siswa : int,id_dudi : int,laporan : AddLaporanPklSiswaBody,session : AsyncSession) -> LaporanPklWithoutDudiAndSiswa :
     if not id_dudi :
@@ -48,7 +51,7 @@ async def addUpdateFileLaporanPkl(id_siswa : int,id_laporan_pkl : int,file : Upl
     if ext_file[-1] not in ["jpg","png","jpeg","pdf","docx","doc","xls","xlsx"] :
         raise HttpException(400,f"format file tidak di dukung")
 
-    file_name = f"{random_strings.random_digits(12)}-{file.filename.split(' ')[0]}.{ext_file[-1]}"
+    file_name = f"{random_strings.random_digits(12)}-{file.filename.split(' ')[0].split(".")[0]}.{ext_file[-1]}"
     
     file_name_save = f"{FILE_LAPORAN_STORE}{file_name}"
     fotoProfileBefore = findLaporanPkl.dokumentasi
@@ -110,20 +113,12 @@ async def deleteLaporanPklSiswa(id_siswa : int,id_laporan_pkl : int,session : As
         "data" : laporanPklDictCopy
     }
 
-async def getAllLaporanPklSiswa(id_siswa : int,page : int,filter : FilterLaporan,session : AsyncSession) -> ResponseGetLaporanPklSiswaPag :
-    findLaporan = (await session.execute(select(LaporanSiswaPKL).where(and_(LaporanSiswaPKL.id_siswa == id_siswa,extract('month', LaporanSiswaPKL.tanggal) == filter.month if filter.month else True,extract('year', LaporanSiswaPKL.tanggal) == filter.year if filter.year else True)).limit(10).offset(10 * (page - 1)))).scalars().all()
-
-    countData = (await session.execute(select(func.count(LaporanSiswaPKL.id).filter(and_(LaporanSiswaPKL.id_siswa == id_siswa,extract('month', LaporanSiswaPKL.tanggal) == filter.month if filter.month else True,extract('year', LaporanSiswaPKL.tanggal) == filter.year if filter.year else True))))).scalar_one()
-
-    countPage = math.ceil(countData / 10)
+async def getAllLaporanPklSiswa(id_siswa : int,session : AsyncSession) -> LaporanPklWithoutDudiAndSiswa :
+    findLaporan = (await session.execute(select(LaporanSiswaPKL).where(and_(LaporanSiswaPKL.id_siswa == id_siswa)))).scalars().all()
 
     return {
         "msg" : "success",
-        "data" : {
-            "data" : findLaporan,
-            "count_data" : countData,
-            "count_page" : countPage
-        }
+        "data" : findLaporan
     }
     
 async def getLaporanPklSiswaById(id_siswa : int,id_laporan : int,session : AsyncSession) -> LaporanPklSiswaBase :
@@ -137,7 +132,7 @@ async def getLaporanPklSiswaById(id_siswa : int,id_laporan : int,session : Async
         "data" : findLaporan
     }
 
-async def getAllLaporanPklSiswaAndKendala(id_siswa : int,session : AsyncSession) -> ResponseGetLaporanPklSiswaPag :
+async def getAllLaporanPklSiswaAndKendala(id_siswa : int,session : AsyncSession) -> ResponseGetLaporanPklSiswaAndKendala :
     laporan_pkl_query = select(
         LaporanSiswaPKL.id,
         LaporanSiswaPKL.tanggal,

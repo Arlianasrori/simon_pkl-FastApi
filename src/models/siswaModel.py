@@ -40,7 +40,6 @@ class Siswa(User):
     kelas = relationship("Kelas", back_populates="siswa")
     alamat = relationship("AlamatSiswa", uselist=False, back_populates="siswa", cascade="all")
     pengajuan_pkl = relationship("PengajuanPKL", back_populates="siswa")
-    laporan_pkl = relationship("LaporanPKL", back_populates="siswa")
     laporan_kendala = relationship("LaporanKendalaSiswa", back_populates="siswa")
     laporan_kendala_dudi = relationship("LaporanKendalaDudi", back_populates="siswa")
     laporans_siswa_pkl = relationship("LaporanSiswaPKL", back_populates="siswa")

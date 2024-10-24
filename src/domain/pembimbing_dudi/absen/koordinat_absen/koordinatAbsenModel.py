@@ -9,3 +9,4 @@ class AddkoordinatAbsenBody(BaseModel) :
 class UpdatekoordinaatAbsenBody(BaseModel) :
     latitude : float | None = None
     longitude : float | None = None
+    radius_absen_meter : float | None = None

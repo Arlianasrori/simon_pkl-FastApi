@@ -14,3 +14,6 @@ class LaporanKendalaResponse(BaseModel):
         json_encoders = {
             datetime: lambda v: v.isoformat()
         }
+
+class ResponseLaporanKendalaCount(BaseModel) :
+    count : int 

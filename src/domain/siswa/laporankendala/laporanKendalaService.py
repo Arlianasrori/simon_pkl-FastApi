@@ -45,7 +45,7 @@ async def addUpdateFileLaporanKendala(id_siswa : int,id_laporan_pkl : int,file :
     if ext_file[-1] not in ["jpg","png","jpeg","pdf","docx","doc","xls","xlsx"] :
         raise HttpException(400,f"format file tidak di dukung")
 
-    file_name = f"{random_strings.random_digits(12)}-{file.filename.split(' ')[0]}.{ext_file[-1]}"
+    file_name = f"{random_strings.random_digits(12)}-{file.filename.split(' ')[0].split(".")[0]}.{ext_file[-1]}"
     
     file_name_save = f"{FILE_LAPORAN_STORE}{file_name}"
     fotoProfileBefore = findLaporanPkl.file_laporan

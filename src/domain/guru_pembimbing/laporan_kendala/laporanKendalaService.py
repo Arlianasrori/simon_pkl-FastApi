@@ -33,6 +33,20 @@ async def getAllLaporanKendala(id_guru : int,id_sekolah : int,filter : Filter,se
         "data" : grouped_laporan
     }
 
+async def getCountLaporanKendala(id_guru : int,id_sekolah : int,filter : Filter,session : AsyncSession) -> LaporanKendalaResponse :
+    print(filter)
+    statementSelectLaporanKendala = select(func.count(LaporanKendalaSiswa.id)).where(and_(LaporanKendalaSiswa.siswa.has(Siswa.id_sekolah == id_sekolah),LaporanKendalaSiswa.siswa.has(Siswa.id_guru_pembimbing == id_guru),LaporanKendalaSiswa.siswa.has(Siswa.id_dudi == filter.id_dudi if filter.id_dudi else True),LaporanKendalaSiswa.id_siswa == filter.id_siswa if filter.id_siswa else True))
+
+    count = (await session.execute(statementSelectLaporanKendala)).scalar_one_or_none()
+    print(count)
+
+    return {
+        "msg" : "success",
+        "data" : {
+            "count" : count if count else 0
+        }
+    }
+    
 async def getLaporanKendalaById(id_laporan : int,id_guru : int,session : AsyncSession) -> LaporanKendalaWithSiswa :
     findLaporan = (await session.execute(select(LaporanKendalaSiswa).options(joinedload(LaporanKendalaSiswa.siswa).joinedload(Siswa.dudi)).where(and_(LaporanKendalaSiswa.id == id_laporan,LaporanKendalaSiswa.siswa.has(Siswa.id_guru_pembimbing == id_guru))))).scalar_one_or_none()
 

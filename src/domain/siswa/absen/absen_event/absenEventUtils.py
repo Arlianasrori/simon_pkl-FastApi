@@ -10,7 +10,8 @@ import os
 import aiofiles
 
 from sqlalchemy.ext.asyncio import AsyncSession
-async def validateRadius(id_dudi : int,radius,session : AsyncSession,isIzin : bool) :
+
+async def validateRadius(id_dudi : int,radius,session : AsyncSession,isIzin : bool = False) :
     radius = await cekRadiusAbsen(id_dudi,radius,session)
     print(radius)
     if not radius["data"]["inside_radius"] :
@@ -31,13 +32,17 @@ async def validateAbsen(id_siswa : int,dateNow : date,session : AsyncSession) ->
 
 IMAGE_STORE = os.getenv("DEV_IMAGE_ABSEN_STORE")
 IMAGE_BASE_URL = os.getenv("DEV_IMAGE_ABSEN_BASE_URL")
-async def save_image(file : UploadFile) -> str :
+async def save_image(file : UploadFile,allowMoreExt : bool = False) -> str :
     ext_file = file.filename.split(".")
 
-    if ext_file[-1] not in ["jpg","png","jpeg"] :
+    listExt = ["jpg","png","jpeg"]
+    if allowMoreExt :
+        listExt = ["jpg","png","jpeg","docs","docx","pdf"]
+    if ext_file[-1] not in listExt :
+        print(allowMoreExt)
         raise HttpException(400,f"file harus berupa gambar")
 
-    file_name = f"{random_strings.random_digits(12)}-{file.filename.split(' ')[0]}.{ext_file[-1]}"
+    file_name = f"{random_strings.random_digits(12)}-{file.filename.split(' ')[0].split(".")[0]}.{ext_file[-1]}"
     file_name_save = f"{IMAGE_STORE}{file_name}"
 
     async with aiofiles.open(file_name_save, "wb") as f:
@@ -49,9 +54,9 @@ DOKUMEN_STORE = os.getenv("DEV_DOKUMEN_ABSEN_STORE")
 DOKUMEN_BASE_URL = os.getenv("DEV_DOKUMEN_ABSEN_BASE_URL")
 async def save_dokumen(file : UploadFile) -> str :
     ext_file = file.filename.split(".")
-
+    print(file.filename)
     if ext_file[-1] not in ["jpg","png","jpeg","pdf","docx","doc"] :
-        raise HttpException(400,f"file harus berupa gambar")
+        raise HttpException(400,f"file tidak didukung")
 
     file_name = f"{random_strings.random_digits(12)}-{file.filename.split(' ')[0]}.{ext_file[-1]}"
     file_name_save = f"{DOKUMEN_STORE}{file_name}"

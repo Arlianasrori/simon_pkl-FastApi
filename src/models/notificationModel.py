@@ -1,7 +1,12 @@
-from sqlalchemy import Column, Integer, String, Boolean, ForeignKey,DateTime
+from sqlalchemy import Column, Integer, String, Boolean, ForeignKey,DateTime,Enum
 from sqlalchemy.orm import relationship
 from ..db.db import Base
 from datetime import datetime
+from enum import Enum as enum
+
+class DataTypeNotificationEnum(enum) :
+    ABSEN = "absen"
+    PENGAJUAN = "pengajuan"
 
 class Notification(Base):
     __tablename__ = 'notification'
@@ -20,6 +25,7 @@ class Notification(Base):
     pembimbing_dudi = relationship("PembimbingDudi", back_populates="notifications")
     guru_pembimbing = relationship("GuruPembimbing", back_populates="notifications")
     reads = relationship("NotificationRead", back_populates="notification")
+    data = relationship("NotificationData", back_populates="notification",uselist=False)
 
 class NotificationRead(Base):
     __tablename__ = 'notification_read'
@@ -35,3 +41,12 @@ class NotificationRead(Base):
     siswa = relationship("Siswa", back_populates="notification_reads")
     pembimbing_dudi = relationship("PembimbingDudi", back_populates="notification_reads")
     guru_pembimbing = relationship("GuruPembimbing", back_populates="notification_reads")
+
+class NotificationData(Base) :
+    __tablename__ = "notification_data"
+
+    id_notification = Column(Integer,ForeignKey("notification.id"),primary_key=True)
+    data_type = Column(Enum(DataTypeNotificationEnum),nullable=False)
+    data_id = Column(Integer,nullable=False)
+
+    notification = relationship("Notification", back_populates="data")

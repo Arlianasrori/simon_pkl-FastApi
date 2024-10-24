@@ -236,6 +236,9 @@ async def updateSiswa(id_siswa : int,id_sekolah : int,siswa : UpdateSiswaBody,al
 
         if not findGuruPembimbing :
             raise HttpException(400,f"Guru Pembimbing dengan id {siswa.id_guru_pembimbing} tidak ditemukan")
+    if siswa.password :
+        siswa.password =  bcrypt.create_hash_password(siswa.password)
+        
     if siswa.model_dump(exclude_unset=True) :
         updateTable(siswa,findSiswa)
     
