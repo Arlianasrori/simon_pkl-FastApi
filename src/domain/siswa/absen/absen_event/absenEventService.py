@@ -46,18 +46,18 @@ async def absenMasuk(id_siswa : int,id_dudi : int,radius : RadiusBody,image : Up
     dayNow : HariEnum = await get_day()
 
     # get hari absen hari ini
-    findHariAbsenToday = (await session.execute(select(HariAbsen).where(and_(HariAbsen.id_jadwal == findAbsenToday.id_absen_jadwal,HariAbsen.hari == dayNow.value)))).scalar_one_or_none()
+    findHariAbsenToday = (await session.execute(select(HariAbsen).where(and_(HariAbsen.id_dudi == id_dudi,HariAbsen.hari == dayNow.value)))).scalar_one_or_none()
 
     if not findHariAbsenToday :
         raise HttpException(400,"tidak ada jadwal absen hari ini")
 
     # gte selisih antara jadwal dengan waktu sekarang dan jadwal mulai dengan jadwal berakhir
-    selisihTanggalAbsen = await get_date_difference_in_days(findHariAbsenToday.jadwal.tanggal_mulai,dateNow)
-    selisihTanggalJadwal = await get_date_difference_in_days(findHariAbsenToday.jadwal.tanggal_mulai,findHariAbsenToday.jadwal.tanggal_berakhir)
+    # selisihTanggalAbsen = await get_date_difference_in_days(findHariAbsenToday.jadwal.tanggal_mulai,dateNow)
+    # selisihTanggalJadwal = await get_date_difference_in_days(findHariAbsenToday.jadwal.tanggal_mulai,findHariAbsenToday.jadwal.tanggal_berakhir)
 
-    # validasi : jika selisih tanggal absen kurang dari 0 atau lebih dari selisih tanggal jadwal maka tanggal sudah melewati batas absen pada jadwal
-    if selisihTanggalAbsen < 0 or selisihTanggalAbsen > selisihTanggalJadwal :
-        raise HttpException(400,"tanggal absen tidak sesuai dengan jadwal")
+    # # validasi : jika selisih tanggal absen kurang dari 0 atau lebih dari selisih tanggal jadwal maka tanggal sudah melewati batas absen pada jadwal
+    # if selisihTanggalAbsen < 0 or selisihTanggalAbsen > selisihTanggalJadwal :
+    #     raise HttpException(400,"tanggal absen tidak sesuai dengan jadwal")
     
 
     # jika telah melewati batas absen pulang
@@ -114,18 +114,18 @@ async def absenPulang(id_siswa : int,id_dudi : int,radius : RadiusBody,image : U
     dayNow : HariEnum = await get_day()
 
     # get hari absen hari ini
-    findHariAbsenToday = (await session.execute(select(HariAbsen).where(and_(HariAbsen.id_jadwal == findAbsenToday.id_absen_jadwal,HariAbsen.hari == dayNow.value)))).scalar_one_or_none()
+    findHariAbsenToday = (await session.execute(select(HariAbsen).where(and_(HariAbsen.id_dudi == id_dudi,HariAbsen.hari == dayNow.value)))).scalar_one_or_none()
 
     if not findHariAbsenToday :
         raise HttpException(400,"tidak ada jadwal absen hari ini")
     
     # gte selisih antara jadwal dengan waktu sekarang dan jadwal mulai dengan jadwal berakhir
-    selisihTanggalAbsen = await get_date_difference_in_days(findHariAbsenToday.jadwal.tanggal_mulai,dateNow)
-    selisihTanggalJadwal = await get_date_difference_in_days(findHariAbsenToday.jadwal.tanggal_mulai,findHariAbsenToday.jadwal.tanggal_berakhir)
+    # selisihTanggalAbsen = await get_date_difference_in_days(findHariAbsenToday.jadwal.tanggal_mulai,dateNow)
+    # selisihTanggalJadwal = await get_date_difference_in_days(findHariAbsenToday.jadwal.tanggal_mulai,findHariAbsenToday.jadwal.tanggal_berakhir)
 
-    # validasi : jika selisih tanggal absen kurang dari 0 atau lebih dari selisih tanggal jadwal maka tanggal sudah melewati batas absen pada jadwal
-    if selisihTanggalAbsen < 0 or selisihTanggalAbsen > selisihTanggalJadwal :
-        raise HttpException(400,"tanggal absen tidak sesuai dengan jadwal")
+    # # validasi : jika selisih tanggal absen kurang dari 0 atau lebih dari selisih tanggal jadwal maka tanggal sudah melewati batas absen pada jadwal
+    # if selisihTanggalAbsen < 0 or selisihTanggalAbsen > selisihTanggalJadwal :
+    #     raise HttpException(400,"tanggal absen tidak sesuai dengan jadwal")
     
 
     timeNowFloat : float = await time_to_float(timeNow)
@@ -181,18 +181,18 @@ async def absenDiluarRadius(id_siswa : int,id_dudi : int,note : str,radius : Rad
     dayNow : HariEnum = await get_day()
 
     # get hari absen hari ini
-    findHariAbsenToday = (await session.execute(select(HariAbsen).where(and_(HariAbsen.id_jadwal == findAbsenToday.id_absen_jadwal,HariAbsen.hari == dayNow.value)))).scalar_one_or_none()
+    findHariAbsenToday = (await session.execute(select(HariAbsen).where(and_(HariAbsen.id_dudi == id_dudi,HariAbsen.hari == dayNow.value)))).scalar_one_or_none()
 
     if not findHariAbsenToday :
         raise HttpException(400,"tidak ada jadwal absen hari ini")
 
     # gte selisih antara jadwal dengan waktu sekarang dan jadwal mulai dengan jadwal berakhir
-    selisihTanggalAbsen = await get_date_difference_in_days(findHariAbsenToday.jadwal.tanggal_mulai,dateNow)
-    selisihTanggalJadwal = await get_date_difference_in_days(findHariAbsenToday.jadwal.tanggal_mulai,findHariAbsenToday.jadwal.tanggal_berakhir)
+    # selisihTanggalAbsen = await get_date_difference_in_days(findHariAbsenToday.jadwal.tanggal_mulai,dateNow)
+    # selisihTanggalJadwal = await get_date_difference_in_days(findHariAbsenToday.jadwal.tanggal_mulai,findHariAbsenToday.jadwal.tanggal_berakhir)
 
-    # validasi : jika selisih tanggal absen kurang dari 0 atau lebih dari selisih tanggal jadwal maka tanggal sudah melewati batas absen pada jadwal
-    if selisihTanggalAbsen < 0 or selisihTanggalAbsen > selisihTanggalJadwal :
-        raise HttpException(400,"tanggal absen tidak sesuai dengan jadwal")
+    # # validasi : jika selisih tanggal absen kurang dari 0 atau lebih dari selisih tanggal jadwal maka tanggal sudah melewati batas absen pada jadwal
+    # if selisihTanggalAbsen < 0 or selisihTanggalAbsen > selisihTanggalJadwal :
+    #     raise HttpException(400,"tanggal absen tidak sesuai dengan jadwal")
     
 
     timeNowFloat : float = await time_to_float(timeNow)
@@ -249,18 +249,18 @@ async def absenIzinTelat(id_siswa : int,id_dudi : int,note : str,statusIzin : Iz
     dayNow : HariEnum = await get_day()
 
     # get hari absen hari ini
-    findHariAbsenToday = (await session.execute(select(HariAbsen).where(and_(HariAbsen.id_jadwal == findAbsenToday.id_absen_jadwal,HariAbsen.hari == dayNow.value)))).scalar_one_or_none()
+    findHariAbsenToday = (await session.execute(select(HariAbsen).where(and_(HariAbsen.id_dudi == id_dudi,HariAbsen.hari == dayNow.value)))).scalar_one_or_none()
 
     if not findHariAbsenToday :
         raise HttpException(400,"tidak ada jadwal absen hari ini")
 
     # gte selisih antara jadwal dengan waktu sekarang dan jadwal mulai dengan jadwal berakhir
-    selisihTanggalAbsen = await get_date_difference_in_days(findHariAbsenToday.jadwal.tanggal_mulai,dateNow)
-    selisihTanggalJadwal = await get_date_difference_in_days(findHariAbsenToday.jadwal.tanggal_mulai,findHariAbsenToday.jadwal.tanggal_berakhir)
+    # selisihTanggalAbsen = await get_date_difference_in_days(findHariAbsenToday.jadwal.tanggal_mulai,dateNow)
+    # selisihTanggalJadwal = await get_date_difference_in_days(findHariAbsenToday.jadwal.tanggal_mulai,findHariAbsenToday.jadwal.tanggal_berakhir)
 
-    # validasi : jika selisih tanggal absen kurang dari 0 atau lebih dari selisih tanggal jadwal maka tanggal sudah melewati batas absen pada jadwal
-    if selisihTanggalAbsen < 0 or selisihTanggalAbsen > selisihTanggalJadwal :
-        raise HttpException(400,"tanggal absen tidak sesuai dengan jadwal")
+    # # validasi : jika selisih tanggal absen kurang dari 0 atau lebih dari selisih tanggal jadwal maka tanggal sudah melewati batas absen pada jadwal
+    # if selisihTanggalAbsen < 0 or selisihTanggalAbsen > selisihTanggalJadwal :
+    #     raise HttpException(400,"tanggal absen tidak sesuai dengan jadwal")
     
     # jenis absen untuk notifikasi
     absenTypeForNotif = None
@@ -330,7 +330,7 @@ async def absenIzinTelat(id_siswa : int,id_dudi : int,note : str,statusIzin : Iz
         "msg" : "absen success"
     }
 
-async def absenSakit(id_siswa : int,radius : RadiusBody,dokumen : UploadFile,note : str,session : AsyncSession) -> AbsenWithDokumenSakit :
+async def absenSakit(id_siswa : int,id_dudi : int,radius : RadiusBody,dokumen : UploadFile,note : str,session : AsyncSession) -> AbsenWithDokumenSakit :
     # get time zone and datetime based on timezona
     zonaWaktu = await get_timezone_from_coordinates(radius.latitude,radius.longitude)
 
@@ -345,18 +345,18 @@ async def absenSakit(id_siswa : int,radius : RadiusBody,dokumen : UploadFile,not
     dayNow : HariEnum = await get_day()
 
     # get hari absen hari ini
-    findHariAbsenToday = (await session.execute(select(HariAbsen).where(and_(HariAbsen.id_jadwal == findAbsenToday.id_absen_jadwal,HariAbsen.hari == dayNow.value)))).scalar_one_or_none()
+    findHariAbsenToday = (await session.execute(select(HariAbsen).where(and_(HariAbsen.id_dudi == id_dudi,HariAbsen.hari == dayNow.value)))).scalar_one_or_none()
 
     if not findHariAbsenToday :
         raise HttpException(400,"tidak ada jadwal absen hari ini")
     
     # gte selisih antara jadwal dengan waktu sekarang dan jadwal mulai dengan jadwal berakhir
-    selisihTanggalAbsen = await get_date_difference_in_days(findHariAbsenToday.jadwal.tanggal_mulai,dateNow)
-    selisihTanggalJadwal = await get_date_difference_in_days(findHariAbsenToday.jadwal.tanggal_mulai,findHariAbsenToday.jadwal.tanggal_berakhir)
+    # selisihTanggalAbsen = await get_date_difference_in_days(findHariAbsenToday.jadwal.tanggal_mulai,dateNow)
+    # selisihTanggalJadwal = await get_date_difference_in_days(findHariAbsenToday.jadwal.tanggal_mulai,findHariAbsenToday.jadwal.tanggal_berakhir)
 
-    # validasi : jika selisih tanggal absen kurang dari 0 atau lebih dari selisih tanggal jadwal maka tanggal sudah melewati batas absen pada jadwal
-    if selisihTanggalAbsen < 0 or selisihTanggalAbsen > selisihTanggalJadwal :
-        raise HttpException(400,"tanggal absen tidak sesuai dengan jadwal")
+    # # validasi : jika selisih tanggal absen kurang dari 0 atau lebih dari selisih tanggal jadwal maka tanggal sudah melewati batas absen pada jadwal
+    # if selisihTanggalAbsen < 0 or selisihTanggalAbsen > selisihTanggalJadwal :
+    #     raise HttpException(400,"tanggal absen tidak sesuai dengan jadwal")
     
     findAbsenToday.status = StatusAbsenEnum.sakit.value
     dokumenUrl = await save_dokumen(dokumen)
@@ -371,9 +371,10 @@ async def absenSakit(id_siswa : int,radius : RadiusBody,dokumen : UploadFile,not
     session.add(DokumenAbsenSakit(**absenSakitMapping))
 
     absenTodayDictCopy = deepcopy(findAbsenToday.__dict__)
+    id_absen = deepcopy(findAbsenToday.id)
     await session.commit()
 
-    proccess = Process(target=runningProccessSyncAbsen,args=(id_siswa,findAbsenToday.id,f"sakit"))
+    proccess = Process(target=runningProccessSyncAbsen,args=(id_siswa,id_absen,f"sakit"))
     proccess.start()
 
     return {

@@ -48,6 +48,16 @@ from ..domain.admin.laporan_pkl_siswa.laporanPklSiswaModel import FilterLaporanP
 from ..domain.admin.laporan_pkl_siswa import laporanPklSiswaService
 from ..domain.models_domain.laporan_pkl_siswa_model import LaporanPklSiswaBase
 
+# laporan pkl kendala siswa
+from ..domain.admin.laporan_kendala_siswa.laporanKendalaSiswaModel import FilterLaporanPklKendalaSiswaQuery,ResponseLaporanKendalaSiswaPag
+from ..domain.admin.laporan_kendala_siswa import laporanKendalaSiswaService
+from ..domain.models_domain.laporan_kendala_model import LaporanKendalaWithSiswa
+
+# laporan pkl kendala dudi
+from ..domain.admin.laporan_kendala_dudi.laporanKendalaDudiModel import FilterLaporanPklKendalaDudiQuery,ResponseLaporanPklDudiPag
+from ..domain.admin.laporan_kendala_dudi import laporanKendalaDudiService
+from ..domain.models_domain.laporan_kendala_dudi_model import LaporanKendalaDudiWithSiswaPembimbingDudi
+
 # absen
 from ..domain.admin.absen.absenModel import FilterAbsenQuery,ResponseAbsenPag
 from ..domain.models_domain.absen_model import MoreAbsen
@@ -255,6 +265,24 @@ async def getAllLaporanPklSiswa(id_tahun : int,page : int,filter : FilterLaporan
 @adminRouter.get("/laporan-pkl-siswa/{id_laporan}",response_model=ResponseModel[LaporanPklSiswaBase],tags=["ADMIN/LAPORAN PKL SISWA"])
 async def getAllLaporanPklSiswa(id_laporan : int,admin : dict = Depends(getAdminAuth), session : sessionDepedency = None) :
     return await laporanPklSiswaService.getLaporanPkl(id_laporan,admin["id_sekolah"],session)
+
+# laporan kendala siswa
+@adminRouter.get("/laporan-kendala-siswa",response_model=ResponseModel[ResponseLaporanKendalaSiswaPag],tags=["ADMIN/LAPORAN KENDALA SISWA"])
+async def getAllLaporanKendalaSiswa(id_tahun : int,page : int,filter : FilterLaporanPklKendalaSiswaQuery = Depends(),admin : dict = Depends(getAdminAuth), session : sessionDepedency = None) :
+    return await laporanKendalaSiswaService.getAllLaporanKendala(admin["id_sekolah"],id_tahun,page,filter,session)
+
+@adminRouter.get("/laporan-kendala-siswa/{id_laporan}",response_model=ResponseModel[LaporanKendalaWithSiswa],tags=["ADMIN/LAPORAN KENDALA SISWA"])
+async def getAllLaporanKendalaSiswa(id_laporan : int,admin : dict = Depends(getAdminAuth), session : sessionDepedency = None) :
+    return await laporanKendalaSiswaService.getLaporanKendalaById(id_laporan,admin["id_sekolah"],session)
+
+# laporan kendala dudi
+@adminRouter.get("/laporan-kendala-dudi",response_model=ResponseModel[ResponseLaporanKendalaSiswaPag],tags=["ADMIN/LAPORAN KENDALA DUDI"])
+async def getAllLaporanKendalaDudi(id_tahun : int,page : int,filter : FilterLaporanPklKendalaDudiQuery = Depends(),admin : dict = Depends(getAdminAuth), session : sessionDepedency = None) :
+    return await laporanKendalaDudiService.getAllLaporanKendalaDudi(admin["id_sekolah"],id_tahun,page,filter,session)
+
+@adminRouter.get("/laporan-kendala-dudi/{id_laporan}",response_model=ResponseModel[LaporanKendalaWithSiswa],tags=["ADMIN/LAPORAN KENDALA DUDI"])
+async def getAllLaporanKendalaDudi(id_laporan : int,admin : dict = Depends(getAdminAuth), session : sessionDepedency = None) :
+    return await laporanKendalaDudiService.getLaporanKendalaById(id_laporan,admin["id_sekolah"],session)
 
 # absen
 @adminRouter.get("/absen",response_model=ResponseModel[ResponseAbsenPag],tags=["ADMIN/ABSEN"])

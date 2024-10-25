@@ -4,12 +4,12 @@ from .....models.absenModel import HariAbsen
 from python_random_strings import random_strings
 from .....utils.timeToFloat import time_to_float
 
-async def cek_hari_absen(id_jadwal_absen : int,listHari : list[AddHariAbsen]) :
+async def cek_hari_absen(id_dudi : int,listHari : list[AddHariAbsen]) :
     listHariReturn = [] ## 
     listForResponse = []
     for i in range(0,len(listHari)) :
         hariMapping = listHari[i].model_dump()
-        hariMapping["id_jadwal"] = id_jadwal_absen
+        hariMapping["id_dudi"] = id_dudi
         hariMapping["id"] = random_strings.random_digits(6)
         if i != len(listHari) - 1 :
             if listHari[i].hari == listHari[i + 1].hari:

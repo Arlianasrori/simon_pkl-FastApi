@@ -31,21 +31,18 @@ async def getAllLaporanPkl(page: int | None, id_sekolah: int, id_tahun: int, que
     Raises:
     - HttpException: If the tahun is not found.
     """
-    findTahun = (await session.execute(select(TahunSekolah).where(TahunSekolah.id == id_tahun))).scalar_one_or_none()
-
-    if not findTahun:
-        raise HttpException(404, "tahun tidak ditemukan")
     
     if query.month or query.year:
         now = datetime.datetime.now()
         startQuery = datetime.date(query.year if query.year else now.year, query.month if query.month else 1, 1)
         endQuery = datetime.date(query.year if query.year else now.year, query.month if query.month else 12, 31)
         print(startQuery)
-    
-    getLaporan = (await session.execute(select(LaporanSiswaPKL).options(joinedload(LaporanSiswaPKL.siswa), joinedload(LaporanSiswaPKL.dudi)).where(and_(and_(LaporanSiswaPKL.tanggal >= startQuery, LaporanSiswaPKL.tanggal <= endQuery)) if query.month else True, LaporanSiswaPKL.tanggal == query.tanggal if query.tanggal else True, LaporanSiswaPKL.siswa.has(id_sekolah == id_sekolah), LaporanSiswaPKL.id_siswa == query.id_siswa if query.id_siswa else True).limit(10).offset(10 * (page - 1)))).scalars().all()
 
-    conntData = (await session.execute(func.count(LaporanSiswaPKL.id))).scalar_one()
-    countPage = math.ceil(conntData / 10)
+    statement = select(LaporanSiswaPKL).options(joinedload(LaporanSiswaPKL.siswa), joinedload(LaporanSiswaPKL.dudi)).where(and_(and_(LaporanSiswaPKL.tanggal >= startQuery, LaporanSiswaPKL.tanggal <= endQuery)) if query.month else True, LaporanSiswaPKL.tanggal == query.tanggal if query.tanggal else True, LaporanSiswaPKL.siswa.has(id_sekolah == id_sekolah), LaporanSiswaPKL.id_siswa == query.id_siswa if query.id_siswa else True,LaporanSiswaPKL.siswa.has(Siswa.id_tahun == id_tahun)).limit(10).offset(10 * (page - 1))
+    getLaporan = (await session.execute(statement.limit(10).offset(10 * (page - 1)))).scalars().all()
+
+    allData = (await session.execute(statement)).scalars().all()
+    countPage = math.ceil(len(allData) / 10)
     
     return {
         "msg": "success",

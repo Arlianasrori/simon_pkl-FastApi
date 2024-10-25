@@ -22,7 +22,7 @@ async def validateRadius(id_dudi : int,radius,session : AsyncSession,isIzin : bo
     
 async def validateAbsen(id_siswa : int,dateNow : date,session : AsyncSession) -> Absen :
     # find absen siswa today
-    findAbsen : Absen = (await session.execute(select(Absen).options(joinedload(Absen.jadwal_absen)).where(and_(Absen.id_siswa == id_siswa,Absen.tanggal == dateNow)))).scalar_one_or_none()
+    findAbsen : Absen = (await session.execute(select(Absen).where(and_(Absen.id_siswa == id_siswa,Absen.tanggal == dateNow)))).scalar_one_or_none()
 
     if not findAbsen :
         raise HttpException(400,"tidak ada jadwal absen pada hari ini")

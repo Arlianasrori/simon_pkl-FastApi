@@ -22,7 +22,6 @@ class KeteranganAbsenKeluar(BaseModel) :
 
 class AbsenBase(BaseModel):
     id : int
-    id_absen_jadwal : int
     id_siswa : int
     tanggal : Date
     absen_masuk : Time | None = None
@@ -89,6 +88,10 @@ class HariAbsenBase(BaseModel) :
     hari : HariEnum
     batas_absen_masuk : Time
     batas_absen_pulang : Time
+    enable : bool
+
+class HariAbsenWithDudi(HariAbsenBase) :
+    dudi : DudiBase
 
 class JadwalAbsenWithHari(JadwalAbsenBase) :
     hari : list[HariAbsenBase] = []
