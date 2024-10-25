@@ -44,7 +44,7 @@ async def getNotificationById(id_notification : int,id_siswa : int,id_dudi : int
     }
 
 async def readNotification(id_notification : int,id_siswa : int,id_dudi : int,session : AsyncSession) -> NotificationWithData:
-    findNotification = (await session.execute(select(Notification).options(subqueryload(Notification.reads.and_(NotificationRead.id_siswa == id_siswa))).where(or_(Notification.id_siswa == id_siswa,Notification.id_dudi == id_dudi if id_dudi else False,and_(Notification.id_siswa == None,Notification.id_dudi == None,Notification.id_pembimbing_dudi == None,Notification.id_guru_pembimbing == None))))).scalar_one_or_none()
+    findNotification = (await session.execute(select(Notification).options(subqueryload(Notification.reads.and_(NotificationRead.id_siswa == id_siswa))).where(and_(Notification.id == id_notification,or_(Notification.id_siswa == id_siswa,Notification.id_dudi == id_dudi if id_dudi else False,and_(Notification.id_siswa == None,Notification.id_dudi == None,Notification.id_pembimbing_dudi == None,Notification.id_guru_pembimbing == None)))))).scalar_one_or_none()
 
     if not findNotification :
         raise HttpException(400,"notification tidak ditemukan")
