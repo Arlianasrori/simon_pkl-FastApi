@@ -120,10 +120,10 @@ async def accDccPengajuanPkl(id_pengajuan_pkl : int,id_pembimbing: int,id_dudi :
         print("tidak setuju")
     
     pengajuanDictCopy = deepcopy(findPengajuanPkl)
+    id_pengajuan = deepcopy(findPengajuanPkl.id)
     await session.commit()
 
     # Menjalankan addNotif dalam proses terpisah
-    id_pengajuan = deepcopy(findPengajuanPkl.id)
     proccess = Process(target=runningProccessSync,args=(mappingForNotif["id_siswa"],mappingForNotif["title"],mappingForNotif["body"],id_pengajuan))
     proccess.start()
 
