@@ -149,9 +149,10 @@ async def absenPulang(id_siswa : int,id_dudi : int,radius : RadiusBody,image : U
         findAbsenToday.status = StatusAbsenEnum.hadir.value
 
     absenTodayDictCopy = deepcopy(findAbsenToday.__dict__)
+    id_absen = deepcopy(findAbsenToday.id)
     await session.commit()
 
-    proccess = Process(target=runningProccessSyncAbsen,args=(id_siswa,findAbsenToday.id,"pulang"))
+    proccess = Process(target=runningProccessSyncAbsen,args=(id_siswa,id_absen,"pulang"))
     proccess.start()
 
     return {
@@ -219,9 +220,10 @@ async def absenDiluarRadius(id_siswa : int,id_dudi : int,note : str,radius : Rad
     session.add(IzinAbsenPulang(**keteranganAbsenPulangMapping))
 
     absenTodayDictCopy = deepcopy(findAbsenToday.__dict__)
+    id_absen = deepcopy(findAbsenToday.id)
     await session.commit()
 
-    proccess = Process(target=runningProccessSyncAbsen,args=(id_siswa,findAbsenToday.id,"diluar radius"))
+    proccess = Process(target=runningProccessSyncAbsen,args=(id_siswa,id_absen,"diluar radius"))
     proccess.start()
 
     return {
