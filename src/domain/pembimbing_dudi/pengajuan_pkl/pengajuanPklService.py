@@ -113,6 +113,7 @@ async def accDccPengajuanPkl(id_pengajuan_pkl : int,id_pembimbing: int,id_dudi :
         print("setuju")
     elif pengajuan_pkl.status == AccPengajuanEnum.TIDAK_SETUJU :
         findPengajuanPkl.status = StatusPengajuanENUM.ditolak.value
+        findPengajuanPkl.siswa.status = StatusPKLEnum.belum_pkl.value
 
         # notif
         mappingForNotif["title"] = "Informasi UntukMu!!"
