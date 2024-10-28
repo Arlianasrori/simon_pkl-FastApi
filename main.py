@@ -34,6 +34,8 @@ from src.socket.connectDisconnectSocket import connetDisconnectSocket,cleanup
 
 from contextlib import asynccontextmanager
 
+print("hya")
+
 # clean socket on event
 @asynccontextmanager
 async def lifespan(app: FastAPI):

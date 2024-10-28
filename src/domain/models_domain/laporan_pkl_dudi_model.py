@@ -15,7 +15,8 @@ class LaporanPklDudiBase(BaseModel) :
 class LaporanPklDudiWithOut(BaseModel) :
     id : int
     tanggal : Date
-    keterangan : str
+    topik_pekerjaan : str
+    rujukan_kompetensi_dasar : str
     file_laporan : str | None = None
 
 class LaporanPklDudiWithoutSiswaAndPembimbing(LaporanPklDudiWithOut) :
