@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Enum, ForeignKey,Time,Date,Float,Boolean
+from sqlalchemy import Column, Integer, String, Enum, ForeignKey,Time,Date,Float,Boolean,UniqueConstraint
 from sqlalchemy.orm import relationship
 from ..db.db import Base
 import enum
@@ -55,6 +55,11 @@ class HariAbsen(Base):
     batas_absen_pulang = Column(Time)
     min_jam_absen = Column(Integer,nullable=False)
     enable = Column(Boolean,default=True)
+
+    # Tambahkan UniqueConstraint
+    __table_args__ = (
+        UniqueConstraint('hari', 'id_dudi', name='uq_day_dudi'),
+    )
 
     dudi = relationship("Dudi", back_populates="hari_jadwal")
 
