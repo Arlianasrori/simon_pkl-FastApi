@@ -140,7 +140,7 @@ async def getAllLaporanPkl(pembimbing : dict = Depends(getPembimbingDudiAuth),se
 async def getLaporanPklById(id_laporan_pkl : int,pembimbing : dict = Depends(getPembimbingDudiAuth),session : sessionDepedency = None) :
     return await laporanPklService.getLaporanPklById(id_laporan_pkl,pembimbing["id"],session)
 
-@pembimbingDudiRouter.patch("/laporan-pkl/file/{id_laporan_pkl}",response_model=ResponseModel[LaporanPklDudiWithOut],tags=["PEMBIMBING-DUDI/LAPORAN-PKL"])
+@pembimbingDudiRouter.patch("/laporan-pkl/file/{id_laporan_pkl}",response_model=ResponseModel[LaporanPklDudiBase],tags=["PEMBIMBING-DUDI/LAPORAN-PKL"])
 async def add_update_file(id_laporan_pkl : int,file : UploadFile,session : sessionDepedency = None) :
     return await laporanPklService.addUpdateFileLaporanPkl(id_laporan_pkl,file,session)
 

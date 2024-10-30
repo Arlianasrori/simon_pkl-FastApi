@@ -77,9 +77,10 @@ async def absenMasuk(id_siswa : int,id_dudi : int,radius : RadiusBody,image : Up
     findAbsenToday.foto_absen_masuk = imageMasukUrl
 
     absenTodayDictCopy = deepcopy(findAbsenToday.__dict__)
+    id_absen = deepcopy(findAbsenToday.id)
     await session.commit()
 
-    proccess = Process(target=runningProccessSyncAbsen,args=(id_siswa,findAbsenToday.id,"masuk"))
+    proccess = Process(target=runningProccessSyncAbsen,args=(id_siswa,id_absen,"masuk"))
     proccess.start()
 
 
