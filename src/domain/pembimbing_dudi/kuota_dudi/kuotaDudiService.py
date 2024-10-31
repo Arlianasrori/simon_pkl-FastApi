@@ -182,7 +182,8 @@ async def addKuotaJurusan(id_dudi : int,kuota : list[AddKuotaJurusanBody],sessio
     
     if not findDudi.kuota :
         raise HttpException(404,"Kuota siswa belum ditambahkan")
-        
+    
+    # get jumlah total siswa pada maing masing kouta jurusan
     countMaxSiswa = (await session.execute(select(func.sum(KuotaSiswaByJurusan.jumlah_pria).label("count_pria"),func.sum(KuotaSiswaByJurusan.jumlah_wanita).label("count_wanita")).where(KuotaSiswaByJurusan.id_kuota == findDudi.kuota.id))).one()._asdict()
 
     countMaxSiswaDict = {
@@ -199,7 +200,7 @@ async def addKuotaJurusan(id_dudi : int,kuota : list[AddKuotaJurusanBody],sessio
             if not findJurusan :
                 raise HttpException(404,"Jurusan tidak ditemukan")
             
-            findKuotaJurusan = (await session.execute(select(KuotaSiswaByJurusan).where(KuotaSiswaByJurusan.id_jurusan == kuotaJurusan.id_jurusan))).scalar_one_or_none()
+            findKuotaJurusan = (await session.execute(select(KuotaSiswaByJurusan).where(and_(KuotaSiswaByJurusan.id_kuota == findDudi.kuota.id,KuotaSiswaByJurusan.id_jurusan == kuotaJurusan.id_jurusan)))).scalar_one_or_none()
 
             if findKuotaJurusan :
                 raise HttpException(404,"Kuota untuk jurusan ini telah ditambahkan")

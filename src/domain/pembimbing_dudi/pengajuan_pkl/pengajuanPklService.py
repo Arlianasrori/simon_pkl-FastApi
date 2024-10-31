@@ -43,7 +43,8 @@ async def getAllPengajuanPkl(id_dudi : int,page : int | None,usingGrouping : boo
         else :
             responsePengajuan = findPengajuanPkl
         
-        print(responsePengajuan)
+        # print(responsePengajuan)
+        # print(responsePengajuan[1].__dict__)
         return {
             "msg" : "success",
             "data" : responsePengajuan,

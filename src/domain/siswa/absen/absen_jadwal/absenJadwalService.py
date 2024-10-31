@@ -113,6 +113,15 @@ async def cekAbsen(id_siswa : int,id_dudi : int | None,koordinat : RadiusBody,se
         await session.refresh(findHariAbsenNow)
 
         # validasi ketika user belum melakukan absen masuk dan sudah melewati waktu absen pulang
+        if cekRadius["data"]["inside_radius"] is False :
+            return {
+                        "msg" : "anda belum melakukan absen masuk dan sedang berada diluar radius",
+                        "data" : {
+                            "canAbsen" : False,
+                            "jenis_absen" : JenisAbsenEnum.MASUK,
+                        }
+                    }
+
         print('ttytytyt')
         if timeNow > findHariAbsenNow.batas_absen_pulang :
             print('njnjnj')

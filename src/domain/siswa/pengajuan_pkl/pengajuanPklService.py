@@ -132,7 +132,7 @@ async def addPengajuanPkl(id_siswa : int,id_sekolah : int,pengajuan : AddPengaju
     dudiDictCopy = deepcopy(findDudi.__dict__)
     siswaDictCopy = deepcopy(findSiswa.__dict__)
     session.add(PengajuanPKL(**pengjuanPklMapping))
-    findSiswa.status = StatusPKLEnum.menunggu.value
+    
     await session.commit()
 
     # Menjalankan addNotif dalam proses terpisah
