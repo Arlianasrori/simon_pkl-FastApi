@@ -93,6 +93,9 @@ async def updateKuotaDudi(id_dudi : int,kuota : UpdateKuotaDudiBody,session : As
     
     if not findDudi :
         raise HttpException(404,"Dudi tidak ditemukan")
+    
+    if not findDudi.kuota :
+        raise HttpException(404,"Kuota siswa belum ditambahkan")
 
     countSiswa = (await session.execute(select(func.count(Siswa.id).filter(Siswa.jenis_kelamin == JenisKelaminEnum.laki.value).label("count_pria"),func.count(Siswa.id).filter(Siswa.jenis_kelamin == JenisKelaminEnum.perempuan.value).label("count_wanita")).where(Siswa.id_dudi == id_dudi))).one()._asdict()
     countSiswa["count_pria"] = countSiswa["count_pria"] if countSiswa["count_pria"] else 0
