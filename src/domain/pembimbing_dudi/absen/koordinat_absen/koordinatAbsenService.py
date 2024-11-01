@@ -54,7 +54,9 @@ async def updatekoordinatAbsen(id_dudi : int,id_koordinat : str,koordinat : Upda
 
     if not findKoordinat :
         raise HttpException(404,"koordinat tidak ditemukan")
-    
+
+    if koordinat.nama_tempat :
+        findKoordinat.nama_tempat = koordinat.nama_tempat
     if koordinat.latitude :
         if not is_valid_latitude(koordinat.latitude) :
             raise HttpException(400,"koordinat latitude tidak valid")
