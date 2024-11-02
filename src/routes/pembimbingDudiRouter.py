@@ -19,7 +19,7 @@ from ..domain.models_domain.siswa_model import JurusanBase
 
 # kuota
 from ..domain.pembimbing_dudi.kuota_dudi.kuotaDudiService import AddKuotaDudiBody,UpdateKuotaDudiBody,AddKuotaJurusanBody
-from ..domain.models_domain.dudi_model import DudiWithKuota
+from ..domain.models_domain.dudi_model import DudiWithKuota,KuotaBase
 from ..domain.pembimbing_dudi.kuota_dudi import kuotaDudiService
 from ..domain.models_domain.kelas_jurusan_model import JurusanBase
 
@@ -127,6 +127,10 @@ async def updateKuotaDudi(kuota : UpdateKuotaDudiBody,pembimbing : dict = Depend
 async def addKuotaJurusan(kuota : list[AddKuotaJurusanBody],pembimbing : dict = Depends(getPembimbingDudiAuth),session : sessionDepedency = None) :
     return await kuotaDudiService.addKuotaJurusan(pembimbing["id_dudi"],kuota,session)
 
+@pembimbingDudiRouter.post("/kuota",response_model=ResponseModel[KuotaBase],tags=["PEMBIMBING-DUDI/KUOTA"])
+async def deleteKouta(pembimbing : dict = Depends(getPembimbingDudiAuth),session : sessionDepedency = None) :
+    return await kuotaDudiService.deleteKuota(pembimbing["id_dudi"],session)
+
 # laporan pkl
 @pembimbingDudiRouter.post("/laporan-pkl",response_model=ResponseModel[LaporanPklDudiBase],tags=["PEMBIMBING-DUDI/LAPORAN-PKL"])
 async def addLaporanPkl(laporan : AddLaporanPklDudiBody,pembimbing : dict = Depends(getPembimbingDudiAuth),session : sessionDepedency = None) :
@@ -221,9 +225,9 @@ async def getJadwalAbsenById(id_jadwal_absen : int,pembimbing : dict = Depends(g
 async def updateJadwalAbsen(jadwal : list[UpdateHariAbsenBody] = [],pembimbing : dict = Depends(getPembimbingDudiAuth),session : sessionDepedency = None) :
     return await absenJadwalService.UpdateJadwalAbsen(pembimbing["id_dudi"],jadwal,session)
 
-# @pembimbingDudiRouter.delete("/jadwal-absen/{id_jadwal_absen}",response_model=ResponseModel[JadwalAbsenWithHari],tags=["PEMBIMBING-DUDI/JADWAL-ABSEN"])
-# async def deleteJadwalAbsen(id_jadwal_absen : int,pembimbing : dict = Depends(getPembimbingDudiAuth),session : sessionDepedency = None) :
-#     return await absenJadwalService.deleteJadwalAbsen(id_jadwal_absen,pembimbing["id_dudi"],session)
+@pembimbingDudiRouter.delete("/jadwal-absen/{id_jadwal_absen}",response_model=ResponseModel[HariAbsenBase],tags=["PEMBIMBING-DUDI/JADWAL-ABSEN"])
+async def deleteJadwalAbsen(id_jadwal_absen : int,pembimbing : dict = Depends(getPembimbingDudiAuth),session : sessionDepedency = None) :
+    return await absenJadwalService.deleteJadwalAbsen(id_jadwal_absen,pembimbing["id_dudi"],session)
 
 # koordinat-absen
 @pembimbingDudiRouter.post("/koordinat-absen",response_model=ResponseModel[koordinatAbsenBase],tags=["PEMBIMBING-DUDI/KOORDINAT-ABSEN"])

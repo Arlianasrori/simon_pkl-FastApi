@@ -53,7 +53,7 @@ class HariAbsen(Base):
     hari = Column(Enum(HariEnum)) 
     batas_absen_masuk = Column(Time)
     batas_absen_pulang = Column(Time)
-    min_jam_absen = Column(Integer,nullable=False)
+    min_jam_kerja = Column(Integer,nullable=False)
     enable = Column(Boolean,default=True)
 
     # Tambahkan UniqueConstraint

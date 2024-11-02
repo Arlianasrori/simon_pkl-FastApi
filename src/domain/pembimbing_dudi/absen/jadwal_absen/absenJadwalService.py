@@ -141,19 +141,18 @@ async def UpdateJadwalAbsen(id_dudi : int,hari : list[UpdateHariAbsenBody],sessi
         "msg" : "success",
         "data" : hariResponseList
     }
+      
+async def deleteJadwalAbsen(id_jadwal : int,id_dudi : int,session : AsyncSession) -> HariAbsenBase:
+    findJadwal = (await session.execute(select(HariAbsen).where(and_(HariAbsen.id == id_jadwal,HariAbsen.id_dudi == id_dudi)))).scalar_one_or_none()
 
-        
-# async def deleteJadwalAbsen(id_jadwal : int,id_dudi : int,session : AsyncSession) -> JadwalAbsenWithHari:
-#     findJadwal = (await session.execute(select(AbsenJadwal).options(subqueryload(AbsenJadwal.hari)).where(and_(AbsenJadwal.id == id_jadwal,AbsenJadwal.id_dudi == id_dudi)))).scalar_one_or_none()
-
-#     if not findJadwal :
-#         raise HttpException(404,"jadwal absen tidak ditemukan")
+    if not findJadwal :
+        raise HttpException(404,"jadwal absen tidak ditemukan")
     
-#     jadwalDictCopy = deepcopy(findJadwal.__dict__)
+    jadwalDictCopy = deepcopy(findJadwal.__dict__)
 
-#     await session.delete(findJadwal)
-#     await session.commit()
-#     return {
-#         "msg" : "success",
-#         "data" : jadwalDictCopy
-#     }
+    await session.delete(findJadwal)
+    await session.commit()
+    return {
+        "msg" : "success",
+        "data" : jadwalDictCopy
+    }

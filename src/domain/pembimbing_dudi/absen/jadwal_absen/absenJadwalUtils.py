@@ -18,7 +18,7 @@ async def cek_hari_absen(id_dudi : int,listHari : list[AddHariAbsen]) :
         absenMasukFloat : float = await time_to_float(hariMapping["batas_absen_masuk"])
         absenPulangFloat : float = await time_to_float(hariMapping["batas_absen_pulang"])
 
-        if hariMapping["min_jam_absen"] > absenPulangFloat - absenMasukFloat :
+        if hariMapping["min_jam_kerja"] > absenPulangFloat - absenMasukFloat :
             raise HttpException(400,"min jam absen tidak boleh lebih besar dari batas absen pulang - batas absen masuk")
             
         listForResponse.append(hariMapping)
