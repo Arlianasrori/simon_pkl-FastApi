@@ -88,6 +88,7 @@ class HariAbsenBase(BaseModel) :
     hari : HariEnum
     batas_absen_masuk : Time
     batas_absen_pulang : Time
+    min_jam_kerja : int
     enable : bool
 
 class HariAbsenWithDudi(HariAbsenBase) :

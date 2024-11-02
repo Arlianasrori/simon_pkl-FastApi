@@ -214,7 +214,7 @@ async def cekAbsen(id_siswa : int,id_dudi : int | None,koordinat : RadiusBody,se
             # validasi jika user belum memenuhi batas minimum kerja
             timeNowFloat : float = await time_to_float(timeNow)
             absenMasukFloat : float = await time_to_float(findAbsenSiswaToday.absen_masuk)
-            if timeNowFloat - absenMasukFloat < findHariAbsenNow.min_jam_absen :
+            if timeNowFloat - absenMasukFloat < findHariAbsenNow.min_jam_kerja :
                 return {
                         "msg" : "anda belum memenuhi minimum waktu untuk melakukan absen pulang,silahkan melakukan izin absen jika ingin melakukan absen pulang",
                         "data" : {

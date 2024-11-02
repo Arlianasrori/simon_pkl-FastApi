@@ -18,6 +18,7 @@ from datetime import date
 
 # jadwal absen
 async def addJadwalAbsen(id_dudi : int,jadwal : AddHariAbsen,session : AsyncSession) -> list[HariAbsenBase] :
+    findHariabsen = (await session.execute(select(HariAbsen).where(HariAbsen.id_dudi == id_dudi))).scalars().all()
     # if jadwal.tanggal_mulai > jadwal.tanggal_berakhir :
     #     raise HttpException(400,"keselahan dalam memasukkan tanggal,harap periksa kembali")
     
@@ -30,7 +31,7 @@ async def addJadwalAbsen(id_dudi : int,jadwal : AddHariAbsen,session : AsyncSess
 
     # jadwalMapping.update({"id" : random_strings.random_digits(6),"id_dudi" : id_dudi})
 
-    hari = await cek_hari_absen(id_dudi,jadwal)
+    hari = await cek_hari_absen(id_dudi,jadwal,findHariabsen)
     # session.add(AbsenJadwal(**jadwalMapping))
     session.add_all(hari["hari"])
     await session.commit()
@@ -141,19 +142,18 @@ async def UpdateJadwalAbsen(id_dudi : int,hari : list[UpdateHariAbsenBody],sessi
         "msg" : "success",
         "data" : hariResponseList
     }
+      
+async def deleteJadwalAbsen(id_jadwal : int,id_dudi : int,session : AsyncSession) -> HariAbsenBase:
+    findJadwal = (await session.execute(select(HariAbsen).where(and_(HariAbsen.id == id_jadwal,HariAbsen.id_dudi == id_dudi)))).scalar_one_or_none()
 
-        
-# async def deleteJadwalAbsen(id_jadwal : int,id_dudi : int,session : AsyncSession) -> JadwalAbsenWithHari:
-#     findJadwal = (await session.execute(select(AbsenJadwal).options(subqueryload(AbsenJadwal.hari)).where(and_(AbsenJadwal.id == id_jadwal,AbsenJadwal.id_dudi == id_dudi)))).scalar_one_or_none()
-
-#     if not findJadwal :
-#         raise HttpException(404,"jadwal absen tidak ditemukan")
+    if not findJadwal :
+        raise HttpException(404,"jadwal absen tidak ditemukan")
     
-#     jadwalDictCopy = deepcopy(findJadwal.__dict__)
+    jadwalDictCopy = deepcopy(findJadwal.__dict__)
 
-#     await session.delete(findJadwal)
-#     await session.commit()
-#     return {
-#         "msg" : "success",
-#         "data" : jadwalDictCopy
-#     }
+    await session.delete(findJadwal)
+    await session.commit()
+    return {
+        "msg" : "success",
+        "data" : jadwalDictCopy
+    }

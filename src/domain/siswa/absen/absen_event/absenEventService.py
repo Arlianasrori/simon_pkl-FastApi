@@ -133,7 +133,7 @@ async def absenPulang(id_siswa : int,id_dudi : int,radius : RadiusBody,image : U
     absenMasukFloat : float = await time_to_float(findAbsenToday.absen_masuk)
 
     # validasi jika user belum memenuhi batas minimum kerja
-    if timeNowFloat - absenMasukFloat < findHariAbsenToday.min_jam_absen :
+    if timeNowFloat - absenMasukFloat < findHariAbsenToday.min_jam_kerja :
         raise HttpException(400,"anda belum memenuhi minimum waktu untuk melakukan absen pulang,silahkan melakukan izin jika ingin melakukan absen pulang")
     
     # validasi apakah user telat dalam melakukan absen pulang
@@ -201,7 +201,7 @@ async def absenDiluarRadius(id_siswa : int,id_dudi : int,note : str,radius : Rad
     absenMasukFloat : float = await time_to_float(findAbsenToday.absen_masuk)
 
     # validasi jika user belum memenuhi batas minimum kerja
-    if timeNowFloat - absenMasukFloat < findHariAbsenToday.min_jam_absen :
+    if timeNowFloat - absenMasukFloat < findHariAbsenToday.min_jam_kerja :
         raise HttpException(400,"anda belum memenuhi minimum waktu untuk melakukan absen pulang")
     
     imagePulangUrl = await save_image(image)
@@ -301,7 +301,7 @@ async def absenIzinTelat(id_siswa : int,id_dudi : int,note : str,statusIzin : Iz
         #  jika status izin telat validasi jika user belum memenuhi batas minimum kerja
         if statusIzin == IzinTelatAbsenEnum.TELAT :
             # validasi jika user belum memenuhi batas minimum kerja
-            if timeNowFloat - absenMasukFloat < findHariAbsenToday.min_jam_absen :
+            if timeNowFloat - absenMasukFloat < findHariAbsenToday.min_jam_kerja :
                 raise HttpException(400,"anda belum memenuhi minimum waktu untuk melakukan absen pulang,jika silahkan melakukan izin absen jika ingin melakukan absen pulang")
          
         imagePulangUrl = await save_image(image,True)

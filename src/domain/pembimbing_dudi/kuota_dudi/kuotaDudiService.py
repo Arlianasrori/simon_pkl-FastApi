@@ -7,7 +7,7 @@ from sqlalchemy.orm import joinedload,subqueryload
 from ....models.types import JenisKelaminEnum
 from .kuotaDudiModel import AddKuotaDudiBody,UpdateKuotaDudiBody,AddKuotaJurusanBody
 from ....models.dudiModel import Dudi, KuotaSiswa,KuotaSiswaByJurusan
-from ...models_domain.dudi_model import DudiWithKuota
+from ...models_domain.dudi_model import DudiWithKuota,KuotaBase
 from ....models.siswaModel import Jurusan
 from ....models.siswaModel import Siswa,Jurusan
 # common
@@ -246,4 +246,19 @@ async def addKuotaJurusan(id_dudi : int,kuota : list[AddKuotaJurusanBody],sessio
                 "kuota_jurusan" : listkuotaForResponse
             }
         }
+    }
+
+async def deleteKuota(id_dudi : int, session : AsyncSession) -> KuotaBase :
+    findKouta = (await session.execute(select(KuotaSiswa).options(subqueryload(KuotaSiswa.kuota_jurusan)).where(KuotaSiswa.id_dudi == id_dudi))).scalar_one_or_none()
+
+    if not findKouta :
+        raise HttpException(404,"kouta tidak ditemukan")
+
+    koutaDictCopy = deepcopy(findKouta.__dict__)
+    await session.delete(findKouta)
+    await session.commit()
+
+    return {
+        "msg" : "success",
+        "data" : koutaDictCopy
     }
