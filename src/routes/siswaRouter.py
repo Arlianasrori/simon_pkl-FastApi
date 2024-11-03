@@ -13,7 +13,7 @@ from ..domain.models_domain.siswa_model import SiswaBase,SiswaWithJurusanKelas,D
 
 # get_dudi
 from ..domain.siswa.get_dudi import getDudiService
-from ..domain.siswa.get_dudi.getDudiModel import ResponseGetDudiPag,FilterGetDudiQuery
+from ..domain.siswa.get_dudi.getDudiModel import ResponseGetDudiPag,FilterGetDudiQuery,GetDudiResponse
 from ..domain.models_domain.dudi_model import DudiWithAlamat
 
 # pengajuan pkl
@@ -95,8 +95,8 @@ async def sendOtpForVerifySiswa(siswa : dict = Depends(getSiswaAuth),session : s
     return await profileAuthService.sendOtpForVerifySiswa(siswa["id"],session)
 
 # get-dudi
-@siswaRouter.get("/dudi",response_model=ResponseModel[ResponseGetDudiPag],tags=["SISWA/GET-DUDI"])
-async def getAllDudi(page : int,query : FilterGetDudiQuery = Depends(),siswa : dict = Depends(getSiswaAuth),session : sessionDepedency = None):
+@siswaRouter.get("/dudi",response_model=ResponseModel[ResponseGetDudiPag | list[GetDudiResponse]],tags=["SISWA/GET-DUDI"])
+async def getAllDudi(page : int | None = None,query : FilterGetDudiQuery = Depends(),siswa : dict = Depends(getSiswaAuth),session : sessionDepedency = None):
     return await getDudiService.getDudi(siswa["id"],siswa["id_sekolah"],page,query,session)
 
 @siswaRouter.get("/dudi/{id_dudi}",response_model=ResponseModel[DudiWithAlamat],tags=["SISWA/GET-DUDI"])

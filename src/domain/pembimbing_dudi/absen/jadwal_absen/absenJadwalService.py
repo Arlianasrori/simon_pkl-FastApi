@@ -62,6 +62,7 @@ async def getJadwalById(id_dudi : int,id_hari : int,session : AsyncSession) -> H
     }
 
 async def UpdateJadwalAbsen(id_dudi : int,hari : list[UpdateHariAbsenBody],session : AsyncSession) -> list[HariAbsenBase] :
+    print(hari)
     # find jadwal absen
     findJadwal = (await session.execute(select(HariAbsen).options(joinedload(HariAbsen.dudi)).where(HariAbsen.id_dudi == id_dudi))).scalars().all()
 
@@ -100,41 +101,42 @@ async def UpdateJadwalAbsen(id_dudi : int,hari : list[UpdateHariAbsenBody],sessi
                     if hariItem.batas_absen_masuk > hariItem.batas_absen_pulang :
                         raise HttpException(400,"keselahan dalam memasukkan waktu,harap periksa kembali")
 
+                print(hariItem)
                 updateTable(hariItem,findHari)
                 print(findHari.__dict__)
                 hariResponseList.append(findHari.__dict__.copy())
 
-    listAddHariForDb = []  
+    # listAddHariForDb = []  
     
-    if len(hari) > 0 :
-        # looping hariItem on addHari pydantic model
-        for addHariItem in hari :
-            # cek apakah batas absen mauk lebih besar dari batas absen pulang
-            if addHariItem.batas_absen_masuk > addHariItem.batas_absen_pulang :
-                raise HttpException(400,"keselahan dalam memasukkan waktu,harap periksa kembali")              
+    # if len(hari) > 0 :
+    #     # looping hariItem on addHari pydantic model
+    #     for addHariItem in hari :
+    #         # cek apakah batas absen mauk lebih besar dari batas absen pulang
+    #         if addHariItem.batas_absen_masuk > addHariItem.batas_absen_pulang :
+    #             raise HttpException(400,"keselahan dalam memasukkan waktu,harap periksa kembali")              
             
-            if addHariItem.batas_absen_masuk > addHariItem.batas_absen_pulang :
-                raise HttpException(400,"keselahan dalam memasukkan waktu,harap periksa kembali")
+    #         if addHariItem.batas_absen_masuk > addHariItem.batas_absen_pulang :
+    #             raise HttpException(400,"keselahan dalam memasukkan waktu,harap periksa kembali")
 
-            # cek apakah hari yang ingin ditambahkan sudah ada di database
-            existInDb = next((hariDb for hariDb in findJadwal if hariDb.__dict__["hari"] == addHariItem.hari),None)
+    #         # cek apakah hari yang ingin ditambahkan sudah ada di database
+    #         existInDb = next((hariDb for hariDb in findJadwal if hariDb.__dict__["hari"] == addHariItem.hari),None)
 
-            if existInDb or addHariItem.hari == None:
-                continue
+    #         if existInDb or addHariItem.hari == None:
+    #             continue
             
-            # mapping hari item and add property id and id_jadwal
-            addHariItemMapping = addHariItem.model_dump()
-            addHariItemMapping.update({"id" : random_strings.random_digits(6),"id_dudi" : id_dudi})
+    #         # mapping hari item and add property id and id_jadwal
+    #         addHariItemMapping = addHariItem.model_dump()
+    #         addHariItemMapping.update({"id" : random_strings.random_digits(6),"id_dudi" : id_dudi})
 
-            # add to list and add_all later
-            listAddHariForDb.append(HariAbsen(**addHariItemMapping))
+    #         # add to list and add_all later
+    #         listAddHariForDb.append(HariAbsen(**addHariItemMapping))
 
-            # add to lis response
-            hariResponseList.append(addHariItemMapping)
+    #         # add to lis response
+    #         hariResponseList.append(addHariItemMapping)
     
     # if list add hari for db is not empty
-    if len(listAddHariForDb) > 0 :
-        session.add_all(listAddHariForDb)
+    # if len(listAddHariForDb) > 0 :
+    #     session.add_all(listAddHariForDb)
 
     await session.commit()
 
