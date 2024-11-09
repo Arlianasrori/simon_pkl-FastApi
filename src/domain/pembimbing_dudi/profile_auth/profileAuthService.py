@@ -41,7 +41,7 @@ async def getProfile(id_pembimbing_dudi : int,session : AsyncSession) -> Pembimb
     }
 
 async def updateProfile(id_pembimbing_dudi : int,pembimbingDudi : UpdateProfileBody,session : AsyncSession) -> PembimbingDudiBase :
-    findPembimbingDudi = (await session.execute(select(PembimbingDudi).where(PembimbingDudi.id == id_pembimbing_dudi))).scalar_one_or_none()
+    findPembimbingDudi = (await session.execute(select(PembimbingDudi).options(joinedload(PembimbingDudi.alamat)).where(PembimbingDudi.id == id_pembimbing_dudi))).scalar_one_or_none()
 
     if not findPembimbingDudi :
         raise HttpException(404,f"Pembimbing Dudi dengan id {id_pembimbing_dudi} tidak ditemukan")
@@ -50,9 +50,12 @@ async def updateProfile(id_pembimbing_dudi : int,pembimbingDudi : UpdateProfileB
         findPembimbingDudiByUsername = (await session.execute(select(PembimbingDudi).where(and_(PembimbingDudi.username == pembimbingDudi.username,PembimbingDudi.id != id_pembimbing_dudi)))).scalar_one_or_none()
         if findPembimbingDudiByUsername :
             raise HttpException(400,f"Pembimbing Dudi dengan username {pembimbingDudi.username} sudah ada")
-    print(pembimbingDudi.model_dump())
+        
     if pembimbingDudi.model_dump() != {} :
-        updateTable(pembimbingDudi,findPembimbingDudi)
+        updateTable(pembimbingDudi.model_dump(exclude={"alamat"}),findPembimbingDudi)
+
+    if pembimbingDudi.alamat :
+        updateTable(pembimbingDudi.alamat,findPembimbingDudi.alamat)
     
     pembimbingDudiDictCopy = deepcopy(findPembimbingDudi.__dict__)
     await session.commit()

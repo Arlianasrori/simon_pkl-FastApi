@@ -6,7 +6,7 @@ from ..auth.dependsAuthMiddleware.guru_pembimbing.depend_auth_guru_pembimbing im
 from ..auth.dependsAuthMiddleware.guru_pembimbing.get_guru_pembimbing_auth import getGuruPembimbingAuth
 
 # profile-auth
-from ..domain.models_domain.guru_pembimbing_model import GuruPembimbingBase,GuruPembimbingWithSekolahAlamat
+from ..domain.models_domain.guru_pembimbing_model import GuruPembimbingBase,GuruPembimbingWithSekolahAlamat,GuruPembimbingWithAlamat
 from ..domain.guru_pembimbing.profile_auth import profileAuthService
 from ..domain.guru_pembimbing.profile_auth.profileAuthModel import UpdateProfileBody
 
@@ -68,7 +68,7 @@ async def getGuruPembimbing(guru : dict = Depends(getGuruPembimbingAuth),session
 async def getGuruPembimbingProfile(guru : dict = Depends(getGuruPembimbingAuth),session : sessionDepedency = None):
     return await profileAuthService.getProfileAuth(guru["id"],session)
 
-@guruPembimbingRouter.put("/profile",response_model=ResponseModel[GuruPembimbingBase],tags=["GURU-PEMBIMBING/PROFILE-AUTH"])
+@guruPembimbingRouter.put("/profile",response_model=ResponseModel[GuruPembimbingWithAlamat],tags=["GURU-PEMBIMBING/PROFILE-AUTH"])
 async def updateGuruPembimbing(guru : dict = Depends(getGuruPembimbingAuth),body : UpdateProfileBody = UpdateProfileBody(),session : sessionDepedency = None):
     return await profileAuthService.updateProfile(guru["id"],body,session)
 

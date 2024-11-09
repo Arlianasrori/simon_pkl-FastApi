@@ -9,7 +9,7 @@ from ..auth.dependsAuthMiddleware.siswa.get_siswa_auth import getSiswaAuth
 # profile-auth
 from ..domain.siswa.profile_auth import profileAuthService
 from ..domain.siswa.profile_auth.profileAuthModel import UpdateProfileBody
-from ..domain.models_domain.siswa_model import SiswaBase,SiswaWithJurusanKelas,DetailSiswaDudiAlamat
+from ..domain.models_domain.siswa_model import SiswaBase,SiswaWithJurusanKelas,DetailSiswaDudiAlamat,SiswaWithAlamat
 
 # get_dudi
 from ..domain.siswa.get_dudi import getDudiService
@@ -86,7 +86,7 @@ async def getProfile(siswa : dict = Depends(getSiswaAuth),session : sessionDeped
 async def updateFotoProfile(foto_profile : UploadFile,siswa : dict = Depends(getSiswaAuth),session : sessionDepedency = None):
     return await profileAuthService.updateFotoProfile(siswa["id"],foto_profile,session)
 
-@siswaRouter.put("/profile",response_model=ResponseModel[SiswaWithJurusanKelas],tags=["SISWA/PROFILE-AUTH"])
+@siswaRouter.put("/profile",response_model=ResponseModel[SiswaWithAlamat],tags=["SISWA/PROFILE-AUTH"])
 async def updateProfile(body : UpdateProfileBody = UpdateProfileBody(),siswa : dict = Depends(getSiswaAuth),session : sessionDepedency = None):
     return await profileAuthService.updateProfile(siswa["id"],body,session)
 

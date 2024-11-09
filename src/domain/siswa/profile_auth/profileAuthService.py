@@ -5,7 +5,7 @@ from sqlalchemy import select,and_
 from sqlalchemy.orm import joinedload
 
 # models
-from ...models_domain.siswa_model import SiswaBase,DetailSiswa,SiswaWithJurusanKelas
+from ...models_domain.siswa_model import SiswaBase,DetailSiswa,SiswaWithAlamat
 from ....models.dudiModel import Dudi
 from ....models.siswaModel import Siswa,Jurusan,Kelas
 from .profileAuthModel import UpdateProfileBody
@@ -41,7 +41,7 @@ async def getProfileAuth(id_siswa : int,session : AsyncSession) -> DetailSiswa :
     }
 
 
-async def updateProfile(id_siswa : int,siswa : UpdateProfileBody,session : AsyncSession) -> SiswaWithJurusanKelas :
+async def updateProfile(id_siswa : int,siswa : UpdateProfileBody,session : AsyncSession) -> SiswaWithAlamat :
     findSiswa = (await session.execute(select(Siswa).options(joinedload(Siswa.kelas),joinedload(Siswa.jurusan),joinedload(Siswa.alamat)).where(Siswa.id == id_siswa))).scalar_one_or_none()
     if not findSiswa :
         raise HttpException(400,f"Siswa dengan id {id_siswa} tidak ditemukan")
@@ -60,9 +60,13 @@ async def updateProfile(id_siswa : int,siswa : UpdateProfileBody,session : Async
             raise HttpException(400,f"Kelas dengan id {siswa.id_kelas} tidak ditemukan")
     
     if siswa.model_dump(exclude_unset=True) :
-        updateTable(siswa,findSiswa)
+        updateTable(siswa.model_dump(exclude={"alamat"}),findSiswa)
+
+    if siswa.alamat :
+        updateTable(siswa.alamat, findSiswa)
     
     siswaDictCopy = deepcopy(findSiswa.__dict__)
+    
     await session.commit()
     return {
         "msg" : "success",

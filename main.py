@@ -12,6 +12,8 @@ from dotenv import load_dotenv
 # Load environment variables from .env file
 load_dotenv("/.env")
 
+print("tes")
+
 # Import models from src module
 from src.models import *
 

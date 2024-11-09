@@ -6,7 +6,7 @@ from sqlalchemy import select,and_
 from sqlalchemy.orm import joinedload
 
 # models
-from ...models_domain.guru_pembimbing_model import GuruPembimbingBase,GuruPembimbingWithSekolahAlamat
+from ...models_domain.guru_pembimbing_model import GuruPembimbingBase,GuruPembimbingWithSekolahAlamat,GuruPembimbingWithAlamat
 from ....models.guruPembimbingModel import GuruPembimbing
 from .profileAuthModel import UpdateProfileBody
 
@@ -40,8 +40,8 @@ async def getProfileAuth(id_guru_pembimbing : int,session : AsyncSession) -> Gur
     }
 
 
-async def updateProfile(id_guru : int,guruPembimbing : UpdateProfileBody,session : AsyncSession) -> GuruPembimbingBase:
-    findGuruPembimbing = (await session.execute(select(GuruPembimbing).where(GuruPembimbing.id == id_guru))).scalar_one_or_none()
+async def updateProfile(id_guru : int,guruPembimbing : UpdateProfileBody,session : AsyncSession) -> GuruPembimbingWithAlamat:
+    findGuruPembimbing = (await session.execute(select(GuruPembimbing).options(joinedload(GuruPembimbing.alamat)).where(GuruPembimbing.id == id_guru))).scalar_one_or_none()
     if not findGuruPembimbing :
         raise HttpException(404,f"Guru Pembimbing dengan id {id_guru} tidak ditemukan")
     
@@ -56,7 +56,10 @@ async def updateProfile(id_guru : int,guruPembimbing : UpdateProfileBody,session
             raise HttpException(400,f"Guru Pembimbing dengan nomor telepon {guruPembimbing.no_telepon} sudah ditambahkan")
     
     if guruPembimbing.model_dump(exclude_unset=True) :
-        updateTable(guruPembimbing,findGuruPembimbing)
+        updateTable(guruPembimbing.model_dump(exclude={"alamat"}),findGuruPembimbing)
+    
+    if guruPembimbing.alamat :
+        updateTable(guruPembimbing.alamat,findGuruPembimbing.alamat)
 
     guruPembimbingDictCopy = deepcopy(findGuruPembimbing.__dict__)
     await session.commit()

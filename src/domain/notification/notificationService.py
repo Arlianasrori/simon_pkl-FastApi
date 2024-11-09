@@ -20,7 +20,7 @@ from firebase_admin import credentials, messaging
 import os
 
 # Inisialisasi SDK dengan file kunci layanan Anda
-cred = credentials.Certificate(os.getenv("FCM_PATH_KEY"))
+cred = credentials.Certificate(f"{os.getcwd()}/{os.getenv("FCM_PATH_KEY")}")
 firebase_admin.initialize_app(cred)
 
 class UserType(Enum):
