@@ -4,7 +4,7 @@ from sqlalchemy import func, select,case,and_
 from sqlalchemy.orm import joinedload
 
 # models
-from .getDudiModel import FilterGetDudiQuery,ResponseGetDudiPag
+from .getDudiModel import FilterGetDudiQuery,ResponseGetDudiPag,GetDudiResponse
 from ....models.dudiModel import Dudi,KuotaSiswa,KuotaSiswaByJurusan
 from ...models_domain.dudi_model import DudiWithAlamat
 from ....models.siswaModel import Siswa
@@ -13,7 +13,7 @@ from ....models.types import JenisKelaminEnum
 # common
 from ....error.errorHandling import HttpException
 
-async def getDudi(id_siswa : int,id_sekolah : int,page : int,filter : FilterGetDudiQuery,session : AsyncSession) -> ResponseGetDudiPag :
+async def getDudi(id_siswa : int,id_sekolah : int,page : int,filter : FilterGetDudiQuery,session : AsyncSession) -> ResponseGetDudiPag | list[GetDudiResponse]:
     findSiswa = (await session.execute(select(Siswa).options(joinedload(Siswa.jurusan)).where(Siswa.id == id_siswa))).scalar_one_or_none()
 
     if not findSiswa :
@@ -32,7 +32,14 @@ async def getDudi(id_siswa : int,id_sekolah : int,page : int,filter : FilterGetD
     )
     
     # findDudi dan jumlah siswa yang ada pada dudi tersebut
-    findDudi = (await session.execute(select(Dudi,siswa_count.c.jumlah_siswa_pria,siswa_count.c.jumlah_siswa_wanita).outerjoin(siswa_count, Dudi.id == siswa_count.c.id_dudi).options(joinedload(Dudi.alamat),joinedload(Dudi.kuota).subqueryload(KuotaSiswa.kuota_jurusan).joinedload(KuotaSiswaByJurusan.jurusan)).where(and_(Dudi.nama_instansi_perusahaan.ilike(f"%{filter.nama_instansi_perusahaan}%") if filter.nama_instansi_perusahaan else True,Dudi.id_sekolah == id_sekolah)).limit(10).offset(10 * (page - 1)))).all()
+    selectStatement = select(Dudi,siswa_count.c.jumlah_siswa_pria,siswa_count.c.jumlah_siswa_wanita).outerjoin(siswa_count, Dudi.id == siswa_count.c.id_dudi).options(joinedload(Dudi.alamat),joinedload(Dudi.kuota).subqueryload(KuotaSiswa.kuota_jurusan).joinedload(KuotaSiswaByJurusan.jurusan)).where(and_(Dudi.nama_instansi_perusahaan.ilike(f"%{filter.nama_instansi_perusahaan}%") if filter.nama_instansi_perusahaan else True,Dudi.id_sekolah == id_sekolah))
+    
+    findDudi = None
+    
+    if page :
+        findDudi = (await session.execute(selectStatement.limit(10).offset((page - 1) * 10))).all()
+    else :
+        findDudi = (await session.execute(selectStatement)).all()
 
     responseDudiList = [] # digunakan untuk response ke user tanpa merefresh database setelah commit 
     for dudi in findDudi :
@@ -156,18 +163,24 @@ async def getDudi(id_siswa : int,id_sekolah : int,page : int,filter : FilterGetD
         
 
     # get total dudi yang ada
-    countData = (await session.execute(select(func.count(Dudi.id)).where(and_(Dudi.nama_instansi_perusahaan.ilike(f"%{filter.nama_instansi_perusahaan}%") if filter.nama_instansi_perusahaan else True,Dudi.id_sekolah == id_sekolah)))).scalar_one()
-    # get total page yang ada 
-    countPage = math.ceil(countData / 10)
+    if page :
+        countData = (await session.execute(select(func.count(Dudi.id)).where(and_(Dudi.nama_instansi_perusahaan.ilike(f"%{filter.nama_instansi_perusahaan}%") if filter.nama_instansi_perusahaan else True,Dudi.id_sekolah == id_sekolah)))).scalar_one()
+        # get total page yang ada 
+        countPage = math.ceil(countData / 10)
 
-    return {
-        "msg" : "success",
-        "data" : {
-            "data" : responseDudiList,
-            "count_data" : len(responseDudiList),
-            "count_page" : countPage
+        return {
+            "msg" : "success",
+            "data" : {
+                "data" : responseDudiList,
+                "count_data" : len(responseDudiList),
+                "count_page" : countPage
+            }
         }
-    }
+    else :
+        return {
+            "msg" : "success",
+            "data" : responseDudiList
+        }
 
 async def getDudiById(id_dudi : int,id_sekolah : int,session : AsyncSession) -> DudiWithAlamat :
     findDudi = (await session.execute(select(Dudi).options(joinedload(Dudi.alamat)).where(and_(Dudi.id == id_dudi,Dudi.id_sekolah == id_sekolah)))).scalar_one_or_none()

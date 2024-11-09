@@ -17,7 +17,7 @@ class AddJadwalAbsenBody(BaseModel) :
 
 class UpdateHariAbsenBody(BaseModel) :
     id : int | None = None
-    hari : HariEnum | None = None
+    # hari : HariEnum | None = None
     enable : bool | None = None
     batas_absen_masuk : Time | None = None
     batas_absen_pulang : Time | None = None

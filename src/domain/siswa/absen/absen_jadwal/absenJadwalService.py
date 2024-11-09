@@ -71,17 +71,17 @@ async def cekAbsen(id_siswa : int,id_dudi : int | None,koordinat : RadiusBody,se
     # find jadwal hari ini
     findHariAbsenNow = (await session.execute(select(HariAbsen).where(and_(HariAbsen.id_dudi == id_dudi,HariAbsen.hari == dayNow.value)))).scalar_one_or_none()
 
-    # # jika tidak ada jadwal absen untuk hari ini
+    # jika tidak ada jadwal absen untuk hari ini
     if not findHariAbsenNow :
         return {
             "msg" : "tidak ada jadwal absen untuk hari ini",
             "data" : {
-                "canAbsen" : False
+                "canAbsen" : False,
+                "jenis_absen" : None
             }
         }
-
-    # jika tidak ada jadwal absen untuk hari ini
-    if not findHariAbsenNow :
+        
+    if not findHariAbsenNow.enable :
         return {
             "msg" : "tidak ada jadwal absen untuk hari ini",
             "data" : {
