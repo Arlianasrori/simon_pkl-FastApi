@@ -27,11 +27,11 @@ jobs :
       # - name : "update database url"
       #   run : sed -i 's/^DATABASE_URL=.*/DATABASE_URL=postgresql+asyncpg://${{ secrets.DB_USER }}:${{ secrets.DB_PASSWORD }}@${{ secrets.DB_HOSt }}:${{ secrets.DB_PORT }}/${{ secrets.DB_NAME }}' .env
       - name : create ENV for testing
-        run : echo "DATABASE_URL=postgresql://user:password@localhost:5432/mydb" > .env
+        run : echo "DATABASE_URL=postgresql+asyncpg://postgres:habil123@localhost:5432/simon_pkl" > .env && echo "FCM_PATH_KEY=simon-pkl-2a7c6-firebase-adminsdk-zvkwd-08e150fa34 (2).json"
 
       - name : cat env
         run : cat .env
-        
+
       - name : "run server"
         run : "poetry run uvicorn main:App --port 2008 --reload"
       
