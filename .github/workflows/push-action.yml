@@ -14,8 +14,8 @@ jobs :
 
       - name : install package
         run : sudo apt update -y && sudo apt install software-properties-common pip postgresql-client curl -y && sudo add-apt-repository ppa:deadsnakes/ppa && sudo apt update -y && sudo apt install python3.12 && pip install poetry
-        
-       - name : cek python version
+
+      - name : cek python version
         run : python --version
 
       - name : "install depedencies"
