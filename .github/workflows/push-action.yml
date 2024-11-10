@@ -7,13 +7,13 @@ on :
 jobs :
   setUp :
     name : setUp app
-    runs-on : ubuntu-latest
+    runs-on : ubuntu-20.04
     steps :
       - name : Check out the repo
         uses : actions/checkout@v3
 
       - name : install package
-        run : sudo apt update -y && sudo apt install python3.12 pip postgresql-client curl -y && pip install poetry
+        run : sudo apt update -y && sudo apt install python3.12.3 pip postgresql-client curl -y && pip install poetry
 
       - name : "install depedencies"
         run : poetry install
