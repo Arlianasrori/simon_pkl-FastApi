@@ -52,6 +52,12 @@ App = FastAPI(
     contact={"name": "Habil Arlian Asrori", "email": "arlianasrori@gmail.com"}
 )
 
+App.get("/")
+def root() :
+    return {
+        "msg" : "welcome to simon API"
+    }
+
 # Add routers to the application
 routes = [authRouter, developerRouter, adminRouter,pembimbingDudiRouter,guruPembimbingRouter,siswaRouter,chatRouter]
 for router in routes:
