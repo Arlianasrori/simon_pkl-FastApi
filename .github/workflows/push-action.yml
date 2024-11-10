@@ -19,7 +19,7 @@ jobs :
         run : python --version
 
       - name : "install depedencies"
-        run : poetry install
+        run : poetry lock --no-update && poetry install
 
       # - name : "testing connect db"
         # run : psql -h ${{ secrets.DB_HOST }} -p ${{ secrets.DB_PORT }} -U ${{ secrets.DB_USER }} <DB_NAME> -p ${{ secrets.DB_PASSWORD }}
