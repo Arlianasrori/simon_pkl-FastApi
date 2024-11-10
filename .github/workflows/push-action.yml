@@ -28,7 +28,7 @@ jobs :
       #   run : sed -i 's/^DATABASE_URL=.*/DATABASE_URL=postgresql+asyncpg://${{ secrets.DB_USER }}:${{ secrets.DB_PASSWORD }}@${{ secrets.DB_HOSt }}:${{ secrets.DB_PORT }}/${{ secrets.DB_NAME }}' .env
 
       - name : "run server"
-        run : "uvicorn main:App --port 2008 --reload"
+        run : "poetry run uvicorn main:App --port 2008 --reload"
       
       - name : "test some endPoint"
         run : curl http://localhost:2008
