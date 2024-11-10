@@ -8,9 +8,10 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.cron import CronTrigger
 
 from dotenv import load_dotenv
+import os
 
 # Load environment variables from .env file
-load_dotenv("/.env")
+load_dotenv(f"{os.getcwd()}/.env")
 
 print("tes")
 
