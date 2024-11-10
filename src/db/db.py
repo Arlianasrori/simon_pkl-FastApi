@@ -5,8 +5,6 @@ import os
 DATABASE_URL = os.environ.get("DATABASE_URL")
 print(DATABASE_URL)
 
-if not DATABASE_URL :
-    print("error : DATABASE URL REQUIRED")
 engine = create_async_engine(
     DATABASE_URL if DATABASE_URL else "postgresql+asyncpg://testing:testing@localhost:5432/testing",
     future=True,
