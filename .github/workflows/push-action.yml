@@ -26,8 +26,7 @@ jobs :
 
       # - name : "update database url"
       #   run : sed -i 's/^DATABASE_URL=.*/DATABASE_URL=postgresql+asyncpg://${{ secrets.DB_USER }}:${{ secrets.DB_PASSWORD }}@${{ secrets.DB_HOSt }}:${{ secrets.DB_PORT }}/${{ secrets.DB_NAME }}' .env
-      - name : Create env for testing
-        run : echo "DATABASE_URL=postgresql://postgres:testing@localhost:5432/mydb" > .env
+
       - name : "run server"
         run : "poetry run uvicorn main:App --port 2008 --reload"
       
