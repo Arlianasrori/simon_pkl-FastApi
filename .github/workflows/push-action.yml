@@ -13,7 +13,7 @@ jobs :
         uses : actions/checkout@v3
 
       - name : install package
-        run : sudo apt update -y && sudo apt install software-properties-common pip postgresql-client curl -y && sudo add-apt-repository ppa:deadsnakes/ppa && sudo apt update -y && sudo apt install python3.12 && pip install poetry
+        run : sudo apt update -y && sudo apt install software-properties-common pip postgresql-client curl -y && sudo add-apt-repository ppa:deadsnakes/ppa && sudo apt update -y && sudo apt install python3.12.3 -y && pip install poetry
 
       - name : cek python version
         run : python --version
