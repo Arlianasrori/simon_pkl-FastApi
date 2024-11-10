@@ -36,7 +36,7 @@ jobs :
         run : "poetry run uvicorn main:App --port 2008 --reload &"
       
       - name : "test some endPoint"
-        run : curl http://localhost:2008
+        run : curl http://localhost:2008/
   
   build-image-push :
     name : "build imsge and push image to docker registry"
@@ -57,4 +57,4 @@ jobs :
         with:
           context: "."
           push: true
-          tags: arlianasrori/simonPkl:latest
+          tags: arlianasrori/simonpkl:latest

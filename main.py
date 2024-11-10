@@ -53,7 +53,7 @@ App = FastAPI(
     contact={"name": "Habil Arlian Asrori", "email": "arlianasrori@gmail.com"}
 )
 
-App.get("/")
+@App.get("/")
 def root() :
     return {
         "msg" : "welcome to simon API"
