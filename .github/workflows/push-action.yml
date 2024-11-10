@@ -33,7 +33,7 @@ jobs :
         run : cat .env
 
       - name : "run server"
-        run : "poetry run uvicorn main:App --port 2008 --reload"
+        run : "poetry run uvicorn main:App --port 2008 --reload &"
       
       - name : "test some endPoint"
         run : curl http://localhost:2008

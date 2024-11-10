@@ -1,0 +1,10 @@
+INFO:apscheduler.scheduler:Adding job tentatively -- it will be properly scheduled when the scheduler starts
+INFO:     Started server process [47820]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+ERROR:    [Errno 98] error while attempting to bind on address ('127.0.0.1', 2008): address already in use
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+tes
+postgresql+asyncpg://postgres:habil123@localhost:5432/simon_pkl
+hya
