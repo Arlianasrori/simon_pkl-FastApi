@@ -1,4 +1,4 @@
-FROM python:3.12.3-alpine
+FROM python:3.12.0-alpine
 
 ENV DATABASE_URL="postgresql+asyncpg://postgres:habil123@localhost:5432/simon_pkl"
 ENV FCM_PATH_KEY="simon-pkl-2a7c6-firebase-adminsdk-zvkwd-08e150fa34 (2).json"
