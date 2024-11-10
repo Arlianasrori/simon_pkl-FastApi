@@ -7,13 +7,13 @@ on :
 jobs :
   setUp :
     name : setUp app
-    runs-on : ubuntu-20.04
+    runs-on : ubuntu-24.04
     steps :
       - name : Check out the repo
         uses : actions/checkout@v3
 
       - name : install package
-        run : sudo apt update -y && sudo apt install software-properties-common pip postgresql-client curl -y && sudo add-apt-repository ppa:deadsnakes/ppa && sudo apt update -y && sudo apt install python3.12.3 -y && pip install poetry
+        run : sudo apt update -y && sudo apt install python3 software-properties-common pip postgresql-client curl -y && pip install poetry
 
       - name : cek python version
         run : python --version
