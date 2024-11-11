@@ -13,7 +13,7 @@ jobs :
         uses : actions/checkout@v3
       
       - name : tes ssh
-        run : sh root@103.56.148.178
+        run : ssh root@103.56.148.178
 
       - name : install package
         run : sudo apt update -y && sudo apt install python3 software-properties-common pip postgresql-client curl -y && pip install poetry
