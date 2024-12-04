@@ -60,7 +60,7 @@ from ..domain.models_domain.laporan_kendala_dudi_model import LaporanKendalaDudi
 
 # absen
 from ..domain.admin.absen.absenModel import FilterAbsenQuery,ResponseAbsenPag
-from ..domain.models_domain.absen_model import MoreAbsen
+from ..domain.models_domain.absen_model import MoreAbsenWithDokumenSakit
 from ..domain.admin.absen import absenService
 
 # auth depends
@@ -289,6 +289,6 @@ async def getAllLaporanKendalaDudi(id_laporan : int,admin : dict = Depends(getAd
 async def getAllAbsen(id_tahun : int,page : int,filter : FilterAbsenQuery = Depends(),admin : dict = Depends(getAdminAuth), session : sessionDepedency = None) :
     return await absenService.getAllAbsen(page,admin["id_sekolah"],id_tahun,filter,session)
 
-@adminRouter.get("/absen/{id_absen}",response_model=ResponseModel[MoreAbsen],tags=["ADMIN/ABSEN"])
+@adminRouter.get("/absen/{id_absen}",response_model=ResponseModel[MoreAbsenWithDokumenSakit],tags=["ADMIN/ABSEN"])
 async def getAbsenById(id_absen : int,admin : dict = Depends(getAdminAuth), session : sessionDepedency = None) :
     return await absenService.getAbsenById(id_absen,admin["id_sekolah"],session)

@@ -1,10 +1,10 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import func, select, and_
-from sqlalchemy.orm import joinedload
+from sqlalchemy.orm import joinedload, subqueryload
 
 # models
 from .absenModel import FilterAbsenQuery
-from ...models_domain.absen_model import MoreAbsen, SiswaWithAbsen
+from ...models_domain.absen_model import MoreAbsenWithDokumenSakit, SiswaWithAbsen
 from ....models.absenModel import Absen
 from ....models.siswaModel import Siswa
 
@@ -32,7 +32,7 @@ async def getAllAbsen(page: int, id_sekolah: int, id_tahun: int, query: FilterAb
         startQuery = datetime.date(query.year if query.year else now.year, query.month if query.month else 1, 1)
         endQuery = datetime.date(query.year if query.year else now.year, query.month if query.month else 12, 31)
 
-    getSiswaWithAbsen = (await session.execute(select(Siswa).options(joinedload(Siswa.absen.and_(and_((Absen.tanggal >= startQuery, Absen.tanggal <= endQuery) if query.month or query.year else True, Absen.tanggal == query.tanggal if query.tanggal else True, Absen.id_siswa == query.id_siswa if query.id_siswa else True, Absen.status == query.status if query.status else True)))).limit(10).offset(10 * (page - 1)).where(and_(Siswa.id_sekolah == id_sekolah, Siswa.id_tahun == id_tahun)))).scalars().all()
+    getSiswaWithAbsen = (await session.execute(select(Siswa).options(subqueryload(Siswa.absen.and_(and_((Absen.tanggal >= startQuery, Absen.tanggal <= endQuery) if query.month or query.year else True, Absen.tanggal == query.tanggal if query.tanggal else True, Absen.id_siswa == query.id_siswa if query.id_siswa else True, Absen.status == query.status if query.status else True)))).limit(10).offset(10 * (page - 1)).where(and_(Siswa.id_sekolah == id_sekolah, Siswa.id_tahun == id_tahun)))).scalars().all()
 
     conntData = (await session.execute(func.count(Siswa.id))).scalar_one()
     countPage = math.ceil(conntData / 10)
@@ -46,7 +46,7 @@ async def getAllAbsen(page: int, id_sekolah: int, id_tahun: int, query: FilterAb
         }
     }
 
-async def getAbsenById(id_absen: int, id_sekolah, session: AsyncSession) -> MoreAbsen:
+async def getAbsenById(id_absen: int, id_sekolah, session: AsyncSession) -> MoreAbsenWithDokumenSakit:
     """
     Retrieve a specific attendance record by its ID.
 
@@ -61,7 +61,7 @@ async def getAbsenById(id_absen: int, id_sekolah, session: AsyncSession) -> More
     Raises:
         HttpException: If the attendance record is not found.
     """
-    findAbsen = (await session.execute(select(Absen).options(joinedload(Absen.siswa), joinedload(Absen.keterangan_absen_masuk), joinedload(Absen.keterangan_absen_pulang)).where(and_(Absen.id == id_absen, Absen.siswa.has(Siswa.id_sekolah == id_sekolah))))).scalar_one_or_none()
+    findAbsen = (await session.execute(select(Absen).options(joinedload(Absen.siswa), joinedload(Absen.keterangan_absen_masuk), joinedload(Absen.keterangan_absen_pulang),joinedload(Absen.dokumenSakit)).where(and_(Absen.id == id_absen, Absen.siswa.has(Siswa.id_sekolah == id_sekolah))))).scalar_one_or_none()
 
     if not findAbsen:
         raise HttpException(404, "absen tidak ditemukan")
